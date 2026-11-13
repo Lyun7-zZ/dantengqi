@@ -40,12 +40,14 @@ export class Session {
    * @param {(action:any) => {ok:boolean, error?:string, state?:any}} opts.apply 应用行动
    * @param {(evt:object) => void} opts.onEvent
    */
-  constructor({ transport, role, config, getState, apply, onEvent, random = Math.random, heartbeat = {} }) {
+  constructor({ transport, role, config, getState, apply, validate, resolve, onEvent, random = Math.random, heartbeat = {} }) {
     this.transport = transport;
     this.role = role;
     this.config = config;
     this.getState = getState;
     this.apply = apply;
+    this.validate = validate;
+    this.resolve = resolve;
     this.onEvent = onEvent ?? (() => {});
     this.random = random;
     this.hbInterval = heartbeat.intervalMs ?? 3000;
@@ -55,6 +57,7 @@ export class Session {
     this.them = 1 - this.me;
     this.phase = PHASE.IDLE;
     this.resuming = false;
+    this.pending = [null, null];
     this.snapshotProvider = null;
     this.onTransportOpen = null;
     this.remote = null;
@@ -197,7 +200,8 @@ export class Session {
       case "priority": return this._onPriority(msg);
       case "side": return this._onSide(msg);
       case "start": return this._onStart(msg);
-      case "action": return this._onAction(msg);
+      case "commit": return this._onCommit(msg);
+      case "action": return this._onCommit(msg);
       case "snapshot": return this._onSnapshot(msg);
       case "undoReq": return this._emit({ type: "undoReq" });
       case "undoRes": return this._emit({ type: "undoRes", accept: !!msg.accept });
@@ -345,40 +349,54 @@ export class Session {
 
   /* ------------------------------------------------------------ 行动同步 */
 
-  /** 本地落子：先本地应用，成功后广播。 */
+  /** 提交本回合行动。双方都到齐后才结算。 */
   localAction(action, elapsedMs = 0) {
-    const res = this.apply(action);
-    if (!res.ok) return res;
+    const seat = this.mySeat;
+    if (seat == null) return { ok: false, error: "not-started" };
     const st = this.getState();
-    this._send(message("action", {
+    const check = this.validate(st, seat, action);
+    if (!check.ok) return check;
+    if (this.pending[seat]) return { ok: false, error: "already-locked" };
+    this.pending[seat] = action;
+    this._send(message("commit", {
       ply: st.plies,
+      seat,
       action,
       elapsedMs,
-      hash: stateHash(st),
     }));
-    return res;
+    return this._maybeResolve() ?? { ok: true, pending: true };
   }
 
-  _onAction(msg) {
+  _onCommit(msg) {
     const before = this.getState();
-    if (msg.ply !== before.plies + 1) {
-      this._emit({ type: "error", code: "ply-mismatch", detail: `${msg.ply} != ${before.plies + 1}` });
+    if (msg.ply !== before.plies) {
+      this._emit({ type: "error", code: "ply-mismatch", detail: `${msg.ply} != ${before.plies}` });
       this.close("desync");
       return;
     }
-    const res = this.apply(msg.action);
+    const seat = msg.seat === 1 ? 1 : 0;
+    const check = this.validate(before, seat, msg.action);
+    if (!check.ok) {
+      this._emit({ type: "error", code: "illegal-remote-action", detail: check.error });
+      this.close("desync");
+      return;
+    }
+    this.pending[seat] = msg.action;
+    this._maybeResolve();
+  }
+
+  _maybeResolve() {
+    if (!this.pending[0] || !this.pending[1]) return null;
+    const actions = this.pending;
+    this.pending = [null, null];
+    const res = this.resolve(actions);
     if (!res.ok) {
       this._emit({ type: "error", code: "illegal-remote-action", detail: res.error });
       this.close("desync");
-      return;
+      return res;
     }
-    const after = this.getState();
-    if (stateHash(after) !== msg.hash) {
-      this._emit({ type: "error", code: "desync", detail: "stateHash 不一致" });
-      this.close("desync");
-      return;
-    }
-    this._emit({ type: "remoteAction", action: msg.action, elapsedMs: msg.elapsedMs });
+    this._emit({ type: "resolved", actions, events: res.events, elapsedMs: 0 });
+    return res;
   }
 
   /* ------------------------------------------------------------ 快照 */
@@ -401,7 +419,7 @@ export class Session {
   }
 
   get isMyTurn() {
-    return this.mySeat != null && this.getState().turn === this.mySeat;
+    return this.mySeat != null && this.getState().winner == null && !this.pending[this.mySeat];
   }
 
   /* ---------------------------------------------------------- 悔棋 / 认输 / 再来一局 */
@@ -434,6 +452,7 @@ export class Session {
 
   _startRematch() {
     this.phase = PHASE.READY;
+    this.pending = [null, null];
     this.dice = null;
     this.firstPerson = null;
     this.sideActor = null;

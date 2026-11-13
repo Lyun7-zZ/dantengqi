@@ -1,8 +1,8 @@
 /**
- * 随机与随机数工具：被 ai.js 与 ai-master.js 共用，避免循环依赖。
+ * 随机与随机数工具。
  */
 
-import { legalActions, legalDirs, validateAction } from "./rules.js";
+import { legalActions, autoMove } from "./rules.js";
 
 export function makeRng(seed) {
   let a = seed >>> 0;
@@ -15,15 +15,8 @@ export function makeRng(seed) {
   };
 }
 
-export function randomAI(state, rng) {
-  const actions = legalActions(state);
-  // 随机墙可能封死通路，需要按规则校验；连续命中非法时退化为走子。
-  for (let i = 0; i < 200; i++) {
-    const a = actions[Math.floor(rng() * actions.length)];
-    if (a.type === "move") return a;
-    if (validateAction(state, a).ok) return a;
-  }
-  const p = state.players[state.turn];
-  const dirs = legalDirs(state, p.c, p.r);
-  return { type: "move", dir: dirs[Math.floor(rng() * dirs.length)] };
+export function randomAI(state, seat, rng) {
+  const actions = legalActions(state, seat).filter((a) => a.type !== "wall" || rng() < 0.15);
+  if (actions.length === 0) return autoMove(state, seat);
+  return actions[Math.floor(rng() * actions.length)];
 }

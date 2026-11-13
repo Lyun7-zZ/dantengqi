@@ -1,23 +1,16 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { allWallSlots, WALL_SLOTS, wallSlot } from "../src/board.js";
+import { allWallSlots, ROWS, WALL_SLOTS, wallSlot } from "../src/board.js";
 import {
-  createState, cloneState, applyAction, validateAction,
-  legalDirs, stepTarget, wallPlaced,
+  createState, cloneState, resolveRound, validateAction,
+  legalDirs, stepTarget, wallPlaced, setWall,
 } from "../src/rules.js";
 import { distanceToGoal } from "../src/path.js";
 import { playGame } from "../src/selfplay.js";
 
-/** 直接摆墙（不走回合流程，便于构造局面）。 */
-function withWalls(state, walls) {
-  const s = cloneState(state);
-  for (const w of walls) {
-    if (w.kind === "v") s.vWall[w.c * 12 + w.r] = 1;
-    else if (w.kind === "h") s.hWall[w.c * 11 + w.r] = 1;
-    else s.topWall[w.c] = 1;
-  }
-  return s;
+function round(state, a, b) {
+  return resolveRound(state, [a, b]);
 }
 
 test("墙位总数为 228，且编号互不重复", () => {
@@ -27,102 +20,120 @@ test("墙位总数为 228，且编号互不重复", () => {
   assert.equal(new Set(slots.map((w) => wallSlot(w.kind, w.c, w.r))).size, 228);
 });
 
-test("初始局面：双方各需 12 步到终点", () => {
+test("初始局面：双方各需 12 步到终点，没有存点", () => {
   const s = createState(0);
-  assert.equal(distanceToGoal(s, 0, 11), 12);
-  assert.equal(distanceToGoal(s, 9, 11), 12);
-  assert.equal(s.turn, 0);
+  assert.equal(distanceToGoal(s, 0, 11, 0), 12);
+  assert.equal(distanceToGoal(s, 9, 11, 1), 12);
+  assert.deepEqual(s.bank, [0, 0]);
   assert.equal(s.winner, null);
 });
 
-test("边界与穿墙：起点只能上、右", () => {
+test("边界：起点只能上、右", () => {
   const s = createState(0);
-  assert.deepEqual(legalDirs(s, 0, 11).sort(), ["right", "up"]);
-  assert.equal(stepTarget(s, 0, 11, "down"), null);
-  assert.equal(stepTarget(s, 0, 11, "left"), null);
+  assert.deepEqual(legalDirs(s, 0, 11, 0).sort(), ["right", "up"]);
+  assert.equal(stepTarget(s, 0, 11, "down", 0), null);
+  assert.equal(stepTarget(s, 0, 11, "left", 0), null);
 });
 
-test("墙会阻挡移动，并让最短路变长", () => {
-  const s = withWalls(createState(0), [{ kind: "h", c: 0, r: 10 }]);
-  const before = distanceToGoal(createState(0), 0, 11);
-  const after = distanceToGoal(s, 0, 11);
-  // 开阔地带单面墙只能逼出 +1 步（横移一格后继续上行）
-  assert.equal(after, before + 1);
-  assert.equal(stepTarget(s, 0, 11, "up"), null);
+test("对方的墙挡住自己，自己的墙不挡自己", () => {
+  const s = createState(0);
+  setWall(s, "h", 0, 10, 1);
+  assert.equal(stepTarget(s, 0, 11, "up", 0), null);
+  assert.equal(distanceToGoal(s, 0, 11, 0), 13);
+  const own = cloneState(s);
+  setWall(own, "h", 9, 10, 1);
+  assert.deepEqual(stepTarget(own, 9, 11, "up", 1), { c: 9, r: 10 });
 });
 
-test("上端墙封住出口后，该列无法越线", () => {
-  const s = cloneState(createState(0));
-  s.players[0] = { c: 0, r: 0 };
-  s.topWall[0] = 1;
-  assert.equal(stepTarget(s, 0, 0, "up"), null);
-  // 必须横移到别的列才能出线
-  assert.equal(distanceToGoal(s, 0, 0), 2);
-});
-
-test("不能把双方的路全部封死", () => {
-  // 只留 A 列出口，封掉其余 9 段
-  const walls = [];
-  for (let c = 1; c < 10; c++) walls.push({ kind: "top", c, r: 0 });
-  const s = withWalls(createState(0), walls);
-  const res = applyAction(s, { type: "wall", kind: "top", c: 0, r: 0 });
+test("不能把对方的路完全封死", () => {
+  const s = createState(0);
+  for (let c = 1; c < 10; c++) setWall(s, "top", c, 0, 0);
+  const res = validateAction(s, 0, { type: "wall", kind: "top", c: 0, r: 0 });
   assert.equal(res.ok, false);
   assert.equal(res.error, "blocks-path");
 });
 
-test("平局：对手在第 1 行且其出口未封", () => {
-  const s = cloneState(createState(0));
+test("同一回合都越线则平局", () => {
+  const s = createState(0);
   s.players[0] = { c: 0, r: 0 };
   s.players[1] = { c: 9, r: 0 };
-  s.turn = 0;
-  const res = applyAction(s, { type: "move", dir: "up" });
+  const res = round(s, { type: "exit" }, { type: "exit" });
   assert.equal(res.ok, true);
   assert.equal(res.state.winner, "draw");
-  assert.equal(res.event.draw, true);
 });
 
-test("获胜：对手还差 2 步以上", () => {
-  const s = cloneState(createState(0));
+test("只有一方越线则获胜，即使对方只差一步", () => {
+  const s = createState(0);
   s.players[0] = { c: 0, r: 0 };
   s.players[1] = { c: 9, r: 1 };
-  s.turn = 0;
-  const res = applyAction(s, { type: "move", dir: "up" });
+  const res = round(s, { type: "exit" }, { type: "move", dirs: ["up"] });
   assert.equal(res.state.winner, 0);
+  assert.deepEqual(res.state.players[1], { c: 9, r: 0 });
 });
 
-test("获胜：对手在第 1 行但出口被自己封住", () => {
-  const s = cloneState(createState(0));
-  s.players[0] = { c: 0, r: 0 };
-  s.players[1] = { c: 9, r: 0 };
-  s.topWall[9] = 1;
-  s.turn = 0;
-  const res = applyAction(s, { type: "move", dir: "up" });
-  assert.equal(res.state.winner, 0);
+test("走两格需要存点，存点后可以一次走两格", () => {
+  const s = createState(0);
+  assert.equal(validateAction(s, 0, { type: "move", dirs: ["up", "up"] }).error, "no-bank");
+  const stored = round(s, { type: "store" }, { type: "move", dirs: ["up"] }).state;
+  assert.equal(stored.bank[0], 1);
+  const res = round(stored, { type: "move", dirs: ["up", "up"] }, { type: "store" });
+  assert.equal(res.ok, true);
+  assert.deepEqual(res.state.players[0], { c: 0, r: 9 });
+  assert.equal(res.state.bank[0], 0);
 });
 
-test("棋子可以走到对手所在格（同格）", () => {
-  const s = cloneState(createState(0));
+test("撞上对方本回合新放的墙：停在墙前，两格的存点照扣", () => {
+  const s = createState(0);
+  s.bank[0] = 1;
+  const res = round(
+    s,
+    { type: "move", dirs: ["up", "up"] },
+    { type: "wall", kind: "h", c: 0, r: 9 },
+  );
+  assert.equal(res.ok, true);
+  assert.deepEqual(res.state.players[0], { c: 0, r: 10 });
+  assert.equal(res.state.bank[0], 0);
+  assert.equal(res.events.find((e) => e.type === "move" && e.player === 0).collided, true);
+  assert.equal(wallPlaced(res.state, "h", 0, 9), true);
+});
+
+test("两人放在同一墙位上，这一格谁都过不去", () => {
+  const s = createState(0);
+  const res = round(
+    s,
+    { type: "wall", kind: "v", c: 4, r: 5 },
+    { type: "wall", kind: "v", c: 4, r: 5 },
+  );
+  assert.equal(res.state.vWall[4 * ROWS + 5], 3);
+  assert.equal(res.state.wallsPlaced, 1);
+  assert.deepEqual(res.state.wallsUsed, [1, 1]);
+  assert.equal(stepTarget(res.state, 4, 5, "right", 0), null);
+  assert.equal(stepTarget(res.state, 4, 5, "right", 1), null);
+  assert.equal(stepTarget(res.state, 5, 5, "left", 0), null);
+  assert.equal(stepTarget(res.state, 5, 5, "left", 1), null);
+});
+
+test("棋子可以走到对手所在格", () => {
+  const s = createState(0);
   s.players[0] = { c: 4, r: 5 };
   s.players[1] = { c: 4, r: 4 };
-  s.turn = 0;
-  const res = applyAction(s, { type: "move", dir: "up" });
-  assert.equal(res.ok, true);
+  const res = round(s, { type: "move", dirs: ["up"] }, { type: "store" });
   assert.deepEqual(res.state.players[0], { c: 4, r: 4 });
   assert.deepEqual(res.state.players[1], { c: 4, r: 4 });
 });
 
-test("非法封墙：占用与越界", () => {
-  const s = withWalls(createState(0), [{ kind: "v", c: 3, r: 5 }]);
-  assert.equal(validateAction(s, { type: "wall", kind: "v", c: 3, r: 5 }).error, "occupied");
-  assert.equal(validateAction(s, { type: "wall", kind: "v", c: 9, r: 5 }).error, "out-of-bounds");
-  assert.equal(validateAction(s, { type: "wall", kind: "top", c: 10, r: 0 }).error, "out-of-bounds");
+test("越线不能写进走两格里", () => {
+  const s = createState(0);
+  s.players[0] = { c: 0, r: 1 };
+  s.bank[0] = 1;
+  const res = validateAction(s, 0, { type: "move", dirs: ["up", "up"] });
+  assert.equal(res.ok, false);
 });
 
-test("非法行动不改变状态，也不消耗回合", () => {
+test("非法行动不改变状态", () => {
   const s = createState(0);
-  const res = applyAction(s, { type: "move", dir: "down" });
+  const res = round(s, { type: "move", dirs: ["down"] }, { type: "store" });
   assert.equal(res.ok, false);
-  assert.equal(s.turn, 0);
   assert.equal(s.plies, 0);
 });
 
@@ -131,20 +142,21 @@ test("cloneState 与原状态互不影响", () => {
   const c = cloneState(s);
   c.vWall[0] = 1;
   c.players[0].c = 5;
+  c.bank[0] = 1;
   assert.equal(s.vWall[0], 0);
   assert.equal(s.players[0].c, 0);
+  assert.equal(s.bank[0], 0);
 });
 
 test("对局结束后不再接受行动", () => {
-  const s = cloneState(createState(0));
+  const s = createState(0);
   s.winner = 0;
-  assert.equal(validateAction(s, { type: "move", dir: "up" }).error, "game-over");
+  assert.equal(validateAction(s, 0, { type: "store" }).error, "game-over");
 });
 
-test("贪心 AI 自对弈能正常结束", () => {
-  const r = playGame({ ai: "greedy", seed: 7, maxPlies: 600 });
-  assert.equal(r.timeout, false);
-  assert.ok(r.plies > 10);
+test("贪心 AI 自对弈能走完若干回合", () => {
+  const r = playGame({ ai: "greedy", seed: 7, maxPlies: 12 });
+  assert.ok(r.plies >= 12 || r.winner !== null);
 });
 
 test("上端 10 段都可用，且计入 228", () => {

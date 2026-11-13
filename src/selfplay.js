@@ -2,10 +2,10 @@
  * 自对弈与统计。
  */
 
-import { createState, applyAction } from "./rules.js";
+import { createState, resolveRound } from "./rules.js";
 import { AI, makeRng } from "./ai.js";
 
-export function playGame({ ai = "greedy", seed = 1, firstPlayer = 0, maxPlies = 600, tolerance = 1, wallLimit = Infinity } = {}) {
+export function playGame({ ai = "greedy", seed = 1, firstPlayer = 0, maxPlies = 80, tolerance = 1, wallLimit = Infinity } = {}) {
   const names = Array.isArray(ai) ? ai : [ai, ai];
   const policies = names.map((n) => AI[n]);
   policies.forEach((p) => p.reset?.());
@@ -13,9 +13,9 @@ export function playGame({ ai = "greedy", seed = 1, firstPlayer = 0, maxPlies = 
   let state = createState(firstPlayer, { tolerance, wallLimit });
 
   while (state.winner === null && state.plies < maxPlies) {
-    const action = policies[state.turn](state, rng);
-    const res = applyAction(state, action);
-    if (!res.ok) throw new Error(`AI produced illegal action: ${JSON.stringify(action)} (${res.error})`);
+    const pair = [policies[0](state, 0, rng), policies[1](state, 1, rng)];
+    const res = resolveRound(state, pair);
+    if (!res.ok) throw new Error(`AI produced illegal action: ${JSON.stringify(pair)} (${res.error})`);
     state = res.state;
   }
 

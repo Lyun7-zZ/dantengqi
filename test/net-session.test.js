@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 
 import { memoryPair } from "../src/net/transport.js";
 import { Session, PHASE } from "../src/net/session.js";
-import { createState, applyAction } from "../src/rules.js";
+import { createState, resolveRound, validateAction } from "../src/rules.js";
 import { stateHash, configHash } from "../src/net/protocol.js";
 
 const CONFIG = { perMove: 30, bank: 300, configHash: configHash({ perMove: 30, bank: 300 }) };
@@ -22,11 +22,12 @@ function pair({ heartbeat } = {}) {
     random,
     heartbeat,
     getState: () => states[side],
-    apply: (action) => {
-      const res = applyAction(states[side], action);
+    validate: (state, seat, action) => validateAction(state, seat, action),
+    resolve: (actions) => {
+      const res = resolveRound(states[side], actions);
       if (!res.ok) return { ok: false, error: res.error };
       states[side] = res.state;
-      return { ok: true, state: res.state };
+      return res;
     },
     onEvent: (e) => events[side].push(e),
   });
@@ -75,18 +76,17 @@ test("行动同步：双方状态与哈希一致", async (t) => {
   const p = await startedGame();
   t.after(p.close);
 
-  const seatOfHost = p.host.seats[0];
-  const mover = p.states.host.turn === seatOfHost ? p.host : p.guest;
-
-  const res = mover.localAction({ type: "move", dir: "up" }, 1234);
-  assert.equal(res.ok, true);
+  const resA = p.host.localAction({ type: "move", dirs: ["up"] }, 1234);
+  const resB = p.guest.localAction({ type: "store" }, 10);
+  assert.equal(resA.ok, true);
+  assert.equal(resB.ok, true);
   await flush(30);
 
+  assert.equal(p.states.host.plies, 1);
   assert.equal(stateHash(p.states.host), stateHash(p.states.guest));
 
-  const evt = p.events.host.concat(p.events.guest).find((e) => e.type === "remoteAction");
-  assert.ok(evt, "对方应收到 remoteAction");
-  assert.equal(evt.elapsedMs, 1234);
+  const evt = p.events.host.concat(p.events.guest).find((e) => e.type === "resolved");
+  assert.ok(evt, "双方结算后应收到 resolved");
 });
 
 test("行动顺序错误会判定失同步", async (t) => {
@@ -95,7 +95,7 @@ test("行动顺序错误会判定失同步", async (t) => {
 
   let err = null;
   p.guest.onEvent = (e) => { if (e.type === "error") err = e; };
-  p.host.send("action", { ply: 99, action: { type: "move", dir: "up" }, elapsedMs: 0, hash: "x" });
+  p.host.send("commit", { ply: 99, seat: 0, action: { type: "move", dirs: ["up"] }, elapsedMs: 0 });
   await flush(30);
 
   assert.ok(err);
@@ -108,7 +108,7 @@ test("非法远程行动会被拒绝", async (t) => {
 
   let err = null;
   p.guest.onEvent = (e) => { if (e.type === "error") err = e; };
-  p.host.send("action", { ply: 1, action: { type: "move", dir: "down" }, elapsedMs: 0, hash: "x" });
+  p.host.send("commit", { ply: 0, seat: 1, action: { type: "move", dirs: ["down"] }, elapsedMs: 0 });
   await flush(30);
 
   assert.ok(err);
