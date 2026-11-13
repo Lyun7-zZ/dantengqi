@@ -933,7 +933,7 @@ body {
           <b>普通</b><span>每一步都走最短路</span>
         </button>
         <button class="menuItem" data-level="hard">
-          <b>困难</b><span>四层搜索，会锁路</span>
+          <b>困难</b><span>会预判你的应手</span>
         </button>
         <button class="menuItem" data-level="master">
           <b>大师</b><span>六层搜索 + 锁路计划</span>
@@ -2138,8 +2138,14 @@ function createMasterAI({ timeMs = 1200, maxDepth = 6, usePlan = true } = {}) {
   }
 
   choose.stats = stats;
+  choose.planBudget = () => plansUsed;
   choose.reset = () => {
     plan = null;
+    plansUsed = 0;
+    stats.plans = 0;
+    stats.planWalls = 0;
+    stats.searches = 0;
+    stats.maxPlies = 0;
   };
   choose.planInfo = () => plan;
   return choose;
@@ -4277,6 +4283,7 @@ function finishUndo(agree) {
   const target = S.history[S.history.length - 1];
   S.state = target.state;
   clockRestore(S.clocks, target.clocks);
+  AI[S.mode]?.reset?.();
   S.undoLeft[requester] -= 1;
   S.preview = null;
   S.lastTs = performance.now();
@@ -4353,6 +4360,7 @@ function paintHomeFine() {
 }
 
 function newGame(announce = false) {
+  for (const k of Object.keys(AI)) AI[k]?.reset?.();
   S.state = createState(S.firstSeat);
   S.clocks = createClock({ perMove: S.settings.perMove, bank: S.settings.bank });
   S.history = [{ state: S.state, clocks: clockSnapshot(S.clocks) }];
