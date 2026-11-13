@@ -80,6 +80,8 @@ try {
   const B = await connect(b.page);
 
   await waitFor(async () => (await A.evaluate("!!window.__danteng")) && (await B.evaluate("!!window.__danteng")));
+  await waitFor(async () => (await A.evaluate("!document.getElementById('homeOverlay').hidden"))
+    && (await B.evaluate("!document.getElementById('homeOverlay').hidden")));
 
   // 两端都进入「联机 → 用连接码」
   await A.evaluate("document.getElementById('menuNet').click(); document.getElementById('netManualBtn').click(); true");

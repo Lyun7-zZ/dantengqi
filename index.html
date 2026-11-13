@@ -143,8 +143,11 @@
           <button class="btn ghost" id="manualGuestBtn">我是加入方</button>
         </div>
 
+        <p class="sub" id="manualHint">选择你的角色开始</p>
+
         <div id="manualHost" hidden>
           <textarea id="manualOfferOut" class="codeBox" readonly placeholder="正在生成邀请码…"></textarea>
+          <button class="btn ghost" id="copyOffer">复制邀请码</button>
           <textarea id="manualAnswerIn" class="codeBox" placeholder="把对方发回的应答码粘贴到这里"></textarea>
           <button class="btn primary" id="manualFinish">完成连接</button>
         </div>
@@ -153,6 +156,7 @@
           <textarea id="manualOfferIn" class="codeBox" placeholder="粘贴对方的邀请码"></textarea>
           <button class="btn primary" id="manualMakeAnswer">生成应答码</button>
           <textarea id="manualAnswerOut" class="codeBox" readonly hidden placeholder="把这段应答码发回给对方"></textarea>
+          <button class="btn ghost" id="copyAnswer" hidden>复制应答码</button>
         </div>
 
         <div class="panelActions">

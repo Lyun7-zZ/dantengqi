@@ -77,6 +77,9 @@ const manualOfferOut = el("manualOfferOut");
 const manualAnswerIn = el("manualAnswerIn");
 const manualOfferIn = el("manualOfferIn");
 const manualAnswerOut = el("manualAnswerOut");
+const manualHint = el("manualHint");
+const copyOffer = el("copyOffer");
+const copyAnswer = el("copyAnswer");
 const diceOverlay = el("diceOverlay");
 const diceEls = [el("dice0"), el("dice1")];
 const diceNameEls = [el("diceName0"), el("diceName1")];
@@ -1006,6 +1009,18 @@ el("manualGuestBtn").addEventListener("click", () => { manualGuest.hidden = fals
 el("manualFinish").addEventListener("click", manualFinishHost);
 el("manualMakeAnswer").addEventListener("click", manualMakeAnswer);
 el("manualBack").addEventListener("click", () => { netManual.hidden = true; netMain.hidden = false; });
+copyOffer.addEventListener("click", () => {
+  navigator.clipboard?.writeText(manualOfferOut.value).then(
+    () => toast("邀请码已复制"),
+    () => toast("复制失败，请手动选中复制", true),
+  );
+});
+copyAnswer.addEventListener("click", () => {
+  navigator.clipboard?.writeText(manualAnswerOut.value).then(
+    () => toast("应答码已复制"),
+    () => toast("复制失败，请手动选中复制", true),
+  );
+});
 el("joinBack").addEventListener("click", () => { netJoin.hidden = true; netMain.hidden = false; });
 el("joinGo").addEventListener("click", joinRoom);
 el("copyRoom").addEventListener("click", copyRoomLink);
@@ -1185,9 +1200,18 @@ function attachSession(transport, role, code) {
   netStatusEl.textContent = role === "guest" ? "等待对方完成连接…" : "正在建立通道…";
 
   // 传输层打开 → 提示已建立通道
+  const enterRoom = () => {
+    if (netRoom.hidden) {
+      netManual.hidden = true;
+      netRoom.hidden = false;
+      roomCodeEl.textContent = "手动";
+    }
+  };
   session.onTransportOpen = () => {
+    enterRoom();
     netStatusEl.textContent = "通道已建立，正在握手…";
   };
+  if (transport.state === "open") enterRoom();
   // 握手超时：避免“已连接但没反应”的死等
   clearTimeout(S.handshakeTimer);
   S.handshakeTimer = setTimeout(() => {
@@ -1395,6 +1419,8 @@ async function manualBecomeHost() {
     manualCtx = offer;
     manualOfferOut.value = offer.code;
     manualOfferOut.select();
+    copyOffer.hidden = false;
+    manualHint.textContent = "把邀请码发给对方；对方发回应答码后，粘贴到下面并点「完成连接」";
     toast("把邀请码发给对方");
   } catch (e) {
     manualOfferOut.value = "生成失败：" + e.message;
@@ -1408,11 +1434,7 @@ async function manualFinishHost() {
   try {
     await manualCtx.complete(answer);
     attachSession(manualCtx.transport, "host", "手动");
-    netManual.hidden = true;
-    netRoom.hidden = false;
-    roomCodeEl.textContent = "手动";
-    netStatusEl.textContent = NET_STATUS.connected;
-    netHintEl.textContent = "正在建立数据通道…";
+    manualHint.textContent = "应答码已提交，正在建立连接…";
   } catch (e) {
     toast("应答码无效：" + e.message, true);
   }
@@ -1427,13 +1449,10 @@ async function manualMakeAnswer() {
     manualAnswerOut.hidden = false;
     manualAnswerOut.value = res.code;
     manualAnswerOut.select();
+    copyAnswer.hidden = false;
+    manualHint.textContent = "把下面的应答码发回给房主，等他点「完成连接」";
     attachSession(res.transport, "guest", "手动");
-    netManual.hidden = true;
-    netRoom.hidden = false;
-    roomCodeEl.textContent = "手动";
-    netStatusEl.textContent = NET_STATUS.connected;
-    netHintEl.textContent = "把应答码发回给对方，然后等待连接…";
-    toast("把应答码发回给对方");
+    toast("把应答码发回给房主");
   } catch (e) {
     toast("邀请码无效：" + e.message, true);
   }
