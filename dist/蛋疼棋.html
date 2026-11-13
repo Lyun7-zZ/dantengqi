@@ -862,6 +862,7 @@ body {
     <footer class="actionbar">
       <div class="status" id="status">点击格子移动，或点击格线放墙</div>
       <div class="actionButtons">
+        <button class="btn ghost" id="resign" hidden>认输</button>
         <button class="btn ghost" id="undo">悔棋 3</button>
         <button class="btn ghost" id="cancel" disabled>取消</button>
         <button class="btn primary" id="confirm" disabled>确认落子</button>
@@ -2232,9 +2233,13 @@ class Session {
       case "snapshot": return this._onSnapshot(msg);
       case "undoReq": return this._emit({ type: "undoReq" });
       case "undoRes": return this._emit({ type: "undoRes", accept: !!msg.accept });
-      case "resign": return this._emit({ type: "resign" });
+      case "undoDo": return this._emit({ type: "undoDo", ply: msg.ply });
+      case "resign": return this._emit({ type: "resign", by: "them" });
       case "rematchReq": return this._emit({ type: "rematchReq" });
-      case "rematchRes": return this._emit({ type: "rematchRes", accept: !!msg.accept });
+      case "rematchRes":
+        this._emit({ type: "rematchRes", accept: !!msg.accept });
+        if (msg.accept) this._startRematch();
+        return;
       case "bye": return this._emit({ type: "bye", reason: msg.reason });
       default:
         this._emit({ type: "error", code: "unknown-message", detail: msg.t });
@@ -2417,6 +2422,49 @@ class Session {
 
   get isMyTurn() {
     return this.mySeat != null && this.getState().turn === this.mySeat;
+  }
+
+  /* ---------------------------------------------------------- 悔棋 / 认输 / 再来一局 */
+
+  requestUndo() {
+    this._send(message("undoReq"));
+    this._emit({ type: "undoReqLocal" });
+  }
+
+  answerUndo(accept) {
+    this._send(message("undoRes", { accept: !!accept }));
+    if (!accept) return;
+    this._send(message("undoDo", { ply: this.getState().plies }));
+    this._emit({ type: "undoDo", ply: this.getState().plies, local: true });
+  }
+
+  resign() {
+    this._send(message("resign"));
+    this._emit({ type: "resign", by: "me" });
+  }
+
+  requestRematch() {
+    this._send(message("rematchReq"));
+  }
+
+  answerRematch(accept) {
+    this._send(message("rematchRes", { accept: !!accept }));
+    if (accept) this._startRematch();
+  }
+
+  _startRematch() {
+    this.phase = PHASE.READY;
+    this.dice = null;
+    this.firstPerson = null;
+    this.sideActor = null;
+    this.seats = null;
+    this.firstSeat = null;
+    this._revealed = false;
+    this.theirCommit = null;
+    this.theirValue = null;
+    this._emit({ type: "rematch" });
+    this.phase = PHASE.READY;
+    this._beginDice();
   }
 
   send(type, payload = {}) {
@@ -2737,6 +2785,7 @@ const setUndo = el("setUndo");
 const settingsSave = el("settingsSave");
 const settingsCancel = el("settingsCancel");
 const toHomeBtn = el("toHome");
+const resignBtn = el("resign");
 const netOverlay = el("netOverlay");
 const netMain = el("netMain");
 const netJoin = el("netJoin");
@@ -2796,6 +2845,7 @@ const S = {
   net: null,        // { session, role, code }
   mySeat: null,
   turnStartedAt: 0,
+  undoTimer: null,
 };
 
 const cellEls = new Map();   // "c,r"
@@ -3046,9 +3096,11 @@ function paint() {
   confirmBtn.disabled = !S.preview || !S.preview.valid || S.gameOver;
   cancelBtn.disabled = !S.preview;
   undoBtn.textContent = `悔棋 ${S.undoLeft[st.turn]}`;
-  undoBtn.disabled = S.gameOver || S.aiThinking || S.mode === "online"
+  undoBtn.disabled = S.gameOver || S.aiThinking
+    || (S.mode === "online" && (S.state.turn !== S.mySeat || !S.net))
     || S.undoLeft[st.turn] <= 0 || S.history.length < 2;
 
+  resignBtn.hidden = S.mode !== "online" || S.gameOver;
   paintClocks();
 }
 
@@ -3298,6 +3350,16 @@ function undo() {
   }
   if (S.undoOverlayOpen) return;
 
+  if (S.mode === "online") {
+    if (!S.net || S.state.turn !== S.mySeat) { toast("只能在自己的回合悔棋", true); return; }
+    if (S.history.length < 2) { toast("还没有可以悔的棋"); return; }
+    S.net.session.requestUndo();
+    toast("已发送悔棋请求，等待对方回应（30 秒）");
+    clearTimeout(S.undoTimer);
+    S.undoTimer = setTimeout(() => toast("对方未回应，悔棋请求已过期", true), 30000);
+    return;
+  }
+
   try {
     const p = S.state.turn;
     if (S.undoLeft[p] <= 0) {
@@ -3362,7 +3424,11 @@ function showResult() {
     panelDesc.textContent = "对手下一手同样可以越线，按“1 手容差”判和。";
   } else {
     panelIcon.textContent = "🏁";
-    panelTitle.textContent = st.winner === 0 ? "左方获胜" : "右方获胜";
+    if (S.mode === "online") {
+      panelTitle.textContent = st.winner === S.mySeat ? "你赢了" : "你输了";
+    } else {
+      panelTitle.textContent = st.winner === 0 ? "左方获胜" : "右方获胜";
+    }
     const loser = 1 - st.winner;
     panelDesc.textContent = `对手距终点还剩 ${distanceOf(st, loser)} 步。共 ${st.plies} 手，封墙 ${st.wallsPlaced} 面。`;
   }
@@ -3618,8 +3684,22 @@ function saveSettings() {
 confirmBtn.addEventListener("click", commit);
 cancelBtn.addEventListener("click", clearPreview);
 undoBtn.addEventListener("click", undo);
-undoYes.addEventListener("click", () => finishUndo(true));
-undoNo.addEventListener("click", () => finishUndo(false));
+undoYes.addEventListener("click", () => {
+  if (S.mode === "online") {
+    undoOverlay.hidden = true;
+    S.net.session.answerUndo(true);
+    return;
+  }
+  finishUndo(true);
+});
+undoNo.addEventListener("click", () => {
+  if (S.mode === "online") {
+    undoOverlay.hidden = true;
+    S.net.session.answerUndo(false);
+    return;
+  }
+  finishUndo(false);
+});
 
 el("menuLocal").addEventListener("click", () => startGame("local"));
 el("menuAI").addEventListener("click", () => {
@@ -3666,7 +3746,24 @@ restartBtn.addEventListener("click", () => {
   S.started = true;
   S.lastTs = performance.now();
 });
+let resignArmedAt = 0;
+resignBtn.addEventListener("click", () => {
+  if (S.mode !== "online" || !S.net || S.gameOver) return;
+  if (Date.now() - resignArmedAt > 3000) {
+    resignArmedAt = Date.now();
+    toast("再点一次确认认输", true);
+    return;
+  }
+  S.net.session.resign();
+  endOnlineGame(1 - S.mySeat);
+});
+
 againBtn.addEventListener("click", () => {
+  if (S.mode === "online" && S.net) {
+    S.net.session.requestRematch();
+    toast("已请求再来一局，等待对方同意");
+    return;
+  }
   newGame(true);
   S.started = true;
   S.lastTs = performance.now();
@@ -3808,6 +3905,38 @@ function handleNetEvent(evt) {
     case "remoteAction":
       advance(S.state, "对手行动");
       return;
+    case "undoReq":
+      undoDesc.textContent = "对方请求悔棋，是否同意？";
+      undoOverlay.hidden = false;
+      return;
+    case "undoRes":
+      if (evt.accept) {
+        toast("对方同意悔棋");
+      } else {
+        clearTimeout(S.undoTimer);
+        toast("对方拒绝了悔棋", true);
+      }
+      return;
+    case "undoDo":
+      clearTimeout(S.undoTimer);
+      rollbackOnline();
+      return;
+    case "resign":
+      endOnlineGame(S.mySeat);
+      return;
+    case "rematchReq":
+      if (window.confirm("对方请求再来一局，是否同意？")) {
+        S.net.session.answerRematch(true);
+      } else {
+        S.net.session.answerRematch(false);
+      }
+      return;
+    case "rematchRes":
+      if (!evt.accept) toast("对方拒绝了再来一局", true);
+      return;
+    case "rematch":
+      overlay.hidden = true;
+      return;
     case "offline":
       toast("对手连接断开", true);
       return;
@@ -3855,6 +3984,28 @@ function showOnlinePriority(evt) {
     diceDesc.textContent = "等待对方选择执子方向…";
     renderChoices([]);
   }
+}
+
+
+function rollbackOnline() {
+  if (S.history.length < 2) return;
+  S.history.pop();
+  const snap = S.history[S.history.length - 1];
+  S.state = snap.state;
+  clockRestore(S.clocks, snap.clocks);
+  S.preview = null;
+  S.turnStartedAt = performance.now();
+  S.lastTs = performance.now();
+  paint();
+  toast("已撤销上一手");
+}
+
+function endOnlineGame(winnerSeat) {
+  S.state.winner = winnerSeat;
+  S.gameOver = true;
+  S.aiThinking = false;
+  paint();
+  setTimeout(showResult, 320);
 }
 
 function startOnlineGame(firstSeat) {

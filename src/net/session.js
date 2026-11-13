@@ -191,9 +191,13 @@ export class Session {
       case "snapshot": return this._onSnapshot(msg);
       case "undoReq": return this._emit({ type: "undoReq" });
       case "undoRes": return this._emit({ type: "undoRes", accept: !!msg.accept });
-      case "resign": return this._emit({ type: "resign" });
+      case "undoDo": return this._emit({ type: "undoDo", ply: msg.ply });
+      case "resign": return this._emit({ type: "resign", by: "them" });
       case "rematchReq": return this._emit({ type: "rematchReq" });
-      case "rematchRes": return this._emit({ type: "rematchRes", accept: !!msg.accept });
+      case "rematchRes":
+        this._emit({ type: "rematchRes", accept: !!msg.accept });
+        if (msg.accept) this._startRematch();
+        return;
       case "bye": return this._emit({ type: "bye", reason: msg.reason });
       default:
         this._emit({ type: "error", code: "unknown-message", detail: msg.t });
@@ -376,6 +380,49 @@ export class Session {
 
   get isMyTurn() {
     return this.mySeat != null && this.getState().turn === this.mySeat;
+  }
+
+  /* ---------------------------------------------------------- 悔棋 / 认输 / 再来一局 */
+
+  requestUndo() {
+    this._send(message("undoReq"));
+    this._emit({ type: "undoReqLocal" });
+  }
+
+  answerUndo(accept) {
+    this._send(message("undoRes", { accept: !!accept }));
+    if (!accept) return;
+    this._send(message("undoDo", { ply: this.getState().plies }));
+    this._emit({ type: "undoDo", ply: this.getState().plies, local: true });
+  }
+
+  resign() {
+    this._send(message("resign"));
+    this._emit({ type: "resign", by: "me" });
+  }
+
+  requestRematch() {
+    this._send(message("rematchReq"));
+  }
+
+  answerRematch(accept) {
+    this._send(message("rematchRes", { accept: !!accept }));
+    if (accept) this._startRematch();
+  }
+
+  _startRematch() {
+    this.phase = PHASE.READY;
+    this.dice = null;
+    this.firstPerson = null;
+    this.sideActor = null;
+    this.seats = null;
+    this.firstSeat = null;
+    this._revealed = false;
+    this.theirCommit = null;
+    this.theirValue = null;
+    this._emit({ type: "rematch" });
+    this.phase = PHASE.READY;
+    this._beginDice();
   }
 
   send(type, payload = {}) {

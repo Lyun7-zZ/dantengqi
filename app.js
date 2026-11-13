@@ -50,6 +50,7 @@ const setUndo = el("setUndo");
 const settingsSave = el("settingsSave");
 const settingsCancel = el("settingsCancel");
 const toHomeBtn = el("toHome");
+const resignBtn = el("resign");
 const netOverlay = el("netOverlay");
 const netMain = el("netMain");
 const netJoin = el("netJoin");
@@ -109,6 +110,7 @@ const S = {
   net: null,        // { session, role, code }
   mySeat: null,
   turnStartedAt: 0,
+  undoTimer: null,
 };
 
 const cellEls = new Map();   // "c,r"
@@ -359,9 +361,11 @@ function paint() {
   confirmBtn.disabled = !S.preview || !S.preview.valid || S.gameOver;
   cancelBtn.disabled = !S.preview;
   undoBtn.textContent = `悔棋 ${S.undoLeft[st.turn]}`;
-  undoBtn.disabled = S.gameOver || S.aiThinking || S.mode === "online"
+  undoBtn.disabled = S.gameOver || S.aiThinking
+    || (S.mode === "online" && (S.state.turn !== S.mySeat || !S.net))
     || S.undoLeft[st.turn] <= 0 || S.history.length < 2;
 
+  resignBtn.hidden = S.mode !== "online" || S.gameOver;
   paintClocks();
 }
 
@@ -611,6 +615,16 @@ function undo() {
   }
   if (S.undoOverlayOpen) return;
 
+  if (S.mode === "online") {
+    if (!S.net || S.state.turn !== S.mySeat) { toast("只能在自己的回合悔棋", true); return; }
+    if (S.history.length < 2) { toast("还没有可以悔的棋"); return; }
+    S.net.session.requestUndo();
+    toast("已发送悔棋请求，等待对方回应（30 秒）");
+    clearTimeout(S.undoTimer);
+    S.undoTimer = setTimeout(() => toast("对方未回应，悔棋请求已过期", true), 30000);
+    return;
+  }
+
   try {
     const p = S.state.turn;
     if (S.undoLeft[p] <= 0) {
@@ -675,7 +689,11 @@ function showResult() {
     panelDesc.textContent = "对手下一手同样可以越线，按“1 手容差”判和。";
   } else {
     panelIcon.textContent = "🏁";
-    panelTitle.textContent = st.winner === 0 ? "左方获胜" : "右方获胜";
+    if (S.mode === "online") {
+      panelTitle.textContent = st.winner === S.mySeat ? "你赢了" : "你输了";
+    } else {
+      panelTitle.textContent = st.winner === 0 ? "左方获胜" : "右方获胜";
+    }
     const loser = 1 - st.winner;
     panelDesc.textContent = `对手距终点还剩 ${distanceOf(st, loser)} 步。共 ${st.plies} 手，封墙 ${st.wallsPlaced} 面。`;
   }
@@ -931,8 +949,22 @@ function saveSettings() {
 confirmBtn.addEventListener("click", commit);
 cancelBtn.addEventListener("click", clearPreview);
 undoBtn.addEventListener("click", undo);
-undoYes.addEventListener("click", () => finishUndo(true));
-undoNo.addEventListener("click", () => finishUndo(false));
+undoYes.addEventListener("click", () => {
+  if (S.mode === "online") {
+    undoOverlay.hidden = true;
+    S.net.session.answerUndo(true);
+    return;
+  }
+  finishUndo(true);
+});
+undoNo.addEventListener("click", () => {
+  if (S.mode === "online") {
+    undoOverlay.hidden = true;
+    S.net.session.answerUndo(false);
+    return;
+  }
+  finishUndo(false);
+});
 
 el("menuLocal").addEventListener("click", () => startGame("local"));
 el("menuAI").addEventListener("click", () => {
@@ -979,7 +1011,24 @@ restartBtn.addEventListener("click", () => {
   S.started = true;
   S.lastTs = performance.now();
 });
+let resignArmedAt = 0;
+resignBtn.addEventListener("click", () => {
+  if (S.mode !== "online" || !S.net || S.gameOver) return;
+  if (Date.now() - resignArmedAt > 3000) {
+    resignArmedAt = Date.now();
+    toast("再点一次确认认输", true);
+    return;
+  }
+  S.net.session.resign();
+  endOnlineGame(1 - S.mySeat);
+});
+
 againBtn.addEventListener("click", () => {
+  if (S.mode === "online" && S.net) {
+    S.net.session.requestRematch();
+    toast("已请求再来一局，等待对方同意");
+    return;
+  }
   newGame(true);
   S.started = true;
   S.lastTs = performance.now();
@@ -1121,6 +1170,38 @@ function handleNetEvent(evt) {
     case "remoteAction":
       advance(S.state, "对手行动");
       return;
+    case "undoReq":
+      undoDesc.textContent = "对方请求悔棋，是否同意？";
+      undoOverlay.hidden = false;
+      return;
+    case "undoRes":
+      if (evt.accept) {
+        toast("对方同意悔棋");
+      } else {
+        clearTimeout(S.undoTimer);
+        toast("对方拒绝了悔棋", true);
+      }
+      return;
+    case "undoDo":
+      clearTimeout(S.undoTimer);
+      rollbackOnline();
+      return;
+    case "resign":
+      endOnlineGame(S.mySeat);
+      return;
+    case "rematchReq":
+      if (window.confirm("对方请求再来一局，是否同意？")) {
+        S.net.session.answerRematch(true);
+      } else {
+        S.net.session.answerRematch(false);
+      }
+      return;
+    case "rematchRes":
+      if (!evt.accept) toast("对方拒绝了再来一局", true);
+      return;
+    case "rematch":
+      overlay.hidden = true;
+      return;
     case "offline":
       toast("对手连接断开", true);
       return;
@@ -1168,6 +1249,28 @@ function showOnlinePriority(evt) {
     diceDesc.textContent = "等待对方选择执子方向…";
     renderChoices([]);
   }
+}
+
+
+function rollbackOnline() {
+  if (S.history.length < 2) return;
+  S.history.pop();
+  const snap = S.history[S.history.length - 1];
+  S.state = snap.state;
+  clockRestore(S.clocks, snap.clocks);
+  S.preview = null;
+  S.turnStartedAt = performance.now();
+  S.lastTs = performance.now();
+  paint();
+  toast("已撤销上一手");
+}
+
+function endOnlineGame(winnerSeat) {
+  S.state.winner = winnerSeat;
+  S.gameOver = true;
+  S.aiThinking = false;
+  paint();
+  setTimeout(showResult, 320);
 }
 
 function startOnlineGame(firstSeat) {

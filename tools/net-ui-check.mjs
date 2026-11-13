@@ -166,6 +166,36 @@ try {
     return m.stateHash(window.__danteng.state);
   })()`);
   check("双方局面哈希一致", hashA === hashB, `${hashA} / ${hashB}`);
+
+  // ---- 联机悔棋：轮到的一方发起，对方同意后双方回滚 ----
+  const requester = turnA ? B : A;
+  const responder = turnA ? A : B;
+  await requester.evaluate("document.getElementById('undo').click(); true");
+  await sleep(400);
+  const asked = await responder.evaluate("!document.getElementById('undoOverlay').hidden");
+  check("对方收到悔棋请求", asked);
+
+  await responder.evaluate("document.getElementById('undoYes').click(); true");
+  const rolledBack = await waitFor(async () => {
+    const pa = await A.evaluate("window.__danteng.state.plies");
+    const pb = await B.evaluate("window.__danteng.state.plies");
+    return pa === 0 && pb === 0 ? true : null;
+  });
+  check("悔棋后双方都回到 0 手", !!rolledBack);
+
+  // ---- 认输：两次点击确认，双方同时结束 ----
+  await requester.evaluate(`(() => {
+    const b = document.getElementById('resign');
+    b.click(); b.click();
+    return true;
+  })()`);
+  await sleep(600);
+  const overA = await A.evaluate("window.__danteng.gameOver");
+  const overB = await B.evaluate("window.__danteng.gameOver");
+  check("认输后双方均结束对局", overA && overB);
+  const titleA = await A.evaluate("document.getElementById('panelTitle').textContent");
+  const titleB = await B.evaluate("document.getElementById('panelTitle').textContent");
+  check("胜负显示相反", titleA !== titleB, `${titleA} / ${titleB}`);
 } catch (e) {
   check("执行过程", false, e.message);
 } finally {
