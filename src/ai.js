@@ -5,32 +5,11 @@
 
 import { applyAction, legalActions, legalDirs, distanceOf, stepTarget, validateAction } from "./rules.js";
 import { shortestPathWalls } from "./path.js";
+import { createMasterAI } from "./ai-master.js";
+import { makeRng, randomAI } from "./ai-random.js";
+export { makeRng, randomAI };
 
 /** 可复现的伪随机数（mulberry32）。 */
-export function makeRng(seed) {
-  let a = seed >>> 0;
-  return function rng() {
-    a |= 0;
-    a = (a + 0x6d2b79f5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-export function randomAI(state, rng) {
-  const actions = legalActions(state);
-  // 随机墙可能封死通路，需要按规则校验；连续命中非法时退化为走子。
-  for (let i = 0; i < 200; i++) {
-    const a = actions[Math.floor(rng() * actions.length)];
-    if (a.type === "move") return a;
-    if (validateAction(state, a).ok) return a;
-  }
-  const p = state.players[state.turn];
-  const dirs = legalDirs(state, p.c, p.r);
-  return { type: "move", dir: dirs[Math.floor(rng() * dirs.length)] };
-}
-
 /** 合法候选：全部走子 + 对手最短路上的墙 + 少量随机墙。 */
 function candidateActions(state, rng, extraWalls = 6) {
   const actions = [];
@@ -375,5 +354,6 @@ export const AI = {
   "greedy-move": (state, rng) => greedyCore(state, rng, 0.6),
   easy: easyAI,
   normal: tacticalAI,
-  hard: makeSearchAI({ timeMs: 450 }),
+  hard: createMasterAI({ timeMs: 350, maxDepth: 4, usePlan: false }),
+  master: createMasterAI({ timeMs: 1200, maxDepth: 6, usePlan: true }),
 };

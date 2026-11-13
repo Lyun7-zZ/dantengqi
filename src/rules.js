@@ -54,7 +54,7 @@ export function wallPlaced(s, kind, c, r) {
   throw new Error(`unknown wall kind: ${kind}`);
 }
 
-function setWall(s, kind, c, r) {
+export function setWall(s, kind, c, r) {
   if (kind === "v") s.vWall[vIndex(c, r)] = 1;
   else if (kind === "h") s.hWall[hIndex(c, r)] = 1;
   else if (kind === "top") s.topWall[topIndex(c)] = 1;

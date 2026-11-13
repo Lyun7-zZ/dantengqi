@@ -29,6 +29,7 @@ function stripModuleSyntax(code) {
       if (!/\bfrom\s+["'][^"']+["']/.test(line)) skipping = true;
       continue;
     }
+    if (/^export\s*\{/.test(line)) continue;
     out.push(line.replace(/^export\s+(function|const|let|class|async)/, "$1"));
   }
   return out.join("\n");
@@ -40,6 +41,8 @@ const order = [
   "src/path.js",
   "src/rules.js",
   "src/clock.js",
+  "src/ai-random.js",
+  "src/ai-master.js",
   "src/ai.js",
   "src/net/protocol.js",
   "src/net/code.js",
