@@ -286,8 +286,8 @@ function paint() {
     else if (parts[0] === "h") raw = st.hWall[+parts[1] * (ROWS - 1) + +parts[2]];
     else raw = st.topWall[+parts[1]];
     d.classList.toggle("placed", raw !== 0);
-    if (raw === 1) d.classList.add("owner0");
-    if (raw === 2) d.classList.add("owner1");
+    if (raw === 1 || raw === 3) d.classList.add("owner0");
+    if (raw === 2 || raw === 3) d.classList.add("owner1");
   }
 
   for (let p = 0; p < 2; p++) {
@@ -513,9 +513,12 @@ function describeEvents(events) {
     if (e.type === "move") return e.collided ? `${who}撞墙` : `${who}走${e.steps}格`;
     if (e.type === "exit") return e.ok ? `${who}越线` : `${who}越线被挡`;
     if (e.type === "store") return `${who}存点`;
-    if (e.type === "wall") return e.placed ? `${who}放墙` : `${who}放墙失败`;
+    if (e.type === "wall") {
+      if (e.both) return e.player === 0 ? "同一处两边放墙" : "";
+      return e.placed ? `${who}放墙` : `${who}放墙失败`;
+    }
     return who;
-  }).join("，");
+  }).filter(Boolean).join("，");
 }
 
 function ensureAILock() {
@@ -539,7 +542,8 @@ function finishRound(actions, nextState, events) {
   S.preview = null;
   S.inputSeat = 0;
   S.lastTs = performance.now();
-  if (events.some((e) => e.collided)) toast("撞上了对方这一回合放的墙，停在墙前");
+  if (events.some((e) => e.both)) toast("同一位置两边都放了墙，谁都过不去");
+  else if (events.some((e) => e.collided)) toast("撞上了对方这一回合放的墙，停在墙前");
   if (nextState.winner !== null) {
     S.gameOver = true;
     paint();

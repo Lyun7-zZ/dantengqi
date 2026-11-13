@@ -10,7 +10,7 @@ import { COLS, ROWS, V_COUNT, H_COUNT } from "./board.js";
 const SIZE = COLS * ROWS;
 const key = (c, r) => r * COLS + c;
 
-/** 墙值：0 空，1 属于玩家 0，2 属于玩家 1。 */
+/** 墙值：0 空，1 只挡玩家 1，2 只挡玩家 0，3 谁都挡。 */
 export function blocksMover(wallVal, mover) {
   return wallVal !== 0 && wallVal !== mover + 1;
 }

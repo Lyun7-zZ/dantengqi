@@ -64,7 +64,11 @@ export function wallOwner(s, kind, c, r) {
 }
 
 export function setWall(s, kind, c, r, owner = 0) {
-  const v = owner + 1;
+  setWallValue(s, kind, c, r, owner + 1);
+}
+
+/** 墙值：0 空，1 只挡玩家 1，2 只挡玩家 0，3 两边都放了，谁都过不去。 */
+function setWallValue(s, kind, c, r, v) {
   if (kind === "v") s.vWall[vIndex(c, r)] = v;
   else if (kind === "h") s.hWall[hIndex(c, r)] = v;
   else if (kind === "top") s.topWall[topIndex(c)] = v;
@@ -203,8 +207,13 @@ export function resolveRound(state, actions) {
 
   let place = wallActs.slice();
   if (place.length === 2 && sameSlot(place[0], place[1])) {
-    events.push({ type: "wall", player: 0, placed: false, reason: "conflict" });
-    events.push({ type: "wall", player: 1, placed: false, reason: "conflict" });
+    const w = place[0];
+    setWallValue(next, w.kind, w.c, w.r, 3);
+    next.wallsUsed[0] += 1;
+    next.wallsUsed[1] += 1;
+    next.wallsPlaced += 1;
+    events.push({ type: "wall", player: 0, placed: true, both: true, kind: w.kind, c: w.c, r: w.r });
+    events.push({ type: "wall", player: 1, placed: true, both: true, kind: w.kind, c: w.c, r: w.r });
     place = [];
   } else if (place.length === 2 && wallSeals(state, place)) {
     events.push({ type: "wall", player: place[0].player, placed: false, reason: "together" });

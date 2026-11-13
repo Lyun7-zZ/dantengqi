@@ -371,6 +371,12 @@ body {
 .slot:hover .bar { opacity: 0.4; }
 .slot.placed.owner0 .bar { background: var(--p0); }
 .slot.placed.owner1 .bar { background: var(--p1); }
+.slot.placed.owner0.owner1 .bar {
+  background: linear-gradient(90deg, var(--p0) 0 42%, #10181e 42% 58%, var(--p1) 58% 100%);
+}
+.slot-v.placed.owner0.owner1 .bar {
+  background: linear-gradient(180deg, var(--p0) 0 42%, #10181e 42% 58%, var(--p1) 58% 100%);
+}
 .slot.placed .bar { opacity: 1; }
 .slot.placed { cursor: default; }
 

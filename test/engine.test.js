@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { allWallSlots, WALL_SLOTS, wallSlot } from "../src/board.js";
+import { allWallSlots, ROWS, WALL_SLOTS, wallSlot } from "../src/board.js";
 import {
   createState, cloneState, resolveRound, validateAction,
   legalDirs, stepTarget, wallPlaced, setWall,
@@ -97,15 +97,20 @@ test("撞上对方本回合新放的墙：停在墙前，两格的存点照扣",
   assert.equal(wallPlaced(res.state, "h", 0, 9), true);
 });
 
-test("两人放在同一墙位上，墙不算", () => {
+test("两人放在同一墙位上，这一格谁都过不去", () => {
   const s = createState(0);
   const res = round(
     s,
     { type: "wall", kind: "v", c: 4, r: 5 },
     { type: "wall", kind: "v", c: 4, r: 5 },
   );
-  assert.equal(wallPlaced(res.state, "v", 4, 5), false);
-  assert.equal(res.state.wallsPlaced, 0);
+  assert.equal(res.state.vWall[4 * ROWS + 5], 3);
+  assert.equal(res.state.wallsPlaced, 1);
+  assert.deepEqual(res.state.wallsUsed, [1, 1]);
+  assert.equal(stepTarget(res.state, 4, 5, "right", 0), null);
+  assert.equal(stepTarget(res.state, 4, 5, "right", 1), null);
+  assert.equal(stepTarget(res.state, 5, 5, "left", 0), null);
+  assert.equal(stepTarget(res.state, 5, 5, "left", 1), null);
 });
 
 test("棋子可以走到对手所在格", () => {
