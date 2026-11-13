@@ -165,11 +165,157 @@ export function takeWin(state) {
   return { type: "move", dir: "up" };
 }
 
+
+/* ---------------------------------------------------------------- 强 AI */
+
+/**
+ * 局面评估（站在 p 的角度，越大越好）。
+ *
+ * 关键点：必须知道“平局规则”——领先 1 手等于和棋，领先 2 手才算赢。
+ * 旧版 AI 只比距离差，所以经常一头撞进平局。
+ */
+export function evaluate(state, p) {
+  const opp = 1 - p;
+  const dm = distanceOf(state, p);
+  const dopp = distanceOf(state, opp);
+  if (!Number.isFinite(dm)) return -1e6;
+  if (!Number.isFinite(dopp)) return 1e6;
+
+  const margin = dopp - dm; // 我领先几手
+  let score = margin * 100;
+
+  // 平局容差：margin 1 → 到达即和棋；margin 0 → 我先到不了
+  if (margin === 1) score -= 130;
+  else if (margin === 0) score -= 220;
+
+  // 出口控制：上端还剩多少可出的列（靠近我的越多越好）
+  const myExits = openExits(state, p);
+  const oppExits = openExits(state, opp);
+  score += 7 * (myExits - oppExits);
+
+  // 残局：离终点越近，出口价值越高
+  if (dm <= 4) score += 12 * (myExits - oppExits);
+
+  return score;
+}
+
+/** 从 p 的当前位置出发、上端仍开放的列数（越多越安全）。 */
+function openExits(state, p) {
+  let n = 0;
+  for (let c = 0; c < 10; c++) if (state.topWall[c] === 0) n++;
+  return n;
+}
+
+/** 走子与封墙的候选集：全部走子 + 对手最短路上的封堵 + 少量随机墙。 */
+function searchCandidates(state, rng, wallLimit = 14) {
+  const me = state.turn;
+  const out = [];
+  const mp = state.players[me];
+  for (const dir of legalDirs(state, mp.c, mp.r)) out.push({ type: "move", dir });
+
+  const op = state.players[1 - me];
+  const seen = new Set();
+  for (const w of shortestPathWalls(state, op.c, op.r)) {
+    const k = `${w.kind}:${w.c}:${w.r}`;
+    if (seen.has(k)) continue;
+    seen.add(k);
+    out.push({ type: "wall", kind: w.kind, c: w.c, r: w.r });
+    if (out.length >= 4 + wallLimit) break;
+  }
+
+  const legal = legalActions(state).filter((a) => a.type === "wall");
+  for (let i = 0; i < 4 && legal.length; i++) {
+    const w = legal[Math.floor(rng() * legal.length)];
+    const k = `${w.kind}:${w.c}:${w.r}`;
+    if (seen.has(k)) continue;
+    seen.add(k);
+    out.push(w);
+  }
+  return out;
+}
+
+/** negamax + alpha-beta；返回从 perspective 看的分值。 */
+function negamax(state, depth, alpha, beta, perspective, rng) {
+  if (state.winner !== null) {
+    if (state.winner === "draw") return 0;
+    return state.winner === perspective ? 1e6 - (10 - depth) : -1e6 + (10 - depth);
+  }
+  if (depth <= 0) return evaluate(state, perspective);
+
+  const acts = searchCandidates(state, rng);
+  // 排序：先走子，再封墙（提高剪枝效率）
+  acts.sort((a, b) => (a.type === "move" ? -1 : 0) - (b.type === "move" ? -1 : 0));
+
+  let best = -Infinity;
+  for (const a of acts) {
+    const res = applyAction(state, a);
+    if (!res.ok) continue;
+    const v = -negamax(res.state, depth - 1, -beta, -alpha, 1 - perspective, rng);
+    if (v > best) best = v;
+    if (best > alpha) alpha = best;
+    if (alpha >= beta) break;
+  }
+  return best === -Infinity ? evaluate(state, perspective) : best;
+}
+
+/**
+ * 搜索型 AI。
+ * depth 越大越强、越慢；预算用节点数粗略控制。
+ */
+export function makeSearchAI({ depth = 3, wallLimit = 14 } = {}) {
+  return function searchAI(state, rng) {
+    const me = state.turn;
+    const acts = searchCandidates(state, rng, wallLimit);
+
+    let best = null;
+    let bestScore = -Infinity;
+
+    for (const a of acts) {
+      const res = applyAction(state, a);
+      if (!res.ok) continue;
+      // 根节点每个候选都用完整窗口，避免“剪枝上界”被当成真实分值
+      const v = -negamax(res.state, depth - 1, -Infinity, Infinity, 1 - me, rng);
+      const score = v + rng() * 0.5;
+      if (score > bestScore) {
+        bestScore = score;
+        best = a;
+      }
+    }
+    return best ?? randomAI(state, rng);
+  };
+}
+
+/** 普通：贪心 + 平局规则感知（比旧的“看一步”更强）。 */
+export function tacticalAI(state, rng) {
+  const me = state.turn;
+  const acts = searchCandidates(state, rng, 12);
+
+  let best = null;
+  let bestScore = -Infinity;
+  for (const a of acts) {
+    const res = applyAction(state, a);
+    if (!res.ok) continue;
+    if (res.state.winner === me) return a;
+
+    let score;
+    if (res.state.winner === "draw") score = 0;
+    else if (res.state.winner === 1 - me) score = -1e6;
+    else score = evaluate(res.state, me);
+
+    score += rng() * 0.5;
+    if (score > bestScore) {
+      bestScore = score;
+      best = a;
+    }
+  }
+  return best ?? randomAI(state, rng);
+}
+
 export const AI = {
   random: randomAI,
   greedy: greedyAI,
   "greedy-move": (state, rng) => greedyCore(state, rng, 0.6),
   easy: easyAI,
-  normal: greedyAI,
-  hard: hardAI,
+  normal: tacticalAI,
+  hard: makeSearchAI({ depth: 4 }),
 };
