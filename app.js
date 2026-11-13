@@ -687,6 +687,7 @@ function finishUndo(agree) {
   const target = S.history[S.history.length - 1];
   S.state = target.state;
   clockRestore(S.clocks, target.clocks);
+  AI[S.mode]?.reset?.();
   S.undoLeft[requester] -= 1;
   S.preview = null;
   S.lastTs = performance.now();
@@ -763,6 +764,7 @@ function paintHomeFine() {
 }
 
 function newGame(announce = false) {
+  for (const k of Object.keys(AI)) AI[k]?.reset?.();
   S.state = createState(S.firstSeat);
   S.clocks = createClock({ perMove: S.settings.perMove, bank: S.settings.bank });
   S.history = [{ state: S.state, clocks: clockSnapshot(S.clocks) }];

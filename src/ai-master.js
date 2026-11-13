@@ -416,8 +416,14 @@ function createMasterAI({ timeMs = 1200, maxDepth = 6, usePlan = true } = {}) {
   }
 
   choose.stats = stats;
+  choose.planBudget = () => plansUsed;
   choose.reset = () => {
     plan = null;
+    plansUsed = 0;
+    stats.plans = 0;
+    stats.planWalls = 0;
+    stats.searches = 0;
+    stats.maxPlies = 0;
   };
   choose.planInfo = () => plan;
   return choose;
