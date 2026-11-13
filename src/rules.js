@@ -12,7 +12,7 @@ import { distanceToGoal, hasPath } from "./path.js";
 
 export const DIRS = ["up", "down", "left", "right"];
 
-export function createState(firstPlayer = 0, { tolerance = 1, wallLimit = Infinity, drawMode = "symmetric" } = {}) {
+export function createState(firstPlayer = 0, { tolerance = 1, wallLimit = Infinity, drawMode = "firstOnly" } = {}) {
   return {
     vWall: new Uint8Array(V_COUNT * ROWS),
     hWall: new Uint8Array(H_COUNT * COLS),

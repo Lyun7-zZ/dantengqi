@@ -6,7 +6,7 @@
  */
 
 export const PROTOCOL_VERSION = 1;
-export const RULES_VERSION = "1.2";
+export const RULES_VERSION = "1.3";
 
 /** 对局参数指纹：两端必须一致，否则拒绝开局。 */
 export function configHash(config) {

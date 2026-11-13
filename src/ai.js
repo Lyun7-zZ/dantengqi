@@ -163,8 +163,9 @@ export function evaluate(state, p) {
   const margin = dopp - dm; // 我领先几手
   let score = margin * 100;
 
-  // 平局容差：margin 1 → 到达即和棋；margin 0 → 我先到不了
-  if (margin === 1) score -= 130;
+  // 越线判定（规则 1.3）：先手领先 1 手是平局，后手领先 1 手直接取胜
+  const isFirst = p === state.firstPlayer;
+  if (margin === 1) score += isFirst ? -130 : 900;
   else if (margin === 0) score -= 220;
 
   // 先手权：轮到谁走，值半手

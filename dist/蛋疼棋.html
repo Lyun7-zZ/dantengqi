@@ -1082,9 +1082,10 @@ body {
         <p>墙位共 228 个（内部 218 + 终点线 10）。不设单人上限。任何一面墙落下后，
           双方都必须仍有一条通往终点的路，否则不允许放置。</p>
         <h3>胜负</h3>
-        <p>走到第 1 行、并从上方无墙的一列越出棋盘，即为“到达”。
-          若一方到达时，对手同样只差一手就能到达，则判平局。</p>
-        <p class="note">也就是说：单纯赛跑必然平局，必须用墙拉开两步以上的差距才能赢。</p>
+        <p>走到第 1 行、并从上方无墙的一列越出棋盘，即为“到达”。</p>
+        <p>【先手】到达时，若后手同样只差一手就能到达，则判平局。</p>
+        <p>【后手】到达时，即使先手只差一手也能到达，也判后手胜利。</p>
+        <p class="note">简单说：先手必须领先两手才算赢，后手领先一手就能赢。</p>
         <h3>计时</h3>
         <p>每步 30 秒，用尽后从本人 300 秒时间库扣除；时间库耗尽后每步仍为 30 秒，
           用尽即由系统代走（最短路，同长优先向上）。</p>
@@ -1444,7 +1445,7 @@ function shortestPathWalls(state, c0, r0) {
 
 const DIRS = ["up", "down", "left", "right"];
 
-function createState(firstPlayer = 0, { tolerance = 1, wallLimit = Infinity, drawMode = "symmetric" } = {}) {
+function createState(firstPlayer = 0, { tolerance = 1, wallLimit = Infinity, drawMode = "firstOnly" } = {}) {
   return {
     vWall: new Uint8Array(V_COUNT * ROWS),
     hWall: new Uint8Array(H_COUNT * COLS),
@@ -2366,8 +2367,9 @@ function evaluate(state, p) {
   const margin = dopp - dm; // 我领先几手
   let score = margin * 100;
 
-  // 平局容差：margin 1 → 到达即和棋；margin 0 → 我先到不了
-  if (margin === 1) score -= 130;
+  // 越线判定（规则 1.3）：先手领先 1 手是平局，后手领先 1 手直接取胜
+  const isFirst = p === state.firstPlayer;
+  if (margin === 1) score += isFirst ? -130 : 900;
   else if (margin === 0) score -= 220;
 
   // 先手权：轮到谁走，值半手
@@ -2570,7 +2572,7 @@ const AI = {
  */
 
 const PROTOCOL_VERSION = 1;
-const RULES_VERSION = "1.2";
+const RULES_VERSION = "1.3";
 
 /** 对局参数指纹：两端必须一致，否则拒绝开局。 */
 function configHash(config) {

@@ -81,6 +81,26 @@ test("平局：对手在第 1 行且其出口未封", () => {
   assert.equal(res.event.draw, true);
 });
 
+test("规则 1.3：后手越线时，先手在门口也判后手胜", () => {
+  const s = cloneState(createState(0));
+  s.players[0] = { c: 0, r: 0 };
+  s.players[1] = { c: 9, r: 0 };
+  s.turn = 1;
+  const res = applyAction(s, { type: "move", dir: "up" });
+  assert.equal(res.ok, true);
+  assert.equal(res.state.winner, 1);
+  assert.equal(res.event.draw, false);
+});
+
+test("规则 1.3：先手越线时，后手在门口仍判平局", () => {
+  const s = cloneState(createState(0));
+  s.players[0] = { c: 0, r: 0 };
+  s.players[1] = { c: 9, r: 0 };
+  s.turn = 0;
+  const res = applyAction(s, { type: "move", dir: "up" });
+  assert.equal(res.state.winner, "draw");
+});
+
 test("获胜：对手还差 2 步以上", () => {
   const s = cloneState(createState(0));
   s.players[0] = { c: 0, r: 0 };
