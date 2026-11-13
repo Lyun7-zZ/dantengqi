@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>蛋疼棋</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">蛋疼棋<span class="ver">M5</span></div>
+      <div class="clocks">
+        <div class="clock" id="clock0">
+          <i class="dot dot-p0"></i>
+          <b class="clockMain" id="clk0">30</b>
+          <span class="clockBank" id="bank0">库 300</span>
+        </div>
+        <div class="clock" id="clock1">
+          <i class="dot dot-p1"></i>
+          <b class="clockMain" id="clk1">30</b>
+          <span class="clockBank" id="bank1">库 300</span>
+        </div>
+      </div>
+      <div class="meta" id="meta">第 1 手 · 墙 0</div>
+      <button class="btn ghost" id="homeBtn">菜单</button>
+      <button class="btn ghost" id="rulesBtn">规则</button>
+      <button class="btn ghost" id="restart">重新开始</button>
+    </header>
+
+    <main class="stage">
+      <div class="boardWrap">
+        <div class="colLabels" id="colLabels"></div>
+        <div class="board" id="board">
+          <div class="cells" id="cells"></div>
+          <div class="walls" id="walls"></div>
+          <div class="hints" id="hints"></div>
+          <div class="pieces" id="pieces"></div>
+        </div>
+        <div class="rowLabels" id="rowLabels"></div>
+      </div>
+    </main>
+
+    <footer class="actionbar">
+      <div class="status" id="status">点击格子移动，或点击格线放墙</div>
+      <div class="actionButtons">
+        <button class="btn ghost" id="undo">悔棋 3</button>
+        <button class="btn ghost" id="cancel" disabled>取消</button>
+        <button class="btn primary" id="confirm" disabled>确认落子</button>
+      </div>
+    </footer>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- 主菜单 -->
+  <div class="overlay" id="homeOverlay">
+    <div class="panel home">
+      <div class="panelIcon">🎲</div>
+      <h2>蛋疼棋</h2>
+      <p class="sub">10 × 12 棋盘 · 越过终点线者胜</p>
+
+      <div class="menu" id="homeMain">
+        <button class="menuItem" id="menuLocal">
+          <b>玩家对战</b><span>同屏双人</span>
+        </button>
+        <button class="menuItem" id="menuAI">
+          <b>人机对战</b><span>简单 / 普通 / 困难</span>
+        </button>
+        <button class="menuItem" id="menuRules">
+          <b>游戏规则</b><span>棋盘、行动、胜负与计时</span>
+        </button>
+        <button class="menuItem" id="menuSettings">
+          <b>设置</b><span>计时与悔棋次数</span>
+        </button>
+      </div>
+
+      <div class="menu" id="homeAI" hidden>
+        <button class="menuItem" data-level="easy">
+          <b>简单</b><span>偶尔随手，适合第一次玩</span>
+        </button>
+        <button class="menuItem" data-level="normal">
+          <b>普通</b><span>每一步都走最短路</span>
+        </button>
+        <button class="menuItem" data-level="hard">
+          <b>困难</b><span>会预判你的应手</span>
+        </button>
+        <button class="menuItem back" id="aiBack">
+          <b>返回</b>
+        </button>
+      </div>
+
+      <p class="fine" id="homeFine">每步 30 秒 · 时间库 300 秒 · 悔棋 3 次</p>
+    </div>
+  </div>
+
+  <!-- 掷骰选边 -->
+  <div class="overlay" id="diceOverlay" hidden>
+    <div class="panel">
+      <h2>掷骰选边</h2>
+      <p class="sub" id="diceSub">点数大者二选一：先手或选边，另一项归对方</p>
+      <div class="diceRow">
+        <div class="diceWrap">
+          <div class="dice" id="dice0">·</div>
+          <span class="diceName" id="diceName0">玩家 1</span>
+        </div>
+        <div class="diceVs">VS</div>
+        <div class="diceWrap">
+          <div class="dice" id="dice1">·</div>
+          <span class="diceName" id="diceName1">玩家 2</span>
+        </div>
+      </div>
+      <p id="diceDesc">准备掷骰…</p>
+      <div class="panelActions" id="diceChoices" hidden></div>
+    </div>
+  </div>
+
+  <!-- 规则 -->
+  <div class="overlay" id="rulesOverlay" hidden>
+    <div class="panel doc">
+      <h2>游戏规则</h2>
+      <div class="docBody">
+        <h3>棋盘</h3>
+        <p>10 列（A–J）× 12 行（1–12）。下方为起点线，上方为终点线，左右与下方封闭。</p>
+        <h3>棋子</h3>
+        <p>双方各一枚，从 A-12 / J-12 出发。两枚棋子可以站在同一格，互不阻挡。</p>
+        <h3>开局</h3>
+        <p>双方各掷一颗骰子，点数相同则重掷。点数大的一方在「先手」和「选边」中二选一：
+          选了先手，就由对方选择执左（A-12）或执右（J-12）；选了选边，就由对方先手。</p>
+        <h3>行动</h3>
+        <p>每回合二选一：向上下左右移动一格，或封一面长度为 1 的墙。墙对双方都阻挡。</p>
+        <h3>墙</h3>
+        <p>墙位共 228 个（内部 218 + 终点线 10）。不设单人上限。任何一面墙落下后，
+          双方都必须仍有一条通往终点的路，否则不允许放置。</p>
+        <h3>胜负</h3>
+        <p>走到第 1 行、并从上方无墙的一列越出棋盘，即为“到达”。
+          若一方到达时，对手同样只差一手就能到达，则判平局。</p>
+        <p class="note">也就是说：单纯赛跑必然平局，必须用墙拉开两步以上的差距才能赢。</p>
+        <h3>计时</h3>
+        <p>每步 30 秒，用尽后从本人 300 秒时间库扣除；时间库耗尽后每步仍为 30 秒，
+          用尽即由系统代走（最短路，同长优先向上）。</p>
+        <h3>悔棋</h3>
+        <p>每方 3 次，需对方同意，撤销最近一手并回滚计时与墙。</p>
+      </div>
+      <div class="panelActions">
+        <button class="btn primary" id="rulesClose">知道了</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 设置 -->
+  <div class="overlay" id="settingsOverlay" hidden>
+    <div class="panel">
+      <h2>设置</h2>
+      <p class="sub">仅影响下一局</p>
+      <div class="setting">
+        <label for="setMove">每步时间（秒）</label>
+        <input type="number" id="setMove" min="5" max="120" step="5" />
+      </div>
+      <div class="setting">
+        <label for="setBank">时间库（秒）</label>
+        <input type="number" id="setBank" min="0" max="900" step="30" />
+      </div>
+      <div class="setting">
+        <label for="setUndo">悔棋次数</label>
+        <input type="number" id="setUndo" min="0" max="10" step="1" />
+      </div>
+      <div class="panelActions">
+        <button class="btn ghost" id="settingsCancel">取消</button>
+        <button class="btn primary" id="settingsSave">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 悔棋确认 -->
+  <div class="overlay" id="undoOverlay" hidden>
+    <div class="panel">
+      <div class="panelIcon">↩︎</div>
+      <h2>请求悔棋</h2>
+      <p id="undoDesc">撤销上一手？</p>
+      <div class="panelActions">
+        <button class="btn ghost" id="undoNo">拒绝</button>
+        <button class="btn primary" id="undoYes">同意</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 结算 -->
+  <div class="overlay" id="overlay" hidden>
+    <div class="panel">
+      <div class="panelIcon" id="panelIcon">🏁</div>
+      <h2 id="panelTitle">对局结束</h2>
+      <p id="panelDesc"></p>
+      <div class="panelActions">
+        <button class="btn ghost" id="toHome">返回主菜单</button>
+        <button class="btn primary" id="again">再来一局</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

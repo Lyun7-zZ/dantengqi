@@ -1,0 +1,7 @@
+# 统一用 LF，避免 Windows 上反复出现整文件 diff
+* text=auto eol=lf
+
+*.docx binary
+*.pdf binary
+*.png binary
+*.jpg binary

@@ -1,0 +1,578 @@
+<!DOCTYPE HTML>
+
+<html lang="en">
+
+	<head>
+	
+		<meta charset="UTF-8">
+		
+		<title>步步杀机</title>
+		
+			<style type="text/css">
+			
+				#table{
+					width: 100%;
+					height: 100%;
+					z-index: -1;
+					top: 0;
+					left: 0;
+					position: fixed;
+					overflow: auto;
+					background-size: cover; 
+					background-position: center center; 
+					background-image: url(https://pic.3gbizhi.com/2021/0924/thumb_1680_0_20210924104714650.jpg);
+					//background-color:#ffffff;
+				}
+				#map{
+					z-index: 0;
+					width: 500px;
+					height: 600px;
+					left: calc(50% - 250px);
+					top: calc(50% - 300px);
+					position: absolute;
+					//overflow: hidden;
+					background-color:#000000;
+					opacity:0.8;
+				}
+				#overMask{
+					z-index: 99;
+					width: 100%;
+					height: 100%;
+					left: 0;
+					top: 0;
+					position: absolute;
+				}
+				#over{
+					z-index: 100;
+					width: 75%;
+					height: 100px;
+					left: 25%;
+					top: calc(50% - 50px);
+					position: absolute;
+					background-image: -webkit-linear-gradient(left,rgba(0,0,0,1) 0%,rgba(0,0,0,0.6) 50%,rgba(0,0,0,0) 100%);
+				}
+				#overAvatar{
+					width: 200px;
+					height: 200px;
+					left: -100px;
+					top: calc(50% - 100px);
+					position: absolute;
+					border-radius:100px;
+					background-size: cover; 
+					background-position: center center;
+					background-color: #000000;
+				}
+				#overText{
+					font:italic bold 60px/100px Georgia,serif;
+					text-shadow: 0 0 5px #ffffff;
+					text-align: center;
+				}
+				#overButton{
+					width: 100px;
+					height: 40px;
+					left: 30%;
+					top: calc(100% + 20px);
+					position: absolute;
+					border-radius:5px;
+					background-size: cover; 
+					background-position: center center;
+					box-shadow: 0 0 10px #D4F2E7 inset;
+					background-color: #696969;
+					font:italic bold 20px/40px Georgia,serif;
+					text-shadow: 0 0 5px #ffffff;
+					text-align: center;
+					cursor: pointer;
+				}
+				
+				.cell{
+					z-index: 1;
+					width: 50px;
+					height: 50px;
+					position: absolute;
+					line-height: 50px;
+					text-shadow: 0 0 5px #000000;
+					text-align: center;
+				}
+				.wall{
+					z-index: 2;
+					background-color: #000000;
+					position: absolute;
+				}
+				.player{
+					z-index: 10;
+					width: 50px;
+					height: 50px;
+					position: absolute;
+					border-radius:25px;
+					background-size: cover; 
+					background-position: center center;
+					background-color: #000000;
+					transform: scale(0.9);
+					transition-property: all; 
+					transition-duration: 1s; 
+					transition-timing-function: ease;
+					clip-path: polygon(0% 0%, 0% 100%, 100% 100%, 100% 0%);
+				}
+				
+				.cellGray{
+					background-color:#778899;
+				}
+				.cellWhite{
+					background-color:#ffffff;
+				}
+				.cellGold{
+					//background-color:#FFFF00;
+					background-size: cover; 
+					background-position: center center;
+					background-image: url(http://pic.51yuansu.com/pic3/cover/03/66/68/5be379b54f1b7_610.jpg);
+				}
+				.wallRow{
+					width: 50px;
+					height: 6px;
+				}
+				.wallCol{
+					width: 6px;
+					height: 50px;
+				}
+				.wallFake{
+					opacity: 0.6;
+				}
+				.wallUnseen{
+					opacity: 0;
+				}
+				.wallRecent{
+					background-color: #ff0000;
+				}
+				.currentGlow{
+					box-shadow: 0 0 10px #FFD700 inset, 0 0 10px #FFD700;
+				}
+				.mouseOver{
+					box-shadow: 0 0 10px #000000 inset;
+				}
+				.pointer{
+					cursor: pointer;
+				}
+				.leftSide{
+					clip-path: polygon(0% 0%, 0% 100%, 50% 100%, 50% 0%);
+				}
+				.rightSide{
+					clip-path: polygon(50% 0%, 50% 100%, 100% 100%, 100% 0%);
+				}
+				
+			</style>
+			
+	</head>
+
+	<body>
+	
+		<div id="table"></div>
+		
+		<script type="text/javascript">
+		
+			_status={
+				init:false,//是否初始化
+				pause:true,//防止过多操作
+				current:null,//当前行动角色
+				currentEvent:[null,null],//正在进行的事件与主体
+			}
+			get={
+				translate:function(num,type){
+					if(type=='row'){
+						if(num<0) return 'O';
+						if(num>9) return 'S';
+						return lib.translate.row[num];
+					} 
+					if(type=='col'){
+						if(num<0) return '0';
+						if(num>11) return '13';
+						return lib.translate.col[num];
+					} 
+				}
+			}
+			lib={
+				translate:{
+					row:['A','B','C','D','E','F','G','H','I','J'],
+					col:['1','2','3','4','5','6','7','8','9','10','11','12'],
+				},
+				element:{
+					cell:{
+						onmouseover:function(){
+							this.classList.add('mouseOver');
+						},
+						onmouseout:function(){
+							this.classList.remove('mouseOver');
+						},
+						onclick:function(){
+							if(!_status.pause) return;
+							
+							if(this.classList.contains('pointer')){
+								for(var i in ui.cell){
+									ui.cell[i].classList.toggle('pointer',false);
+									ui.cell[i].classList.toggle('currentGlow',false);
+								}
+								
+								var x=this.pos[0],y=this.pos[1];
+								_status.current.move(x,y);
+							}
+						},
+					},
+					wall:{
+						onmouseover:function(){
+							if(this.classList.contains('wallUnseen')){
+								this.classList.add('wallFake');
+								this.classList.add('pointer');
+								this.classList.remove('wallUnseen');
+							}
+						},
+						onmouseout:function(){
+							if(this.classList.contains('wallFake')){
+								this.classList.add('wallUnseen');
+								this.classList.remove('wallFake');
+								this.classList.remove('pointer');
+							}
+						},
+						onclick:function(){
+							if(!_status.pause) return;
+							
+							for(var i in ui.wall){
+								ui.wall[i].classList.toggle('wallRecent',false);
+							}
+							
+							if(this.classList.contains('pointer')){
+								this.classList.toggle('wallUnseen',false);
+								this.classList.toggle('wallFake',false);
+								this.classList.toggle('pointer',false);
+								this.classList.toggle('wallRecent',true);
+								
+								this.check();
+							}
+						},
+						check:function(){
+							var check=false;
+							
+							//检测
+							check=_status.check==undefined?true:_status.check;
+							
+							if(check){
+								for(var i in ui.cell){
+									ui.cell[i].classList.toggle('pointer',false);
+									ui.cell[i].classList.toggle('currentGlow',false);
+								}
+								
+								_status.currentEvent=[game,'phaseLoop'];
+								game.resume();
+							}
+							else{
+								alert('无效操作');
+								this.classList.toggle('wallUnseen',true);
+							}
+						},
+						isFree:function(){
+							if(this.classList.contains('wallUnseen')||this.classList.contains('wallFake')){
+								return true;
+							}
+							return false;
+						},
+					},
+					player:{
+						setAvatar:function(src){
+							var player=this;
+							if(src==undefined){
+								if(player==game.me){
+									src='https://i1.hdslb.com/bfs/face/bd77f61ebfcb66747febbd85c928504ed031175c.jpg@128w_128h_1o.webp';
+								}
+								else{
+									src='https://i2.hdslb.com/bfs/face/8c13c0a1e5c2343baad09ca84cdacdc5a1b5266c.jpg@128w_128h_1o.webp';
+								}
+							}
+							player.style['background-image']='url('+src+')';
+						},
+						phase:function(){
+							var player=this;
+							var x=player.pos[0],y=player.pos[1];
+							
+							if(y>-1){
+								var name=get.translate(x,'row')+'_'+get.translate(y-1,'col')+'_'+get.translate(y,'col');
+								if(ui.wall[name]&&ui.wall[name].isFree()){
+									var name2=get.translate(x,'row')+'_'+get.translate(y-1,'col');
+									ui.cell[name2].classList.toggle('pointer',true);
+									ui.cell[name2].classList.toggle('currentGlow',true);
+								}
+							}
+							if(y<11){
+								var name=get.translate(x,'row')+'_'+get.translate(y,'col')+'_'+get.translate(y+1,'col');
+								if(ui.wall[name]&&ui.wall[name].isFree()){
+									var name2=get.translate(x,'row')+'_'+get.translate(y+1,'col');
+									ui.cell[name2].classList.toggle('pointer',true);
+									ui.cell[name2].classList.toggle('currentGlow',true);
+								}
+							}
+							if(x>0){
+								var name=get.translate(x-1,'row')+'_'+get.translate(x,'row')+'_'+get.translate(y,'col');
+								if(ui.wall[name]&&ui.wall[name].isFree()){
+									var name2=get.translate(x-1,'row')+'_'+get.translate(y,'col');
+									ui.cell[name2].classList.toggle('pointer',true);
+									ui.cell[name2].classList.toggle('currentGlow',true);
+								}
+							}
+							if(x<9){
+								var name=get.translate(x,'row')+'_'+get.translate(x+1,'row')+'_'+get.translate(y,'col');
+								if(ui.wall[name]&&ui.wall[name].isFree()){
+									var name2=get.translate(x+1,'row')+'_'+get.translate(y,'col');
+									ui.cell[name2].classList.toggle('pointer',true);
+									ui.cell[name2].classList.toggle('currentGlow',true);
+								}
+							}
+						},
+						move:function(x,y){
+							var player=this;
+							player.pos=[x,y];
+							player.style.left=x*50+'px';
+							player.style.top=y*50+'px';
+							var other=player==game.me?game.you:game.me;
+							setTimeout(function(){
+								if(player.pos[0]==other.pos[0]&&player.pos[1]==other.pos[1]){
+									player.classList.add('leftSide');
+									other.classList.add('rightSide');
+								}
+								else if(player.classList.contains('leftSide')){
+									player.classList.remove('leftSide');
+									other.classList.remove('rightSide');
+								}
+								else if(player.classList.contains('rightSide')){
+									player.classList.remove('rightSide');
+									other.classList.remove('leftSide');
+								}
+							},1000);
+							
+							if(player.pos[1]<0){
+								_status.currentEvent=[game,'over'];
+								game.resume(player);
+							}
+							else{
+								_status.currentEvent=[game,'phaseLoop'];
+								game.resume();
+							}
+						},
+					},
+				},
+			}
+			game={
+				me:null,
+				you:null,
+			
+				resume:function(all){
+					if(!_status.pause) return;
+					var obj=_status.currentEvent[0];
+					var fun=_status.currentEvent[1];
+					if(!obj||!fun) return;
+					_status.pause=false;
+					setTimeout(function(){
+						_status.pause=true;
+						obj[fun](all);
+					},1000);
+				},
+				init:function(){
+					if(_status.init) return;
+					
+					//_status
+					_status.init=true;
+					
+					//Function
+					Math.randomGet=function(minNum, maxNum) {
+						switch (arguments.length) {
+							case 1:
+								return parseInt(Math.random() * minNum + 1, 10);
+								break;
+							case 2:
+								return parseInt(Math.random() * (maxNum - minNum + 1) + minNum, 10);
+								break;
+							default:
+								return 0;
+								break;
+						}
+					}
+					Array.prototype.randomGet=function(){
+						var Id=Math.randomGet(0, this.length - 1);
+						var result=this[Id];
+						//this.splice(Id, 1);
+						return result
+					}
+					
+					//map
+					ui.map=document.createElement('div');
+					ui.map.setAttribute('id','map');
+					ui.table.appendChild(ui.map);
+					
+					//create
+					for(var i=0;i<lib.translate.row.length;i++){
+						for(var j=-1;j<lib.translate.col.length;j++){
+							//if(i==0&&j==-1) continue;
+							ui.create.cell(i,j);
+						}
+					}
+					for(var i=0;i<(lib.translate.row.length+1)*2;i++){
+						for(var j=0;j<lib.translate.col.length+1;j++){
+							if(i%2==0&&j==12) continue;
+							if(i==21) continue;
+							ui.create.wall(i,j);
+						}
+					}
+					game.me=ui.create.player(0,11);
+					game.you=ui.create.player(9,11);
+					game.me.setAvatar();
+					game.you.setAvatar();
+					
+					//start
+					_status.currentEvent=[game,'roll'];
+					_status.nextObj=game;
+					game.resume();
+				},
+				roll:function(){
+					_status.current=game.me;
+					_status.currentEvent=[game.me,'phase'];
+					game.resume();
+				},
+				phaseLoop:function(){
+					_status.current.classList.toggle('currentGlow',false);
+					if(_status.current==game.me){
+						_status.current=game.you;
+					}
+					else{
+						_status.current=game.me;
+					}
+					_status.current.classList.toggle('currentGlow',true);
+					_status.current.phase();
+				},
+				//check:function(){};
+				over:function(winner){
+					ui.create.over();
+					var avatar=document.getElementById('overAvatar');
+					avatar.style['background-image']=winner.style['background-image'];
+				},
+			}
+			
+			ui={
+				table:document.getElementById('table'),
+				map:null,
+				over:null,
+				cell:{},
+				wall:{},
+				
+				create:{
+					cell:function(x,y){
+						var name=get.translate(x,'row')+'_'+get.translate(y,'col');
+						var name2=get.translate(x,'row')+get.translate(y,'col');
+						var pos=[x,y];
+						
+						var cell=document.createElement('div');
+						cell.classList.add('cell');
+						cell.style.left=x*50+'px';
+						cell.style.top=y*50+'px';
+						if(y==-1){
+							cell.classList.add('cellGold');
+						}
+						else if((x+y)%2==0){
+							cell.classList.add('cellWhite');
+						}
+						else{
+							cell.classList.add('cellGray');
+						}
+						for(var i in lib.element.cell){
+							cell[i]=lib.element.cell[i];
+						}
+						//cell.innerHTML=name2;
+						cell.pos=pos;
+						ui.map.appendChild(cell);
+						ui.cell[name]=cell;
+						
+						return cell;
+					},
+					wall:function(x,y){
+						var x2=Math.floor(x/2);
+						var name;
+						//var name2=get.translate(x,'row')+get.translate(y,'col');
+						var pos=[x,y];
+						
+						var wall=document.createElement('div');
+						wall.classList.add('wall');
+						if(x%2==0){
+							var name=get.translate(x2-1,'row')+'_'+get.translate(x2,'row')+'_'+get.translate(y,'col');
+							wall.classList.add('wallCol');
+							wall.style.left=x2*50-3+'px';
+							wall.style.top=y*50+'px';
+							if(x2!=0&&x2!=10){
+								wall.classList.add('wallUnseen');
+							}
+						}
+						else{
+							var name=get.translate(x2,'row')+'_'+get.translate(y-1,'col')+'_'+get.translate(y,'col');
+							wall.classList.add('wallRow');
+							wall.style.left=x2*50+'px';
+							wall.style.top=y*50-3+'px';
+							if(y==0&&x2>0){
+								wall.classList.add('wallUnseen');
+							}
+							if(y!=0&&y!=12){
+								wall.classList.add('wallUnseen');
+							}
+						}
+						for(var i in lib.element.wall){
+							wall[i]=lib.element.wall[i];
+						}
+						wall.pos=pos;
+						ui.map.appendChild(wall);
+						ui.wall[name]=wall;
+						
+						return wall;
+					},
+					player:function(x,y){
+						var player=document.createElement('div');
+						player.classList.add('player');
+						player.style.left=x*50+'px';
+						player.style.top=y*50+'px';
+						player.pos=[x,y];
+						for(var i in lib.element.player){
+							player[i]=lib.element.player[i];
+						}
+						ui.map.appendChild(player);
+						
+						return player;
+					},
+					over:function(){
+						var overMask=document.createElement('div');
+						overMask.setAttribute('id','overMask');
+						ui.table.appendChild(overMask);
+						
+						var over=document.createElement('div');
+						over.setAttribute('id','over');
+						ui.table.appendChild(over);
+						ui.over=over;
+						
+						var avatar=document.createElement('div');
+						avatar.setAttribute('id','overAvatar');
+						ui.over.appendChild(avatar);
+						
+						var text=document.createElement('div');
+						text.setAttribute('id','overText');
+						ui.over.appendChild(text);
+						text.innerHTML="胜利！";
+						
+						var button=document.createElement('div');
+						button.setAttribute('id','overButton');
+						ui.over.appendChild(button);
+						button.innerHTML="重新开始";
+						button.onclick=function(){
+							window.location.reload();
+						}
+					},
+				},
+			}
+			
+			game.init();
+			
+		</script>
+		
+	</body>
+
+</html>

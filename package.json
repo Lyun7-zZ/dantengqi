@@ -1,0 +1,14 @@
+{
+  "name": "dantengqi",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "蛋疼棋规则内核与自对弈平衡测试",
+  "scripts": {
+    "test": "node --test",
+    "balance": "node tools/balance.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
