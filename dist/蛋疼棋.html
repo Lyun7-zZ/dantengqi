@@ -681,6 +681,59 @@ body {
   border-color: rgba(70, 211, 166, 0.6);
 }
 
+/* ---------- 联机 ---------- */
+.panel.net { width: min(460px, 90vw); }
+
+.roomInput {
+  width: 100%;
+  margin: 6px 0 18px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: #0f171d;
+  color: var(--text);
+  font: inherit;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.35em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.roomInput:focus {
+  outline: none;
+  border-color: rgba(70, 211, 166, 0.6);
+}
+
+.roomCode {
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  text-align: center;
+  padding: 14px 0 10px;
+  color: var(--p0);
+  text-shadow: 0 0 24px rgba(70, 211, 166, 0.35);
+  font-variant-numeric: tabular-nums;
+}
+
+.codeBox {
+  width: 100%;
+  height: 88px;
+  margin: 10px 0;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: #0f171d;
+  color: var(--muted);
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 10.5px;
+  line-height: 1.5;
+  resize: vertical;
+  word-break: break-all;
+}
+
+.codeBox:focus { outline: none; border-color: rgba(70, 211, 166, 0.6); }
+
 /* ---------- 掷骰 ---------- */
 .diceRow {
   display: flex;
@@ -832,6 +885,9 @@ body {
         <button class="menuItem" id="menuAI">
           <b>人机对战</b><span>简单 / 普通 / 困难</span>
         </button>
+        <button class="menuItem" id="menuNet">
+          <b>联机对战</b><span>房间码 · 点对点直连</span>
+        </button>
         <button class="menuItem" id="menuRules">
           <b>游戏规则</b><span>棋盘、行动、胜负与计时</span>
         </button>
@@ -856,6 +912,74 @@ body {
       </div>
 
       <p class="fine" id="homeFine">每步 30 秒 · 时间库 300 秒 · 悔棋 3 次</p>
+    </div>
+  </div>
+
+  <!-- 联机 -->
+  <div class="overlay" id="netOverlay" hidden>
+    <div class="panel net">
+      <h2>联机对战</h2>
+
+      <div id="netMain">
+        <p class="sub">和好友用房间码直连，不需要服务器</p>
+        <div class="menu">
+          <button class="menuItem" id="netCreate">
+            <b>创建房间</b><span>生成房间码，等对方加入</span>
+          </button>
+          <button class="menuItem" id="netJoinBtn">
+            <b>加入房间</b><span>输入对方给的房间码</span>
+          </button>
+          <button class="menuItem" id="netManualBtn">
+            <b>用连接码</b><span>连不上时的兜底，不依赖任何服务</span>
+          </button>
+        </div>
+        <div class="panelActions">
+          <button class="btn ghost" id="netBack">返回</button>
+        </div>
+      </div>
+
+      <div id="netJoin" hidden>
+        <p class="sub">输入 6 位房间码</p>
+        <input id="roomInput" class="roomInput" maxlength="6" placeholder="ABC123" autocomplete="off" spellcheck="false" />
+        <div class="panelActions">
+          <button class="btn ghost" id="joinBack">返回</button>
+          <button class="btn primary" id="joinGo">加入</button>
+        </div>
+      </div>
+
+      <div id="netManual" hidden>
+        <p class="sub">不用服务器：把一段连接码发给对方，对方回一段应答码即可</p>
+        <div class="panelActions">
+          <button class="btn ghost" id="manualHostBtn">我是房主</button>
+          <button class="btn ghost" id="manualGuestBtn">我是加入方</button>
+        </div>
+
+        <div id="manualHost" hidden>
+          <textarea id="manualOfferOut" class="codeBox" readonly placeholder="正在生成邀请码…"></textarea>
+          <textarea id="manualAnswerIn" class="codeBox" placeholder="把对方发回的应答码粘贴到这里"></textarea>
+          <button class="btn primary" id="manualFinish">完成连接</button>
+        </div>
+
+        <div id="manualGuest" hidden>
+          <textarea id="manualOfferIn" class="codeBox" placeholder="粘贴对方的邀请码"></textarea>
+          <button class="btn primary" id="manualMakeAnswer">生成应答码</button>
+          <textarea id="manualAnswerOut" class="codeBox" readonly hidden placeholder="把这段应答码发回给对方"></textarea>
+        </div>
+
+        <div class="panelActions">
+          <button class="btn ghost" id="manualBack">返回</button>
+        </div>
+      </div>
+
+      <div id="netRoom" hidden>
+        <p class="sub" id="netStatus">正在连接…</p>
+        <div class="roomCode" id="roomCode">------</div>
+        <p class="sub" id="netHint">把房间码发给对方，或用「复制链接」</p>
+        <div class="panelActions">
+          <button class="btn ghost" id="copyRoom">复制链接</button>
+          <button class="btn ghost" id="cancelRoom">取消</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1668,6 +1792,913 @@ const AI = {
   hard: hardAI,
 };
 
+/* ===== src/net/protocol.js ===== */
+/**
+ * 联机协议：版本、哈希、消息编解码。
+ *
+ * 设计目标：消息尽量小、可校验、可演进。
+ * 每条消息都有 v（协议版本）与 t（类型）；对局消息额外带 ply 与 stateHash。
+ */
+
+const PROTOCOL_VERSION = 1;
+const RULES_VERSION = "1.2";
+
+/** 对局参数指纹：两端必须一致，否则拒绝开局。 */
+function configHash(config) {
+  const s = [
+    config.perMove, config.bank, RULES_VERSION,
+    // 棋盘与规则常量（与内核保持一致）
+    10, 12, 228, 1,
+  ].join("|");
+  return fnv1a(s);
+}
+
+/** 局面指纹：棋子、墙位、轮次、墙数、容差。任何不一致都会被发现。 */
+function stateHash(state) {
+  let h = 0x811c9dc5;
+  const mix = (n) => {
+    h ^= n & 0xff;
+    h = Math.imul(h, 0x01000193);
+  };
+  for (const p of state.players) {
+    mix(p.c);
+    mix(p.r);
+  }
+  for (const v of state.vWall) mix(v);
+  for (const v of state.hWall) mix(v);
+  for (const v of state.topWall) mix(v);
+  mix(state.turn);
+  mix(state.wallsPlaced);
+  mix(state.tolerance);
+  return (h >>> 0).toString(16).padStart(8, "0");
+}
+
+function fnv1a(str) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return (h >>> 0).toString(16).padStart(8, "0");
+}
+
+function message(type, payload = {}) {
+  return { v: PROTOCOL_VERSION, t: type, ...payload };
+}
+
+/** 接收端校验：版本不符或字段缺失都视为脏消息。 */
+function parseMessage(raw) {
+  let msg;
+  try {
+    msg = typeof raw === "string" ? JSON.parse(raw) : raw;
+  } catch {
+    return { ok: false, error: "bad-json" };
+  }
+  if (!msg || typeof msg !== "object") return { ok: false, error: "bad-message" };
+  if (msg.v !== PROTOCOL_VERSION) return { ok: false, error: "version-mismatch" };
+  if (typeof msg.t !== "string") return { ok: false, error: "bad-type" };
+  return { ok: true, msg };
+}
+
+/** 握手：比较版本、规则与对局参数。 */
+function checkHandshake(local, remote) {
+  if (remote.v !== PROTOCOL_VERSION) return { ok: false, error: "protocol", detail: remote.v };
+  if (remote.rules !== RULES_VERSION) return { ok: false, error: "rules", detail: remote.rules };
+  if (remote.config !== local.config) return { ok: false, error: "config", detail: remote.config };
+  return { ok: true };
+}
+
+/** 房间码：去掉 0/O/1/I 等易混字符，6 位。 */
+const ROOM_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+function makeRoomCode(len = 6, random = Math.random) {
+  let out = "";
+  for (let i = 0; i < len; i++) {
+    out += ROOM_ALPHABET[Math.floor(random() * ROOM_ALPHABET.length)];
+  }
+  return out;
+}
+
+function normalizeRoomCode(input) {
+  return String(input ?? "")
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "")
+    .replace(/O/g, "0")
+    .replace(/I/g, "1")
+    .slice(0, 6);
+}
+
+/* ===== src/net/code.js ===== */
+/**
+ * 连接码编解码：把 SDP 压成一段可粘贴的文本。
+ *
+ * 优先 gzip（CompressionStream），环境不支持时退回明文 base64。
+ * 文本统一加 DTQ1- 前缀，方便识别与后续版本演进。
+ */
+
+const CODE_PREFIX = "DTQ1-";
+
+function bytesToBase64(bytes) {
+  let bin = "";
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    bin += String.fromCharCode(...bytes.subarray(i, i + chunk));
+  }
+  return btoa(bin);
+}
+
+function base64ToBytes(b64) {
+  const bin = atob(b64);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+async function packCode(obj) {
+  const json = JSON.stringify(obj);
+  if (typeof CompressionStream === "function") {
+    try {
+      const stream = new Blob([json]).stream().pipeThrough(new CompressionStream("gzip"));
+      const buf = new Uint8Array(await new Response(stream).arrayBuffer());
+      return CODE_PREFIX + "Z" + bytesToBase64(buf);
+    } catch {
+      /* 回退到明文 */
+    }
+  }
+  return CODE_PREFIX + "P" + bytesToBase64(new TextEncoder().encode(json));
+}
+
+async function unpackCode(code) {
+  const raw = String(code).trim().replace(/\s+/g, "");
+  if (!raw.startsWith(CODE_PREFIX)) throw new Error("连接码格式不正确");
+  const kind = raw[CODE_PREFIX.length];
+  const body = raw.slice(CODE_PREFIX.length + 1);
+  const bytes = base64ToBytes(body);
+
+  let json;
+  if (kind === "Z") {
+    const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
+    json = await new Response(stream).text();
+  } else {
+    json = new TextDecoder().decode(bytes);
+  }
+  return JSON.parse(json);
+}
+
+/** 供界面显示用：多长、大概多少字。 */
+function codeStats(code) {
+  return { chars: code.length, bytes: new TextEncoder().encode(code).length };
+}
+
+/* ===== src/net/transport.js ===== */
+/**
+ * 传输层抽象：游戏逻辑只认这一层，不关心底层是 WebRTC 还是内存。
+ *
+ * 约定：
+ *   - send(msg) 接受普通对象，内部负责序列化；
+ *   - onMessage/onOpen/onClose 由使用方赋值；
+ *   - 关闭是幂等的。
+ */
+
+class Transport {
+  constructor(kind = "base") {
+    this.kind = kind;
+    this.state = "idle"; // idle | connecting | open | closed
+    this.onMessage = null;
+    this.onOpen = null;
+    this.onClose = null;
+    this.closeReason = null;
+  }
+
+  send() {
+    throw new Error("send() 未实现");
+  }
+
+  close(reason = "local") {
+    if (this.state === "closed") return;
+    this.state = "closed";
+    this.closeReason = reason;
+    this.onClose?.(reason);
+  }
+
+  /** 子类在连接建立时调用。 */
+  _open() {
+    if (this.state === "closed") return;
+    this.state = "open";
+    this.onOpen?.();
+  }
+
+  /** 子类在收到消息时调用。 */
+  _recv(msg) {
+    if (this.state !== "open") return;
+    this.onMessage?.(msg);
+  }
+}
+
+/**
+ * 内存传输：用于单元测试与本地演练。
+ * 可配置延迟与丢包（丢包仅用于测试异常分支）。
+ */
+class MemoryTransport extends Transport {
+  constructor() {
+    super("memory");
+    this.target = null;
+    this.latency = 0;
+    this.dropRate = 0;
+  }
+
+  send(msg) {
+    if (this.state !== "open") throw new Error("transport not open");
+    const copy = JSON.parse(JSON.stringify(msg));
+    const deliver = () => {
+      if (this.target && this.target.state === "open") this.target._recv(copy);
+    };
+    if (this.latency > 0) setTimeout(deliver, this.latency);
+    else queueMicrotask(deliver);
+  }
+
+  /** 模拟网络中断。 */
+  cut(reason = "network") {
+    this.close(reason);
+    this.target?.close(reason);
+  }
+}
+
+/** 生成一对已连通的内存传输。 */
+function memoryPair({ latency = 0 } = {}) {
+  const a = new MemoryTransport();
+  const b = new MemoryTransport();
+  a.target = b;
+  b.target = a;
+  a.latency = latency;
+  b.latency = latency;
+  queueMicrotask(() => {
+    a._open();
+    b._open();
+  });
+  return [a, b];
+}
+
+/* ===== src/net/session.js ===== */
+/**
+ * 联机会话：握手 → 掷骰 → 对局 → 掉线/恢复。
+ *
+ * 职责边界：
+ *   - 本类只处理“消息语义与同步校验”，不直接改棋盘；
+ *   - 落子统一走外部注入的 apply(action)，保证本地/远程走同一条路径；
+ *   - 任何“双方必须一致”的东西都带 stateHash，不一致即上报 desync。
+ */
+
+
+const PHASE = {
+  IDLE: "idle",
+  HANDSHAKE: "handshake",
+  READY: "ready",     // 握手完成，等待掷骰
+  DICE: "dice",       // 掷骰中
+  STARTED: "started", // 已定先后手，可以落子
+  PAUSED: "paused",   // 网络异常，暂停
+  CLOSED: "closed",
+};
+
+/** 轻量哈希，用于掷骰的 commit-reveal（不是密码学用途）。 */
+function nonceHash(nonce, value) {
+  let h = 0x811c9dc5;
+  const s = `${nonce}:${value}`;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return (h >>> 0).toString(16).padStart(8, "0");
+}
+
+class Session {
+  /**
+   * @param {object} opts
+   * @param {import('./transport.js').Transport} opts.transport
+   * @param {'host'|'guest'} opts.role
+   * @param {{perMove:number, bank:number, configHash:string}} opts.config
+   * @param {() => any} opts.getState        当前棋盘状态
+   * @param {(action:any) => {ok:boolean, error?:string, state?:any}} opts.apply 应用行动
+   * @param {(evt:object) => void} opts.onEvent
+   */
+  constructor({ transport, role, config, getState, apply, onEvent, random = Math.random, heartbeat = {} }) {
+    this.transport = transport;
+    this.role = role;
+    this.config = config;
+    this.getState = getState;
+    this.apply = apply;
+    this.onEvent = onEvent ?? (() => {});
+    this.random = random;
+    this.hbInterval = heartbeat.intervalMs ?? 3000;
+    this.hbTimeout = heartbeat.timeoutMs ?? 10000;
+
+    this.me = role === "host" ? 0 : 1;
+    this.them = 1 - this.me;
+    this.phase = PHASE.IDLE;
+    this.remote = null;
+    this.lastSeen = Date.now();
+    this.pingTimer = null;
+    this.outbox = [];
+
+    // 掷骰
+    this.myNonce = null;
+    this.myValue = null;
+    this.myCommit = null;
+    this.theirCommit = null;
+    this.theirValue = null;
+    this.dice = null;          // { mine, theirs, chooser }
+    this.firstPerson = null;   // 0 host / 1 guest
+    this.sideActor = null;
+    this.seats = null;         // { 0: seat, 1: seat }
+    this.firstSeat = null;
+
+    this._attach(transport);
+  }
+
+  _attach(transport) {
+    this.transport = transport;
+    transport.onMessage = (raw) => this._onMessage(raw);
+    transport.onClose = (reason) => this._onClose(reason);
+    transport.onOpen = () => this._flushOutbox();
+    if (transport.state === "open") this._flushOutbox();
+  }
+
+  _flushOutbox() {
+    while (this.outbox.length && this.transport.state === "open") {
+      const msg = this.outbox.shift();
+      try { this.transport.send(msg); } catch { /* 交给 onClose 处理 */ }
+    }
+  }
+
+  /* ------------------------------------------------------------ 生命周期 */
+
+  start() {
+    if (this.phase !== PHASE.IDLE) return;
+    this.phase = PHASE.HANDSHAKE;
+    this._send(message("hello", {
+      rules: RULES_VERSION,
+      config: this.config.configHash,
+      role: this.role,
+    }));
+    this._startHeartbeat();
+    this._emit({ type: "phase", phase: this.phase });
+  }
+
+  close(reason = "local") {
+    clearInterval(this.pingTimer);
+    this.pingTimer = null;
+    if (this.phase === PHASE.CLOSED) return;
+    this.phase = PHASE.CLOSED;
+    try { this.transport.close(reason); } catch { /* ignore */ }
+    this._emit({ type: "phase", phase: this.phase, reason });
+  }
+
+  _onClose(reason) {
+    if (this.phase === PHASE.CLOSED) return;
+    clearInterval(this.pingTimer);
+    this.phase = PHASE.PAUSED;
+    this._emit({ type: "offline", reason });
+  }
+
+  /** 重连后重新挂载传输并重新握手。 */
+  reattach(transport) {
+    this._attach(transport);
+    this.phase = PHASE.HANDSHAKE;
+    this._send(message("hello", {
+      rules: RULES_VERSION,
+      config: this.config.configHash,
+      role: this.role,
+    }));
+    this._startHeartbeat();
+    this._emit({ type: "phase", phase: this.phase });
+  }
+
+  /* ------------------------------------------------------------ 心跳 */
+
+  _startHeartbeat() {
+    clearInterval(this.pingTimer);
+    this.lastSeen = Date.now();
+    this.pingTimer = setInterval(() => {
+      if (this.phase === PHASE.CLOSED) return;
+      if (Date.now() - this.lastSeen > this.hbTimeout) {
+        this._emit({ type: "timeout" });
+        clearInterval(this.pingTimer);
+        return;
+      }
+      this._send(message("ping", { at: Date.now() }));
+    }, this.hbInterval);
+  }
+
+  /* ------------------------------------------------------------ 收发 */
+
+  _send(msg) {
+    if (this.transport.state === "closed") {
+      this._emit({ type: "error", code: "send-failed", detail: "transport closed" });
+      return;
+    }
+    if (this.transport.state !== "open") {
+      this.outbox.push(msg);
+      return;
+    }
+    try {
+      this.transport.send(msg);
+    } catch (e) {
+      this._emit({ type: "error", code: "send-failed", detail: String(e?.message ?? e) });
+    }
+  }
+
+  _emit(evt) {
+    this.onEvent({ ...evt, phase: this.phase });
+  }
+
+  _onMessage(raw) {
+    const parsed = parseMessage(raw);
+    if (!parsed.ok) {
+      this._emit({ type: "error", code: parsed.error });
+      return;
+    }
+    const msg = parsed.msg;
+    this.lastSeen = Date.now();
+
+    switch (msg.t) {
+      case "ping": return;
+      case "hello": return this._onHello(msg);
+      case "diceCommit": return this._onDiceCommit(msg);
+      case "diceReveal": return this._onDiceReveal(msg);
+      case "priority": return this._onPriority(msg);
+      case "side": return this._onSide(msg);
+      case "start": return this._onStart(msg);
+      case "action": return this._onAction(msg);
+      case "snapshot": return this._onSnapshot(msg);
+      case "undoReq": return this._emit({ type: "undoReq" });
+      case "undoRes": return this._emit({ type: "undoRes", accept: !!msg.accept });
+      case "resign": return this._emit({ type: "resign" });
+      case "rematchReq": return this._emit({ type: "rematchReq" });
+      case "rematchRes": return this._emit({ type: "rematchRes", accept: !!msg.accept });
+      case "bye": return this._emit({ type: "bye", reason: msg.reason });
+      default:
+        this._emit({ type: "error", code: "unknown-message", detail: msg.t });
+    }
+  }
+
+  /* ------------------------------------------------------------ 握手 */
+
+  _onHello(msg) {
+    const res = checkHandshake({ config: this.config.configHash }, msg);
+    if (!res.ok) {
+      this._emit({ type: "error", code: "handshake:" + res.error, detail: res.detail });
+      this.close("handshake-failed");
+      return;
+    }
+    this.remote = { role: msg.role, config: msg.config };
+    this.phase = PHASE.READY;
+    this._emit({ type: "ready", remoteRole: msg.role });
+    this._beginDice();
+  }
+
+  /* ------------------------------------------------------------ 掷骰 */
+
+  _beginDice() {
+    if (this.phase !== PHASE.READY) return;
+    this.phase = PHASE.DICE;
+    this._emit({ type: "phase", phase: this.phase });
+
+    this.myNonce = this.random().toString(36).slice(2, 10);
+    this.myValue = 1 + Math.floor(this.random() * 6);
+    this.myCommit = nonceHash(this.myNonce, this.myValue);
+    this.theirCommit = null;
+    this.theirValue = null;
+
+    this._send(message("diceCommit", { hash: this.myCommit }));
+    if (this.theirCommit) this._sendReveal();
+  }
+
+  _onDiceCommit(msg) {
+    if (typeof msg.hash !== "string") return this._emit({ type: "error", code: "bad-dice-commit" });
+    this.theirCommit = msg.hash;
+    if (this.myCommit) this._sendReveal();
+  }
+
+  _sendReveal() {
+    if (this._revealed) return;
+    this._revealed = true;
+    this._send(message("diceReveal", { nonce: this.myNonce, value: this.myValue }));
+  }
+
+  _onDiceReveal(msg) {
+    if (nonceHash(msg.nonce, msg.value) !== this.theirCommit) {
+      this._emit({ type: "error", code: "dice-cheat" });
+      this.close("dice-cheat");
+      return;
+    }
+    this.theirValue = msg.value;
+    this._maybeResolveDice();
+  }
+
+  _maybeResolveDice() {
+    if (this.theirValue == null || this.myValue == null) return;
+    if (this.theirValue === this.myValue) {
+      this._emit({ type: "dice-tie", mine: this.myValue, theirs: this.theirValue });
+      // 双方同时重掷
+      this._revealed = false;
+      this._beginDice();
+      return;
+    }
+
+    const mine = this.myValue;
+    const theirs = this.theirValue;
+    const iWin = mine > theirs;
+    const chooserPerson = iWin ? this.me : this.them;
+    this.dice = { mine, theirs, iWin, chooserPerson };
+    this._emit({ type: "dice", mine, theirs, iWin, chooserPerson, iAmChooser: chooserPerson === this.me });
+    this.phase = PHASE.DICE;
+  }
+
+  /* ------------------------------------------------------------ 选先手 / 选边 */
+
+  choosePriority(kind) {
+    this._send(message("priority", { kind }));
+    this._onPriority({ kind, local: true });
+  }
+
+  _onPriority(msg) {
+    const kind = msg.kind;
+    if (kind !== "first" && kind !== "side") return;
+    const chooser = this.dice?.chooserPerson;
+    if (chooser == null) return;
+
+    if (kind === "first") {
+      this.firstPerson = chooser;
+      this.sideActor = 1 - chooser;
+    } else {
+      this.firstPerson = 1 - chooser;
+      this.sideActor = chooser;
+    }
+    this._emit({ type: "priority", kind, firstPerson: this.firstPerson, sideActor: this.sideActor });
+  }
+
+  chooseSide(side) {
+    this._send(message("side", { side }));
+    this._onSide({ side, local: true });
+  }
+
+  _onSide(msg) {
+    const side = msg.side === 1 ? 1 : 0;
+    const seats = {};
+    seats[this.sideActor] = side;
+    seats[1 - this.sideActor] = 1 - side;
+    this.seats = seats;
+    this.firstSeat = seats[this.firstPerson];
+
+    if (this.role === "host") {
+      this._send(message("start", { seats, firstSeat: this.firstSeat }));
+      this._onStart({ seats, firstSeat: this.firstSeat, local: true });
+    }
+  }
+
+  _onStart(msg) {
+    this.seats = msg.seats;
+    this.firstSeat = msg.firstSeat;
+    this.phase = PHASE.STARTED;
+    this._emit({ type: "start", seats: msg.seats, firstSeat: msg.firstSeat });
+  }
+
+  /* ------------------------------------------------------------ 行动同步 */
+
+  /** 本地落子：先本地应用，成功后广播。 */
+  localAction(action, elapsedMs = 0) {
+    const res = this.apply(action);
+    if (!res.ok) return res;
+    const st = this.getState();
+    this._send(message("action", {
+      ply: st.plies,
+      action,
+      elapsedMs,
+      hash: stateHash(st),
+    }));
+    return res;
+  }
+
+  _onAction(msg) {
+    const before = this.getState();
+    if (msg.ply !== before.plies + 1) {
+      this._emit({ type: "error", code: "ply-mismatch", detail: `${msg.ply} != ${before.plies + 1}` });
+      this.close("desync");
+      return;
+    }
+    const res = this.apply(msg.action);
+    if (!res.ok) {
+      this._emit({ type: "error", code: "illegal-remote-action", detail: res.error });
+      this.close("desync");
+      return;
+    }
+    const after = this.getState();
+    if (stateHash(after) !== msg.hash) {
+      this._emit({ type: "error", code: "desync", detail: "stateHash 不一致" });
+      this.close("desync");
+      return;
+    }
+    this._emit({ type: "remoteAction", action: msg.action, elapsedMs: msg.elapsedMs });
+  }
+
+  /* ------------------------------------------------------------ 快照 */
+
+  sendSnapshot(snapshot) {
+    this._send(message("snapshot", { snapshot, hash: snapshot.stateHash }));
+  }
+
+  _onSnapshot(msg) {
+    this._emit({ type: "snapshot", snapshot: msg.snapshot });
+  }
+
+  get mySeat() {
+    return this.seats ? this.seats[this.me] : null;
+  }
+
+  get isMyTurn() {
+    return this.mySeat != null && this.getState().turn === this.mySeat;
+  }
+
+  send(type, payload = {}) {
+    this._send(message(type, payload));
+  }
+}
+
+/* ===== src/net/peer.js ===== */
+/**
+ * PeerJS 传输：零服务器的默认信令方案。
+ *
+ * 房间码映射为固定的 PeerJS id（danteng-XXXXXX），
+ * 房主等待连接，加入方主动 dial。PeerJS 库按需从 CDN 加载，
+ * 因此单文件版在“不联机”时不会引入任何网络依赖。
+ */
+
+
+const CDNS = [
+  "https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js",
+  "https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js",
+  "https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js",
+];
+
+let peerLoading = null;
+
+/** 懒加载 PeerJS，返回 window.Peer。 */
+function loadPeerJS() {
+  if (globalThis.Peer) return Promise.resolve(globalThis.Peer);
+  if (peerLoading) return peerLoading;
+
+  peerLoading = (async () => {
+    for (const url of CDNS) {
+      try {
+        await new Promise((resolve, reject) => {
+          const s = document.createElement("script");
+          s.src = url;
+          s.async = true;
+          s.onload = resolve;
+          s.onerror = () => reject(new Error("load failed: " + url));
+          document.head.appendChild(s);
+        });
+        if (globalThis.Peer) return globalThis.Peer;
+      } catch {
+        /* 换下一个 CDN */
+      }
+    }
+    throw new Error("PeerJS 加载失败，请检查网络或改用连接码");
+  })();
+
+  return peerLoading;
+}
+
+function peerIdFor(roomCode) {
+  return `danteng-${roomCode}`;
+}
+
+class PeerTransport extends Transport {
+  constructor(peer, conn, role) {
+    super("peer");
+    this.peer = peer;
+    this.conn = conn;
+    this.role = role;
+
+    conn.on("data", (data) => this._recv(data));
+    conn.on("close", () => this.close("remote"));
+    conn.on("error", (e) => this.close("error:" + (e?.type ?? "unknown")));
+    peer.on("error", (e) => {
+      if (e?.type === "peer-unavailable") this.close("peer-unavailable");
+    });
+
+    this._open();
+  }
+
+  send(msg) {
+    if (this.state !== "open") throw new Error("transport not open");
+    this.conn.send(msg);
+  }
+
+  close(reason = "local") {
+    if (this.state === "closed") return;
+    try { this.conn.close(); } catch { /* ignore */ }
+    try { this.peer.destroy(); } catch { /* ignore */ }
+    super.close(reason);
+  }
+}
+
+function once(target, event, timeoutMs, timeoutMsg) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(new Error(timeoutMsg));
+    }, timeoutMs);
+    const onOk = (v) => { cleanup(); resolve(v); };
+    const onErr = (e) => { cleanup(); reject(e instanceof Error ? e : new Error(e?.type ?? "error")); };
+    const cleanup = () => {
+      clearTimeout(timer);
+      target.off?.(event, onOk);
+      target.off?.("error", onErr);
+    };
+    target.on(event, onOk);
+    target.on("error", onErr);
+  });
+}
+
+/** 建房等待对手加入。 */
+async function createPeerHost(roomCode, { onStatus, signal } = {}) {
+  const Peer = await loadPeerJS();
+  onStatus?.("signaling");
+
+  const peer = new Peer(peerIdFor(roomCode), { debug: 0 });
+  await once(peer, "open", 15000, "信令连接超时");
+  onStatus?.("waiting");
+
+  const conn = await new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("等待对手加入超时")), 120000);
+    peer.on("connection", (c) => {
+      clearTimeout(timer);
+      resolve(c);
+    });
+    peer.on("error", (e) => {
+      clearTimeout(timer);
+      reject(new Error("信令错误：" + (e?.type ?? "unknown")));
+    });
+    signal?.addEventListener("abort", () => {
+      clearTimeout(timer);
+      reject(new Error("已取消"));
+    }, { once: true });
+  });
+
+  await once(conn, "open", 20000, "数据通道建立失败");
+  onStatus?.("connected");
+  return new PeerTransport(peer, conn, "host");
+}
+
+/** 加入房间。 */
+async function joinPeerRoom(roomCode, { onStatus } = {}) {
+  const Peer = await loadPeerJS();
+  onStatus?.("signaling");
+
+  const peer = new Peer({ debug: 0 });
+  await once(peer, "open", 15000, "信令连接超时");
+
+  onStatus?.("dialing");
+  const conn = peer.connect(peerIdFor(roomCode), {
+    reliable: true,
+    serialization: "json",
+  });
+
+  await once(conn, "open", 20000, "连接超时，房间可能不存在");
+  onStatus?.("connected");
+  return new PeerTransport(peer, conn, "guest");
+}
+
+/* ===== src/net/manual.js ===== */
+/**
+ * 手动连接码传输：完全零服务器。
+ *
+ * 流程（两步，靠微信/QQ 等任意渠道传递两段文本）：
+ *   房主：生成「邀请码」→ 发给对方
+ *   对方：粘贴邀请码 → 得到「应答码」→ 发回房主
+ *   房主：粘贴应答码 → 连接建立
+ *
+ * 之后数据走 WebRTC DataChannel，与 PeerJS 方案完全一致。
+ */
+
+
+const ICE_SERVERS = {
+  iceServers: [
+    { urls: ["stun:stun.cloudflare.com:3478", "stun:stun.l.google.com:19302"] },
+  ],
+};
+
+const ICE_TIMEOUT = 3500;
+
+class RtcTransport extends Transport {
+  constructor(pc, role) {
+    super("rtc");
+    this.pc = pc;
+    this.role = role;
+    this.channel = null;
+
+    pc.addEventListener("connectionstatechange", () => {
+      const s = pc.connectionState;
+      if (s === "failed") this.close("failed");
+      else if (s === "disconnected") this.close("disconnected");
+      else if (s === "closed") this.close("closed");
+    });
+  }
+
+  attach(channel) {
+    this.channel = channel;
+    channel.addEventListener("open", () => this._open());
+    channel.addEventListener("message", (e) => {
+      let msg = e.data;
+      if (typeof msg === "string") {
+        try { msg = JSON.parse(msg); } catch { return; }
+      }
+      this._recv(msg);
+    });
+    channel.addEventListener("close", () => this.close("remote"));
+    if (channel.readyState === "open") this._open();
+  }
+
+  send(msg) {
+    if (!this.channel || this.channel.readyState !== "open") {
+      throw new Error("数据通道未就绪");
+    }
+    this.channel.send(JSON.stringify(msg));
+  }
+
+  close(reason = "local") {
+    if (this.state === "closed") return;
+    try { this.channel?.close(); } catch { /* ignore */ }
+    try { this.pc.close(); } catch { /* ignore */ }
+    super.close(reason);
+  }
+}
+
+/* ---------------------------------------------------------------- 连接 */
+
+function waitForIce(pc) {
+  if (pc.iceGatheringState === "complete") return Promise.resolve();
+  return new Promise((resolve) => {
+    const done = () => {
+      pc.removeEventListener("icegatheringstatechange", onChange);
+      resolve();
+    };
+    const onChange = () => {
+      if (pc.iceGatheringState === "complete") done();
+    };
+    pc.addEventListener("icegatheringstatechange", onChange);
+    setTimeout(done, ICE_TIMEOUT);
+  });
+}
+
+/** 房主：生成邀请码。 */
+async function createManualOffer({ onStatus } = {}) {
+  onStatus?.("gathering");
+
+  const pc = new RTCPeerConnection(ICE_SERVERS);
+  const transport = new RtcTransport(pc, "host");
+  const channel = pc.createDataChannel("game", { ordered: true });
+  transport.attach(channel);
+
+  await pc.setLocalDescription(await pc.createOffer());
+  await waitForIce(pc);
+  onStatus?.("code-ready");
+
+  const code = await packCode({ k: "offer", sdp: pc.localDescription.sdp });
+
+  return {
+    transport,
+    code,
+    /** 房主粘贴对方的应答码后调用。 */
+    async complete(answerCode) {
+      const ans = await unpackCode(answerCode);
+      if (ans.k !== "answer") throw new Error("这不是应答码");
+      await pc.setRemoteDescription({ type: "answer", sdp: ans.sdp });
+    },
+  };
+}
+
+/** 加入方：用邀请码换取应答码。 */
+async function answerManualOffer(offerCode, { onStatus } = {}) {
+  onStatus?.("gathering");
+
+  const offer = await unpackCode(offerCode);
+  if (offer.k !== "offer") throw new Error("这不是邀请码");
+
+  const pc = new RTCPeerConnection(ICE_SERVERS);
+  const transport = new RtcTransport(pc, "guest");
+  pc.addEventListener("datachannel", (e) => transport.attach(e.channel));
+
+  await pc.setRemoteDescription({ type: "offer", sdp: offer.sdp });
+  await pc.setLocalDescription(await pc.createAnswer());
+  await waitForIce(pc);
+  onStatus?.("code-ready");
+
+  const code = await packCode({ k: "answer", sdp: pc.localDescription.sdp });
+  return { transport, code };
+}
+
 /* ===== app.js ===== */
 /**
  * M2：棋盘与本地同屏对局界面。
@@ -1706,6 +2737,21 @@ const setUndo = el("setUndo");
 const settingsSave = el("settingsSave");
 const settingsCancel = el("settingsCancel");
 const toHomeBtn = el("toHome");
+const netOverlay = el("netOverlay");
+const netMain = el("netMain");
+const netJoin = el("netJoin");
+const netRoom = el("netRoom");
+const roomInput = el("roomInput");
+const roomCodeEl = el("roomCode");
+const netStatusEl = el("netStatus");
+const netHintEl = el("netHint");
+const netManual = el("netManual");
+const manualHost = el("manualHost");
+const manualGuest = el("manualGuest");
+const manualOfferOut = el("manualOfferOut");
+const manualAnswerIn = el("manualAnswerIn");
+const manualOfferIn = el("manualOfferIn");
+const manualAnswerOut = el("manualAnswerOut");
 const diceOverlay = el("diceOverlay");
 const diceEls = [el("dice0"), el("dice1")];
 const diceNameEls = [el("diceName0"), el("diceName1")];
@@ -1747,6 +2793,9 @@ const S = {
   undoOverlayOpen: false,
   toastTimer: null,
   lastTs: 0,
+  net: null,        // { session, role, code }
+  mySeat: null,
+  turnStartedAt: 0,
 };
 
 const cellEls = new Map();   // "c,r"
@@ -1997,7 +3046,8 @@ function paint() {
   confirmBtn.disabled = !S.preview || !S.preview.valid || S.gameOver;
   cancelBtn.disabled = !S.preview;
   undoBtn.textContent = `悔棋 ${S.undoLeft[st.turn]}`;
-  undoBtn.disabled = S.gameOver || S.aiThinking || S.undoLeft[st.turn] <= 0 || S.history.length < 2;
+  undoBtn.disabled = S.gameOver || S.aiThinking || S.mode === "online"
+    || S.undoLeft[st.turn] <= 0 || S.history.length < 2;
 
   paintClocks();
 }
@@ -2038,6 +3088,7 @@ function clearPreview() {
 
 function onCellClick(c, r) {
   if (S.gameOver || !S.started || S.aiThinking) return;
+  if (S.mode === "online" && S.state.turn !== S.mySeat) return;
   const st = S.state;
   const me = st.players[st.turn];
 
@@ -2083,6 +3134,7 @@ function onCellClick(c, r) {
 
 function onWallClick(kind, c, r) {
   if (S.gameOver || !S.started || S.aiThinking) return;
+  if (S.mode === "online" && S.state.turn !== S.mySeat) return;
   const st = S.state;
 
   if (S.preview && S.preview.action.type === "wall") {
@@ -2103,6 +3155,7 @@ function onWallClick(kind, c, r) {
 
 function onTopSlotClick(c) {
   if (S.gameOver || !S.started || S.aiThinking) return;
+  if (S.mode === "online" && S.state.turn !== S.mySeat) return;
   const st = S.state;
   const me = st.players[st.turn];
 
@@ -2127,6 +3180,7 @@ function onTopSlotClick(c) {
 /** 列标签：只在可以越线时可点，作为更大的越线热区。 */
 function onColLabelClick(c) {
   if (S.gameOver || !S.started || S.aiThinking) return;
+  if (S.mode === "online" && S.state.turn !== S.mySeat) return;
   const st = S.state;
   const me = st.players[st.turn];
   if (me.c !== c || me.r !== 0 || st.topWall[c] === 1) return;
@@ -2139,12 +3193,29 @@ function onColLabelClick(c) {
 
 function commit() {
   if (!S.preview || !S.preview.valid) return;
+  const label = S.preview.label;
+
+  if (S.mode === "online") {
+    if (!S.net || S.state.turn !== S.mySeat) {
+      toast("还没轮到你", true);
+      return;
+    }
+    const elapsed = Math.round(performance.now() - S.turnStartedAt);
+    const res = S.net.session.localAction(S.preview.action, elapsed);
+    S.preview = null;
+    if (!res.ok) {
+      toast("非法操作：" + res.error, true);
+      return;
+    }
+    advance(res.state, label);
+    return;
+  }
+
   const res = applyAction(S.state, S.preview.action);
   if (!res.ok) {
     toast("非法操作：" + res.error, true);
     return;
   }
-  const label = S.preview.label;
   S.preview = null;
   advance(res.state, label);
 }
@@ -2154,6 +3225,7 @@ function advance(nextState, label = "行动") {
   const by = S.state.turn;
   S.state = nextState;
   resetTurn(S.clocks);
+  S.turnStartedAt = performance.now();
   S.history.push({ state: nextState, clocks: clockSnapshot(S.clocks), by, label });
 
   if (nextState.winner !== null) {
@@ -2503,6 +3575,7 @@ function finishDice(side, sidePicker, firstPerson) {
 }
 
 function goHome() {
+  stopNet();
   S.started = false;
   S.preview = null;
   overlay.hidden = true;
@@ -2561,6 +3634,20 @@ homeAI.addEventListener("click", (e) => {
   const btn = e.target.closest("[data-level]");
   if (btn) startGame(btn.dataset.level);
 });
+el("menuNet").addEventListener("click", () => { homeOverlay.hidden = true; openNet(); });
+el("netBack").addEventListener("click", () => { netOverlay.hidden = true; homeOverlay.hidden = false; });
+el("netCreate").addEventListener("click", createRoom);
+el("netJoinBtn").addEventListener("click", () => { netMain.hidden = true; netJoin.hidden = false; roomInput.focus(); });
+el("netManualBtn").addEventListener("click", showManualPanel);
+el("manualHostBtn").addEventListener("click", manualBecomeHost);
+el("manualGuestBtn").addEventListener("click", () => { manualGuest.hidden = false; manualHost.hidden = true; });
+el("manualFinish").addEventListener("click", manualFinishHost);
+el("manualMakeAnswer").addEventListener("click", manualMakeAnswer);
+el("manualBack").addEventListener("click", () => { netManual.hidden = true; netMain.hidden = false; });
+el("joinBack").addEventListener("click", () => { netJoin.hidden = true; netMain.hidden = false; });
+el("joinGo").addEventListener("click", joinRoom);
+el("copyRoom").addEventListener("click", copyRoomLink);
+el("cancelRoom").addEventListener("click", () => { stopNet(); netOverlay.hidden = true; homeOverlay.hidden = false; });
 el("menuRules").addEventListener("click", openRules);
 el("menuSettings").addEventListener("click", openSettings);
 rulesBtn.addEventListener("click", openRules);
@@ -2603,11 +3690,266 @@ setInterval(() => {
   const dt = (now - S.lastTs) / 1000;
   S.lastTs = now;
   if (!S.state || !S.clocks || !S.started || S.gameOver || overlaysOpen() || document.hidden) return;
+  if (S.mode === "online" && (S.state.turn !== S.mySeat || !S.net)) return;
   if (dt <= 0) return;
   const r = tickClock(S.clocks, S.state.turn, Math.min(dt, 0.5));
   paintClocks();
   if (r.timedOut) onTimeout();
 }, 100);
+
+
+/* ---------------------------------------------------------------- 联机 */
+
+let netCode = "";
+
+const NET_STATUS = {
+  signaling: "正在连接信令服务器…",
+  waiting: "等待对手加入…",
+  dialing: "正在连接对手…",
+  connected: "已连接，正在握手…",
+};
+
+function openNet() {
+  netOverlay.hidden = false;
+  netMain.hidden = false;
+  netJoin.hidden = true;
+  netRoom.hidden = true;
+  roomInput.value = "";
+}
+
+function stopNet() {
+  if (S.net?.session) {
+    try { S.net.session.close("local"); } catch { /* ignore */ }
+  }
+  S.net = null;
+  S.mySeat = null;
+  if (S.mode === "online") S.mode = "local";
+}
+
+async function createRoom() {
+  const code = makeRoomCode();
+  netCode = code;
+  netMain.hidden = true;
+  netJoin.hidden = true;
+  netRoom.hidden = false;
+  roomCodeEl.textContent = code;
+  netStatusEl.textContent = NET_STATUS.signaling;
+  netHintEl.textContent = "把房间码发给对方，或复制链接";
+
+  try {
+    const transport = await createPeerHost(code, {
+      onStatus: (st) => { netStatusEl.textContent = NET_STATUS[st] ?? st; },
+    });
+    attachSession(transport, "host", code);
+  } catch (e) {
+    netStatusEl.textContent = "创建失败：" + e.message;
+    toast(e.message, true);
+  }
+}
+
+async function joinRoom() {
+  const code = normalizeRoomCode(roomInput.value);
+  if (code.length !== 6) {
+    toast("房间码是 6 位", true);
+    return;
+  }
+  netCode = code;
+  netMain.hidden = true;
+  netJoin.hidden = true;
+  netRoom.hidden = false;
+  roomCodeEl.textContent = code;
+  netStatusEl.textContent = NET_STATUS.signaling;
+
+  try {
+    const transport = await joinPeerRoom(code, {
+      onStatus: (st) => { netStatusEl.textContent = NET_STATUS[st] ?? st; },
+    });
+    attachSession(transport, "guest", code);
+  } catch (e) {
+    netStatusEl.textContent = "连接失败：" + e.message;
+    toast(e.message, true);
+  }
+}
+
+function attachSession(transport, role, code) {
+  const cfg = { perMove: S.settings.perMove, bank: S.settings.bank };
+  const session = new Session({
+    transport,
+    role,
+    config: { ...cfg, configHash: configHash(cfg) },
+    getState: () => S.state,
+    apply: (action) => {
+      const res = applyAction(S.state, action);
+      if (!res.ok) return { ok: false, error: res.error };
+      S.state = res.state;
+      return { ok: true, state: res.state };
+    },
+    onEvent: handleNetEvent,
+  });
+  S.net = { session, role, code };
+  session.start();
+  netStatusEl.textContent = "已连接，正在握手…";
+}
+
+function handleNetEvent(evt) {
+  switch (evt.type) {
+    case "ready":
+      netStatusEl.textContent = "对手已就位，开始掷骰";
+      return;
+    case "dice":
+      showOnlineDice(evt);
+      return;
+    case "priority":
+      showOnlinePriority(evt);
+      return;
+    case "start":
+      startOnlineGame(evt.firstSeat);
+      return;
+    case "remoteAction":
+      advance(S.state, "对手行动");
+      return;
+    case "offline":
+      toast("对手连接断开", true);
+      return;
+    case "timeout":
+      toast("对手无响应，对局已暂停", true);
+      return;
+    case "error":
+      toast("联机错误：" + (evt.code ?? "unknown"), true);
+      return;
+    default:
+      return;
+  }
+}
+
+function showOnlineDice(evt) {
+  diceOverlay.hidden = false;
+  diceNameEls[0].textContent = "你";
+  diceNameEls[1].textContent = "对手";
+  diceEls[0].textContent = String(evt.mine);
+  diceEls[1].textContent = String(evt.theirs);
+  diceEls[0].classList.toggle("win", evt.iWin);
+  diceEls[1].classList.toggle("win", !evt.iWin);
+
+  if (evt.iAmChooser) {
+    diceDesc.textContent = "你的点数更大：选择先手，或选择执子方向";
+    renderChoices([
+      { label: "我要先手", priority: "first", primary: true, onClick: () => S.net.session.choosePriority("first") },
+      { label: "我要选边", priority: "side", onClick: () => S.net.session.choosePriority("side") },
+    ]);
+  } else {
+    diceDesc.textContent = "对手点数更大，等待对方选择…";
+    renderChoices([]);
+  }
+}
+
+function showOnlinePriority(evt) {
+  const session = S.net.session;
+  if (evt.sideActor === session.me) {
+    diceDesc.textContent = "请选择执子方向";
+    renderChoices([
+      { label: "执左（A-12）", side: 0, primary: true, onClick: () => session.chooseSide(0) },
+      { label: "执右（J-12）", side: 1, onClick: () => session.chooseSide(1) },
+    ]);
+  } else {
+    diceDesc.textContent = "等待对方选择执子方向…";
+    renderChoices([]);
+  }
+}
+
+function startOnlineGame(firstSeat) {
+  diceOverlay.hidden = true;
+  renderChoices([]);
+  S.firstSeat = firstSeat;
+  S.mySeat = S.net.session.mySeat;
+  newGame();
+  S.mode = "online";
+  S.aiSeat = null;
+  S.mySeat = S.net.session.mySeat;
+  S.started = true;
+  S.turnStartedAt = performance.now();
+  S.lastTs = performance.now();
+  netOverlay.hidden = true;
+  homeOverlay.hidden = true;
+  paint();
+  toast(S.mySeat === firstSeat ? "你先手" : "对手先手");
+}
+
+
+let manualCtx = null;
+
+function showManualPanel() {
+  netMain.hidden = true;
+  netJoin.hidden = true;
+  netRoom.hidden = true;
+  netManual.hidden = false;
+  manualHost.hidden = true;
+  manualGuest.hidden = true;
+  manualCtx = null;
+}
+
+async function manualBecomeHost() {
+  manualHost.hidden = false;
+  manualGuest.hidden = true;
+  manualOfferOut.value = "正在生成邀请码…";
+  try {
+    const offer = await createManualOffer({
+      onStatus: (st) => { if (st === "gathering") manualOfferOut.value = "正在收集网络候选…"; },
+    });
+    manualCtx = offer;
+    manualOfferOut.value = offer.code;
+    manualOfferOut.select();
+    toast("把邀请码发给对方");
+  } catch (e) {
+    manualOfferOut.value = "生成失败：" + e.message;
+  }
+}
+
+async function manualFinishHost() {
+  if (!manualCtx) return toast("请先生成邀请码", true);
+  const answer = manualAnswerIn.value.trim();
+  if (!answer) return toast("请粘贴对方的应答码", true);
+  try {
+    await manualCtx.complete(answer);
+    attachSession(manualCtx.transport, "host", "手动");
+    netManual.hidden = true;
+    netRoom.hidden = false;
+    roomCodeEl.textContent = "手动";
+    netStatusEl.textContent = NET_STATUS.connected;
+    netHintEl.textContent = "正在建立数据通道…";
+  } catch (e) {
+    toast("应答码无效：" + e.message, true);
+  }
+}
+
+async function manualMakeAnswer() {
+  const offer = manualOfferIn.value.trim();
+  if (!offer) return toast("请先粘贴对方的邀请码", true);
+  try {
+    const res = await answerManualOffer(offer);
+    manualCtx = res;
+    manualAnswerOut.hidden = false;
+    manualAnswerOut.value = res.code;
+    manualAnswerOut.select();
+    attachSession(res.transport, "guest", "手动");
+    netManual.hidden = true;
+    netRoom.hidden = false;
+    roomCodeEl.textContent = "手动";
+    netStatusEl.textContent = NET_STATUS.connected;
+    netHintEl.textContent = "把应答码发回给对方，然后等待连接…";
+    toast("把应答码发回给对方");
+  } catch (e) {
+    toast("邀请码无效：" + e.message, true);
+  }
+}
+
+function copyRoomLink() {
+  const url = `${location.origin}${location.pathname}?room=${netCode}`;
+  navigator.clipboard?.writeText(url).then(
+    () => toast("链接已复制"),
+    () => toast("复制失败，请手动复制房间码", true),
+  );
+}
 
 /* ---------------------------------------------------------------- 启动 */
 

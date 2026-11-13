@@ -674,6 +674,59 @@ body {
   border-color: rgba(70, 211, 166, 0.6);
 }
 
+/* ---------- 联机 ---------- */
+.panel.net { width: min(460px, 90vw); }
+
+.roomInput {
+  width: 100%;
+  margin: 6px 0 18px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: #0f171d;
+  color: var(--text);
+  font: inherit;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.35em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.roomInput:focus {
+  outline: none;
+  border-color: rgba(70, 211, 166, 0.6);
+}
+
+.roomCode {
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  text-align: center;
+  padding: 14px 0 10px;
+  color: var(--p0);
+  text-shadow: 0 0 24px rgba(70, 211, 166, 0.35);
+  font-variant-numeric: tabular-nums;
+}
+
+.codeBox {
+  width: 100%;
+  height: 88px;
+  margin: 10px 0;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: #0f171d;
+  color: var(--muted);
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 10.5px;
+  line-height: 1.5;
+  resize: vertical;
+  word-break: break-all;
+}
+
+.codeBox:focus { outline: none; border-color: rgba(70, 211, 166, 0.6); }
+
 /* ---------- 掷骰 ---------- */
 .diceRow {
   display: flex;

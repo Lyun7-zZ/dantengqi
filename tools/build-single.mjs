@@ -41,6 +41,12 @@ const order = [
   "src/rules.js",
   "src/clock.js",
   "src/ai.js",
+  "src/net/protocol.js",
+  "src/net/code.js",
+  "src/net/transport.js",
+  "src/net/session.js",
+  "src/net/peer.js",
+  "src/net/manual.js",
   "app.js",
 ];
 

@@ -67,6 +67,9 @@
         <button class="menuItem" id="menuAI">
           <b>人机对战</b><span>简单 / 普通 / 困难</span>
         </button>
+        <button class="menuItem" id="menuNet">
+          <b>联机对战</b><span>房间码 · 点对点直连</span>
+        </button>
         <button class="menuItem" id="menuRules">
           <b>游戏规则</b><span>棋盘、行动、胜负与计时</span>
         </button>
@@ -91,6 +94,74 @@
       </div>
 
       <p class="fine" id="homeFine">每步 30 秒 · 时间库 300 秒 · 悔棋 3 次</p>
+    </div>
+  </div>
+
+  <!-- 联机 -->
+  <div class="overlay" id="netOverlay" hidden>
+    <div class="panel net">
+      <h2>联机对战</h2>
+
+      <div id="netMain">
+        <p class="sub">和好友用房间码直连，不需要服务器</p>
+        <div class="menu">
+          <button class="menuItem" id="netCreate">
+            <b>创建房间</b><span>生成房间码，等对方加入</span>
+          </button>
+          <button class="menuItem" id="netJoinBtn">
+            <b>加入房间</b><span>输入对方给的房间码</span>
+          </button>
+          <button class="menuItem" id="netManualBtn">
+            <b>用连接码</b><span>连不上时的兜底，不依赖任何服务</span>
+          </button>
+        </div>
+        <div class="panelActions">
+          <button class="btn ghost" id="netBack">返回</button>
+        </div>
+      </div>
+
+      <div id="netJoin" hidden>
+        <p class="sub">输入 6 位房间码</p>
+        <input id="roomInput" class="roomInput" maxlength="6" placeholder="ABC123" autocomplete="off" spellcheck="false" />
+        <div class="panelActions">
+          <button class="btn ghost" id="joinBack">返回</button>
+          <button class="btn primary" id="joinGo">加入</button>
+        </div>
+      </div>
+
+      <div id="netManual" hidden>
+        <p class="sub">不用服务器：把一段连接码发给对方，对方回一段应答码即可</p>
+        <div class="panelActions">
+          <button class="btn ghost" id="manualHostBtn">我是房主</button>
+          <button class="btn ghost" id="manualGuestBtn">我是加入方</button>
+        </div>
+
+        <div id="manualHost" hidden>
+          <textarea id="manualOfferOut" class="codeBox" readonly placeholder="正在生成邀请码…"></textarea>
+          <textarea id="manualAnswerIn" class="codeBox" placeholder="把对方发回的应答码粘贴到这里"></textarea>
+          <button class="btn primary" id="manualFinish">完成连接</button>
+        </div>
+
+        <div id="manualGuest" hidden>
+          <textarea id="manualOfferIn" class="codeBox" placeholder="粘贴对方的邀请码"></textarea>
+          <button class="btn primary" id="manualMakeAnswer">生成应答码</button>
+          <textarea id="manualAnswerOut" class="codeBox" readonly hidden placeholder="把这段应答码发回给对方"></textarea>
+        </div>
+
+        <div class="panelActions">
+          <button class="btn ghost" id="manualBack">返回</button>
+        </div>
+      </div>
+
+      <div id="netRoom" hidden>
+        <p class="sub" id="netStatus">正在连接…</p>
+        <div class="roomCode" id="roomCode">------</div>
+        <p class="sub" id="netHint">把房间码发给对方，或用「复制链接」</p>
+        <div class="panelActions">
+          <button class="btn ghost" id="copyRoom">复制链接</button>
+          <button class="btn ghost" id="cancelRoom">取消</button>
+        </div>
+      </div>
     </div>
   </div>
 
