@@ -54,6 +54,8 @@ export class Session {
     this.me = role === "host" ? 0 : 1;
     this.them = 1 - this.me;
     this.phase = PHASE.IDLE;
+    this.resuming = false;
+    this.snapshotProvider = null;
     this.remote = null;
     this.lastSeen = Date.now();
     this.pingTimer = null;
@@ -120,13 +122,20 @@ export class Session {
   }
 
   /** 重连后重新挂载传输并重新握手。 */
+  setSnapshotProvider(fn) {
+    this.snapshotProvider = fn;
+  }
+
+  /** 重连后重新挂载传输：握手时带 resume，双方交换快照而不是重新掷骰。 */
   reattach(transport) {
     this._attach(transport);
+    this.resuming = true;
     this.phase = PHASE.HANDSHAKE;
     this._send(message("hello", {
       rules: RULES_VERSION,
       config: this.config.configHash,
       role: this.role,
+      resume: true,
     }));
     this._startHeartbeat();
     this._emit({ type: "phase", phase: this.phase });
@@ -214,6 +223,13 @@ export class Session {
       return;
     }
     this.remote = { role: msg.role, config: msg.config };
+    if (msg.resume) {
+      this.resuming = true;
+      this.phase = PHASE.HANDSHAKE;
+      this._emit({ type: "resuming" });
+      if (this.snapshotProvider) this.sendSnapshot(this.snapshotProvider());
+      return;
+    }
     this.phase = PHASE.READY;
     this._emit({ type: "ready", remoteRole: msg.role });
     this._beginDice();
@@ -372,6 +388,11 @@ export class Session {
 
   _onSnapshot(msg) {
     this._emit({ type: "snapshot", snapshot: msg.snapshot });
+    if (this.resuming) {
+      this.resuming = false;
+      this.phase = PHASE.STARTED;
+      this._emit({ type: "resumed" });
+    }
   }
 
   get mySeat() {

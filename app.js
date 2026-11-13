@@ -15,7 +15,7 @@ import {
 import { GAME_CONFIG } from "./src/config.js";
 import { AI } from "./src/ai.js";
 import { Session } from "./src/net/session.js";
-import { createPeerHost, joinPeerRoom } from "./src/net/peer.js";
+import { createPeerHost, joinPeerRoom, reconnectPeerRoom } from "./src/net/peer.js";
 import { createManualOffer, answerManualOffer } from "./src/net/manual.js";
 import {
   loadSlots, saveSlot, deleteSlot, defaultSlotName, slotFileName, MAX_SLOTS,
@@ -56,6 +56,8 @@ const toHomeBtn = el("toHome");
 const resignBtn = el("resign");
 const dropOverlay = el("dropOverlay");
 const dropCount = el("dropCount");
+const dropEnd = el("dropEnd");
+const dropSave = el("dropSave");
 const saveOverlay = el("saveOverlay");
 const saveName = el("saveName");
 const slotsOverlay = el("slotsOverlay");
@@ -1165,7 +1167,14 @@ function attachSession(transport, role, code) {
     },
     onEvent: handleNetEvent,
   });
-  S.net = { session, role, code };
+  S.net = { session, role, code, hostTransport: role === "host" ? transport : null };
+  session.setSnapshotProvider(() => ({
+    firstSeat: S.firstSeat,
+    plies: S.state.plies,
+    actions: S.history.slice(1).map((h) => h.action).filter(Boolean),
+    clocks: { banks: S.clocks.banks.slice(), moveLeft: S.clocks.moveLeft },
+    undoLeft: S.undoLeft.slice(),
+  }));
   session.start();
   netStatusEl.textContent = "已连接，正在握手…";
 }
@@ -1203,6 +1212,15 @@ function handleNetEvent(evt) {
       clearTimeout(S.undoTimer);
       rollbackOnline();
       return;
+    case "snapshot":
+      lastSnapshot = evt.snapshot;
+      return;
+    case "resuming":
+      netStatusEl.textContent = "正在恢复对局…";
+      return;
+    case "resumed":
+      onResumed();
+      return;
     case "resign":
       endOnlineGame(S.mySeat);
       return;
@@ -1220,12 +1238,12 @@ function handleNetEvent(evt) {
       overlay.hidden = true;
       return;
     case "offline":
-      toast("对手连接断开", true);
-      openDrop();
+      toast("对手连接断开，正在尝试重连…", true);
+      tryReconnect();
       return;
     case "timeout":
       toast("对手无响应", true);
-      openDrop();
+      tryReconnect();
       return;
     case "error":
       toast("联机错误：" + (evt.code ?? "unknown"), true);
@@ -1383,8 +1401,84 @@ async function manualMakeAnswer() {
 
 let dropTimer = null;
 
-function openDrop() {
+
+let reconnectSeq = 0;
+
+async function tryReconnect() {
+  const net = S.net;
+  if (!net || S.gameOver) return;
+  const mySeq = ++reconnectSeq;
+
+  openDrop("正在重连…");
+  dropEnd.hidden = true;
+  dropSave.hidden = true;
+
+  const deadline = Date.now() + 90000;
+
+  while (Date.now() < deadline && S.net === net && mySeq === reconnectSeq) {
+    try {
+      let tr = null;
+      if (net.role === "host" && net.hostTransport?.waitForReconnect) {
+        tr = await net.hostTransport.waitForReconnect(Math.min(15000, deadline - Date.now()));
+      } else if (net.role === "guest") {
+        tr = await reconnectPeerRoom(net.code, { timeoutMs: 8000 });
+      }
+      if (tr && mySeq === reconnectSeq) {
+        net.session.reattach(tr);
+        return;
+      }
+    } catch {
+      await new Promise((r) => setTimeout(r, 2000));
+    }
+  }
+
+  if (mySeq === reconnectSeq && S.net === net) {
+    openDrop("重连失败");
+    dropEnd.hidden = false;
+    dropSave.hidden = false;
+  }
+}
+
+function onResumed() {
+  if (S.net?.role === "guest" && lastSnapshot) {
+    applySnapshot(lastSnapshot);
+  }
+  lastSnapshot = null;
+  closeDrop();
+  S.lastTs = performance.now();
+  S.turnStartedAt = performance.now();
+  toast("已重连，对局继续");
+}
+
+let lastSnapshot = null;
+
+function applySnapshot(snap) {
+  try {
+    S.firstSeat = snap.firstSeat;
+    S.state = createState(snap.firstSeat);
+    S.clocks = createClock({ perMove: S.settings.perMove, bank: S.settings.bank });
+    clockRestore(S.clocks, snap.clocks);
+    S.history = [{ state: S.state, clocks: clockSnapshot(S.clocks) }];
+    for (const action of snap.actions ?? []) {
+      const res = applyAction(S.state, action);
+      if (!res.ok) break;
+      S.state = res.state;
+      S.history.push({ state: S.state, clocks: clockSnapshot(S.clocks), action });
+    }
+    S.undoLeft = snap.undoLeft ?? S.undoLeft;
+    S.mySeat = S.net.session.mySeat;
+    S.mode = "online";
+    S.started = true;
+    paint();
+  } catch (e) {
+    toast("恢复局面失败：" + e.message, true);
+  }
+}
+
+function openDrop(title) {
   dropOverlay.hidden = false;
+  const h = dropOverlay.querySelector("h2");
+  if (h && title) h.textContent = title;
   let left = 90;
   dropCount.textContent = String(left);
   clearInterval(dropTimer);

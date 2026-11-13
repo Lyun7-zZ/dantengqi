@@ -72,7 +72,10 @@ class PeerTransport extends Transport {
   close(reason = "local") {
     if (this.state === "closed") return;
     try { this.conn.close(); } catch { /* ignore */ }
-    try { this.peer.destroy(); } catch { /* ignore */ }
+    // 只有主动关闭才销毁 Peer；网络断开时房主要留着收重连
+    if (reason === "local") {
+      try { this.peer.destroy(); } catch { /* ignore */ }
+    }
     super.close(reason);
   }
 }
@@ -122,7 +125,28 @@ export async function createPeerHost(roomCode, { onStatus, signal } = {}) {
 
   await once(conn, "open", 20000, "数据通道建立失败");
   onStatus?.("connected");
-  return new PeerTransport(peer, conn, "host");
+
+  const transport = new PeerTransport(peer, conn, "host");
+  transport.peer = peer;
+  /** 等待加入方重连（返回新的 transport）。 */
+  transport.waitForReconnect = (timeoutMs = 90000) => new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      peer.off("connection", onConn);
+      reject(new Error("等待重连超时"));
+    }, timeoutMs);
+    const onConn = async (c) => {
+      clearTimeout(timer);
+      peer.off("connection", onConn);
+      try {
+        await once(c, "open", 15000, "重连通道建立失败");
+        resolve(new PeerTransport(peer, c, "host"));
+      } catch (e) {
+        reject(e);
+      }
+    };
+    peer.on("connection", onConn);
+  });
+  return transport;
 }
 
 /** 加入房间。 */
@@ -141,5 +165,20 @@ export async function joinPeerRoom(roomCode, { onStatus } = {}) {
 
   await once(conn, "open", 20000, "连接超时，房间可能不存在");
   onStatus?.("connected");
+  return new PeerTransport(peer, conn, "guest");
+}
+
+
+/** 加入方重连：重新 dial 同一个房间。 */
+export async function reconnectPeerRoom(roomCode, { timeoutMs = 20000 } = {}) {
+  const Peer = await loadPeerJS();
+  const peer = new Peer({ debug: 0 });
+  await once(peer, "open", 10000, "信令重连超时");
+
+  const conn = peer.connect(peerIdFor(roomCode), {
+    reliable: true,
+    serialization: "json",
+  });
+  await once(conn, "open", timeoutMs, "重连超时");
   return new PeerTransport(peer, conn, "guest");
 }
