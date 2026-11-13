@@ -56,6 +56,7 @@ export class Session {
     this.phase = PHASE.IDLE;
     this.resuming = false;
     this.snapshotProvider = null;
+    this.onTransportOpen = null;
     this.remote = null;
     this.lastSeen = Date.now();
     this.pingTimer = null;
@@ -80,7 +81,7 @@ export class Session {
     this.transport = transport;
     transport.onMessage = (raw) => this._onMessage(raw);
     transport.onClose = (reason) => this._onClose(reason);
-    transport.onOpen = () => this._flushOutbox();
+    transport.onOpen = () => { this._flushOutbox(); this.onTransportOpen?.(); };
     if (transport.state === "open") this._flushOutbox();
   }
 

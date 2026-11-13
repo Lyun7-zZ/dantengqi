@@ -922,6 +922,7 @@ function finishDice(side, sidePicker, firstPerson) {
 
 function goHome() {
   closeDrop();
+  clearTimeout(S.handshakeTimer);
   stopNet();
   S.started = false;
   S.preview = null;
@@ -1181,6 +1182,21 @@ function attachSession(transport, role, code) {
     onEvent: handleNetEvent,
   });
   S.net = { session, role, code, hostTransport: role === "host" ? transport : null };
+  netStatusEl.textContent = role === "guest" ? "等待对方完成连接…" : "正在建立通道…";
+
+  // 传输层打开 → 提示已建立通道
+  session.onTransportOpen = () => {
+    netStatusEl.textContent = "通道已建立，正在握手…";
+  };
+  // 握手超时：避免“已连接但没反应”的死等
+  clearTimeout(S.handshakeTimer);
+  S.handshakeTimer = setTimeout(() => {
+    if (S.net?.session !== session) return;
+    if (session.phase === "handshake" || session.phase === "idle") {
+      toast("握手超时：请确认对方已粘贴应答码并点击完成", true);
+      netStatusEl.textContent = "握手超时，请重试或改用房间码";
+    }
+  }, 25000);
   session.setSnapshotProvider(() => ({
     firstSeat: S.firstSeat,
     plies: S.state.plies,
@@ -1195,6 +1211,7 @@ function attachSession(transport, role, code) {
 function handleNetEvent(evt) {
   switch (evt.type) {
     case "ready":
+      clearTimeout(S.handshakeTimer);
       netStatusEl.textContent = "对手已就位，开始掷骰";
       return;
     case "dice":
@@ -1259,7 +1276,12 @@ function handleNetEvent(evt) {
       tryReconnect();
       return;
     case "error":
-      toast("联机错误：" + (evt.code ?? "unknown"), true);
+      if (String(evt.code).startsWith("handshake")) {
+        netStatusEl.textContent = "规则或参数不一致，请确认双方版本与设置相同";
+        toast("握手失败：" + evt.code, true);
+      } else {
+        toast("联机错误：" + (evt.code ?? "unknown"), true);
+      }
       return;
     default:
       return;
