@@ -374,6 +374,15 @@ try {
   await sleep(120);
   check("先手方执右（自己选了左）", (await state("s.turn")) === 1);
 
+  // 15. 所有模式都有认输：本地局点两次即可结束
+  check("对局中显示认输按钮", (await evaluate("!document.getElementById('resign').hidden")) === true);
+  await click("#resign", "认输");
+  await click("#resign", "认输");
+  await sleep(500);
+  check("认输后结束对局", (await evaluate("window.__danteng.gameOver")) === true);
+  check("结算页说明是认输",
+    (await evaluate("document.getElementById('panelDesc').textContent")).includes("认输"));
+
   ws.close();
 } catch (e) {
   check("执行过程", false, e.message);

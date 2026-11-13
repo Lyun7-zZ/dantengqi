@@ -376,7 +376,7 @@ function paint() {
     || (S.mode === "online" && (S.state.turn !== S.mySeat || !S.net))
     || S.undoLeft[st.turn] <= 0 || S.history.length < 2;
 
-  resignBtn.hidden = S.mode !== "online" || S.gameOver;
+  resignBtn.hidden = !S.started || S.gameOver;
   paintClocks();
 }
 
@@ -707,7 +707,9 @@ function showResult() {
       panelTitle.textContent = st.winner === 0 ? "左方获胜" : "右方获胜";
     }
     const loser = 1 - st.winner;
-    panelDesc.textContent = `对手距终点还剩 ${distanceOf(st, loser)} 步。共 ${st.plies} 手，封墙 ${st.wallsPlaced} 面。`;
+    panelDesc.textContent = S.endReason === "resign"
+      ? `认输结束。共 ${st.plies} 手，封墙 ${st.wallsPlaced} 面。`
+      : `对手距终点还剩 ${distanceOf(st, loser)} 步。共 ${st.plies} 手，封墙 ${st.wallsPlaced} 面。`;
   }
   overlay.hidden = false;
 }
@@ -765,6 +767,7 @@ function newGame(announce = false) {
   S.preview = null;
   S.gameOver = false;
   S.aiThinking = false;
+  S.endReason = null;
   S.pendingUndo = null;
   S.undoOverlayOpen = false;
   S.lastTs = performance.now();
@@ -1032,14 +1035,24 @@ restartBtn.addEventListener("click", () => {
 });
 let resignArmedAt = 0;
 resignBtn.addEventListener("click", () => {
-  if (S.mode !== "online" || !S.net || S.gameOver) return;
+  if (!S.started || S.gameOver) return;
   if (Date.now() - resignArmedAt > 3000) {
     resignArmedAt = Date.now();
     toast("再点一次确认认输", true);
     return;
   }
-  S.net.session.resign();
-  endOnlineGame(1 - S.mySeat);
+
+  S.endReason = "resign";
+
+  if (S.mode === "online" && S.net) {
+    S.net.session.resign();
+    endOnlineGame(1 - S.mySeat);
+    return;
+  }
+
+  // 人机：认输的是人类；本地：认输的是当前行棋方
+  const loser = S.aiSeat !== null ? 1 - S.aiSeat : S.state.turn;
+  endLocalGame(1 - loser);
 });
 
 againBtn.addEventListener("click", () => {
@@ -1300,6 +1313,14 @@ function rollbackOnline() {
   S.lastTs = performance.now();
   paint();
   toast("已撤销上一手");
+}
+
+function endLocalGame(winnerSeat) {
+  S.state.winner = winnerSeat;
+  S.gameOver = true;
+  S.aiThinking = false;
+  paint();
+  setTimeout(showResult, 320);
 }
 
 function endOnlineGame(winnerSeat) {
