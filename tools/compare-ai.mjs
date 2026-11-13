@@ -81,6 +81,8 @@ return { AI, makeSearchAI };
 /* ---------- 3. 对局 ---------- */
 
 function playGame(aiA, aiB, firstSeat, rng) {
+  aiA.reset?.();
+  aiB.reset?.();
   let state = sandbox.createState(firstSeat);
   while (state.winner === null && state.plies < maxPlies) {
     const policy = state.turn === 0 ? aiA : aiB;
