@@ -188,13 +188,14 @@ export function evaluate(state, p) {
   if (margin === 1) score -= 130;
   else if (margin === 0) score -= 220;
 
-  // 出口控制：上端还剩多少可出的列（靠近我的越多越好）
-  const myExits = openExits(state, p);
-  const oppExits = openExits(state, opp);
-  score += 7 * (myExits - oppExits);
+  // 先手权：轮到谁走，值半手
+  score += state.turn === p ? 20 : -20;
+
+  // 近端出口控制
+  score += 6 * (nearExits(state, p) - nearExits(state, opp));
 
   // 残局：离终点越近，出口价值越高
-  if (dm <= 4) score += 12 * (myExits - oppExits);
+  if (dm <= 4) score += 10 * (nearExits(state, p) - nearExits(state, opp));
 
   return score;
 }
@@ -206,8 +207,8 @@ function openExits(state, p) {
   return n;
 }
 
-/** 走子与封墙的候选集：全部走子 + 对手最短路上的封堵 + 少量随机墙。 */
-function searchCandidates(state, rng, wallLimit = 14) {
+/** 走子与封墙的候选集：全部走子 + 对手最短路上的封堵 + 出口封堵 + 少量随机墙。 */
+function searchCandidates(state, rng, wallLimit = 20) {
   const me = state.turn;
   const out = [];
   const mp = state.players[me];
@@ -215,74 +216,131 @@ function searchCandidates(state, rng, wallLimit = 14) {
 
   const op = state.players[1 - me];
   const seen = new Set();
-  for (const w of shortestPathWalls(state, op.c, op.r)) {
+  const push = (w) => {
     const k = `${w.kind}:${w.c}:${w.r}`;
-    if (seen.has(k)) continue;
+    if (seen.has(k)) return;
     seen.add(k);
     out.push({ type: "wall", kind: w.kind, c: w.c, r: w.r });
+  };
+
+  // 1) 堵对手最短路
+  for (const w of shortestPathWalls(state, op.c, op.r)) {
+    push(w);
     if (out.length >= 4 + wallLimit) break;
   }
 
+  // 2) 对手接近终点时，封他头顶的出口
+  if (op.r <= 3) {
+    for (let d = -2; d <= 2; d++) {
+      const c = op.c + d;
+      if (c >= 0 && c < 10 && state.topWall[c] === 0) push({ kind: "top", c, r: 0 });
+    }
+  }
+
+  // 3) 少量随机墙，避免候选过窄
   const legal = legalActions(state).filter((a) => a.type === "wall");
-  for (let i = 0; i < 4 && legal.length; i++) {
-    const w = legal[Math.floor(rng() * legal.length)];
-    const k = `${w.kind}:${w.c}:${w.r}`;
-    if (seen.has(k)) continue;
-    seen.add(k);
-    out.push(w);
+  for (let i = 0; i < 5 && legal.length; i++) {
+    push(legal[Math.floor(rng() * legal.length)]);
   }
   return out;
 }
 
-/** negamax + alpha-beta；返回从 perspective 看的分值。 */
-function negamax(state, depth, alpha, beta, perspective, rng) {
+/** p 附近（列差 ≤3）仍开放的出口数量。 */
+function nearExits(state, p) {
+  const pc = state.players[p].c;
+  let n = 0;
+  for (let c = 0; c < 10; c++) {
+    if (state.topWall[c] === 0 && Math.abs(c - pc) <= 3) n++;
+  }
+  return n;
+}
+
+/** negamax + alpha-beta + 时间预算。 */
+function negamax(state, depth, alpha, beta, persp, rng, budget) {
+  if (budget.aborted) return 0;
+  if ((++budget.nodes & 127) === 0 && Date.now() > budget.deadline) {
+    budget.aborted = true;
+    return 0;
+  }
+
   if (state.winner !== null) {
     if (state.winner === "draw") return 0;
-    return state.winner === perspective ? 1e6 - (10 - depth) : -1e6 + (10 - depth);
+    return state.winner === persp ? 1e6 - (12 - depth) : -1e6 + (12 - depth);
   }
-  if (depth <= 0) return evaluate(state, perspective);
+  if (depth <= 0) return evaluate(state, persp);
 
   const acts = searchCandidates(state, rng);
-  // 排序：先走子，再封墙（提高剪枝效率）
-  acts.sort((a, b) => (a.type === "move" ? -1 : 0) - (b.type === "move" ? -1 : 0));
 
-  let best = -Infinity;
+  // 先按静态评估排序，提高剪枝效率
+  const scored = [];
   for (const a of acts) {
     const res = applyAction(state, a);
     if (!res.ok) continue;
-    const v = -negamax(res.state, depth - 1, -beta, -alpha, 1 - perspective, rng);
+    scored.push({ a, s: evaluate(res.state, persp) });
+  }
+  scored.sort((x, y) => y.s - x.s);
+
+  let best = -Infinity;
+  for (const { a } of scored) {
+    const res = applyAction(state, a);
+    if (!res.ok) continue;
+    const v = -negamax(res.state, depth - 1, -beta, -alpha, 1 - persp, rng, budget);
     if (v > best) best = v;
     if (best > alpha) alpha = best;
     if (alpha >= beta) break;
+    if (budget.aborted) break;
   }
-  return best === -Infinity ? evaluate(state, perspective) : best;
+  return best === -Infinity ? evaluate(state, persp) : best;
 }
 
 /**
- * 搜索型 AI。
- * depth 越大越强、越慢；预算用节点数粗略控制。
+ * 搜索型 AI：迭代加深，在时间预算内尽量搜到更深。
+ * 默认 260ms/步，浏览器里体感不到卡顿。
  */
-export function makeSearchAI({ depth = 3, wallLimit = 14 } = {}) {
+export function makeSearchAI({ timeMs = 260, maxDepth = 7 } = {}) {
   return function searchAI(state, rng) {
-    const me = state.turn;
-    const acts = searchCandidates(state, rng, wallLimit);
-
+    const budget = { deadline: Date.now() + timeMs, nodes: 0, aborted: false };
     let best = null;
-    let bestScore = -Infinity;
 
-    for (const a of acts) {
-      const res = applyAction(state, a);
-      if (!res.ok) continue;
-      // 根节点每个候选都用完整窗口，避免“剪枝上界”被当成真实分值
-      const v = -negamax(res.state, depth - 1, -Infinity, Infinity, 1 - me, rng);
-      const score = v + rng() * 0.5;
-      if (score > bestScore) {
-        bestScore = score;
-        best = a;
-      }
+    for (let depth = 2; depth <= maxDepth; depth++) {
+      const res = searchRoot(state, depth, rng, budget);
+      if (budget.aborted || !res.best) break;
+      best = res.best;
+      if (res.score > 5e5) break; // 找到必胜，不用再深
     }
     return best ?? randomAI(state, rng);
   };
+}
+
+function searchRoot(state, depth, rng, budget) {
+  const me = state.turn;
+  const acts = searchCandidates(state, rng);
+
+  const scored = [];
+  for (const a of acts) {
+    const res = applyAction(state, a);
+    if (!res.ok) continue;
+    scored.push({ a, s: evaluate(res.state, me) });
+  }
+  scored.sort((x, y) => y.s - x.s);
+
+  let best = null;
+  let bestScore = -Infinity;
+  let alpha = -Infinity;
+
+  for (const { a } of scored) {
+    const res = applyAction(state, a);
+    if (!res.ok) continue;
+    const v = -negamax(res.state, depth - 1, -Infinity, -alpha, 1 - me, rng, budget);
+    const score = v + rng() * 0.4;
+    if (score > bestScore) {
+      bestScore = score;
+      best = a;
+    }
+    if (bestScore > alpha) alpha = bestScore;
+    if (budget.aborted) break;
+  }
+  return { best, score: bestScore };
 }
 
 /** 普通：贪心 + 平局规则感知（比旧的“看一步”更强）。 */
@@ -317,5 +375,5 @@ export const AI = {
   "greedy-move": (state, rng) => greedyCore(state, rng, 0.6),
   easy: easyAI,
   normal: tacticalAI,
-  hard: makeSearchAI({ depth: 4 }),
+  hard: makeSearchAI({ timeMs: 450 }),
 };
