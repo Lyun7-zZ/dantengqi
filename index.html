@@ -45,6 +45,7 @@
       <div class="status" id="status">点击格子移动，或点击格线放墙</div>
       <div class="actionButtons">
         <button class="btn ghost" id="resign" hidden>认输</button>
+        <button class="btn ghost" id="store" hidden>存点</button>
         <button class="btn ghost" id="undo">悔棋 3</button>
         <button class="btn ghost" id="cancel" disabled>取消</button>
         <button class="btn primary" id="confirm" disabled>确认落子</button>
@@ -59,7 +60,11 @@
     <div class="panel home">
       <div class="panelIcon">🎲</div>
       <h2>蛋疼棋</h2>
-      <p class="sub">10 × 12 棋盘 · 越过终点线者胜</p>
+      <p class="sub" id="homeSub">10 × 12 棋盘 · 越过终点线者胜</p>
+      <div class="modeSwitch" id="modeSwitch">
+        <button class="btn ghost" id="modeTurn" type="button">回合制</button>
+        <button class="btn ghost" id="modeAsync" type="button">异步</button>
+      </div>
 
       <div class="menu" id="homeMain">
         <button class="menuItem" id="menuLocal">
@@ -90,10 +95,10 @@
           <b>普通</b><span>每一步都走最短路</span>
         </button>
         <button class="menuItem" data-level="hard">
-          <b>困难</b><span>会预判你的应手</span>
+          <b>困难</b><span id="blurbHard">会预判你的应手</span>
         </button>
         <button class="menuItem" data-level="master">
-          <b>大师</b><span>六层搜索 + 锁路计划</span>
+          <b>大师</b><span id="blurbMaster">六层搜索 + 锁路计划</span>
         </button>
         <button class="menuItem back" id="aiBack">
           <b>返回</b>
@@ -201,7 +206,7 @@
   <div class="overlay" id="rulesOverlay" hidden>
     <div class="panel doc">
       <h2>游戏规则</h2>
-      <div class="docBody">
+      <div class="docBody" id="rulesTurn">
         <h3>棋盘</h3>
         <p>10 列（A–J）× 12 行（1–12）。下方为起点线，上方为终点线，左右与下方封闭。</p>
         <h3>棋子</h3>
@@ -223,6 +228,16 @@
           用尽即由系统代走（最短路，同长优先向上）。</p>
         <h3>悔棋</h3>
         <p>每方 3 次，需对方同意，撤销最近一手并回滚计时与墙。</p>
+      </div>
+      <div class="docBody" id="rulesAsync" hidden>
+        <h3>棋盘</h3>
+        <p>10 列（A–J）× 12 行（1–12）。下方为起点线，上方为终点线。</p>
+        <h3>行动</h3>
+        <p>每回合双方同时只做一件事：走一格、走两格、放一面墙、存一个行动点，或在第 1 行越线。走两格必须已经存有 1 点，存点最多 1 个。</p>
+        <h3>墙</h3>
+        <p>墙只挡对方，不挡自己。不能把对方的路完全封死。两人放在同一位置上，这一格谁都过不去。</p>
+        <h3>胜负</h3>
+        <p>只有自己越线才获胜。两人同一回合越线，判平局。</p>
       </div>
       <div class="panelActions">
         <button class="btn primary" id="rulesClose">知道了</button>
@@ -320,6 +335,6 @@
     </div>
   </div>
 
-  <script type="module" src="./app.js"></script>
+  <script type="module" src="./loader.js"></script>
 </body>
 </html>
