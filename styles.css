@@ -727,6 +727,31 @@ body {
 
 .codeBox:focus { outline: none; border-color: rgba(70, 211, 166, 0.6); }
 
+.slotList {
+  display: grid;
+  gap: 8px;
+  margin: 4px 0 16px;
+  max-height: 46vh;
+  overflow: auto;
+}
+
+.slotRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #16212a;
+}
+
+.slotMeta { display: grid; gap: 3px; text-align: left; min-width: 0; }
+.slotMeta b { font-size: 13px; }
+.slotMeta span { font-size: 11px; color: var(--muted); }
+.slotActions { display: flex; gap: 6px; flex: none; }
+.slotActions .btn { padding: 6px 10px; font-size: 12px; }
+
 /* ---------- 掷骰 ---------- */
 .diceRow {
   display: flex;

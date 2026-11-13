@@ -17,6 +17,9 @@ import { AI } from "./src/ai.js";
 import { Session } from "./src/net/session.js";
 import { createPeerHost, joinPeerRoom } from "./src/net/peer.js";
 import { createManualOffer, answerManualOffer } from "./src/net/manual.js";
+import {
+  loadSlots, saveSlot, deleteSlot, defaultSlotName, slotFileName, MAX_SLOTS,
+} from "./src/storage.js";
 import { makeRoomCode, normalizeRoomCode, configHash } from "./src/net/protocol.js";
 
 const CELL_W = 10;          // 每列宽度（%）
@@ -51,6 +54,12 @@ const settingsSave = el("settingsSave");
 const settingsCancel = el("settingsCancel");
 const toHomeBtn = el("toHome");
 const resignBtn = el("resign");
+const dropOverlay = el("dropOverlay");
+const dropCount = el("dropCount");
+const saveOverlay = el("saveOverlay");
+const saveName = el("saveName");
+const slotsOverlay = el("slotsOverlay");
+const slotList = el("slotList");
 const netOverlay = el("netOverlay");
 const netMain = el("netMain");
 const netJoin = el("netJoin");
@@ -511,6 +520,7 @@ function onColLabelClick(c) {
 function commit() {
   if (!S.preview || !S.preview.valid) return;
   const label = S.preview.label;
+  const pendingAction = S.preview.action;
 
   if (S.mode === "online") {
     if (!S.net || S.state.turn !== S.mySeat) {
@@ -524,7 +534,7 @@ function commit() {
       toast("非法操作：" + res.error, true);
       return;
     }
-    advance(res.state, label);
+    advance(res.state, label, pendingAction);
     return;
   }
 
@@ -534,16 +544,16 @@ function commit() {
     return;
   }
   S.preview = null;
-  advance(res.state, label);
+  advance(res.state, label, pendingAction);
 }
 
 /** 应用一步后的收尾：重置本方计时、记录历史、处理终局。 */
-function advance(nextState, label = "行动") {
+function advance(nextState, label = "行动", action = null) {
   const by = S.state.turn;
   S.state = nextState;
   resetTurn(S.clocks);
   S.turnStartedAt = performance.now();
-  S.history.push({ state: nextState, clocks: clockSnapshot(S.clocks), by, label });
+  S.history.push({ state: nextState, clocks: clockSnapshot(S.clocks), by, label, action });
 
   if (nextState.winner !== null) {
     S.gameOver = true;
@@ -906,6 +916,7 @@ function finishDice(side, sidePicker, firstPerson) {
 }
 
 function goHome() {
+  closeDrop();
   stopNet();
   S.started = false;
   S.preview = null;
@@ -994,6 +1005,12 @@ el("joinGo").addEventListener("click", joinRoom);
 el("copyRoom").addEventListener("click", copyRoomLink);
 el("cancelRoom").addEventListener("click", () => { stopNet(); netOverlay.hidden = true; homeOverlay.hidden = false; });
 el("menuRules").addEventListener("click", openRules);
+el("menuSlots").addEventListener("click", openSlots);
+el("slotsClose").addEventListener("click", () => { slotsOverlay.hidden = true; });
+el("saveCancel").addEventListener("click", () => { saveOverlay.hidden = true; });
+el("saveConfirm").addEventListener("click", confirmSave);
+el("dropSave").addEventListener("click", openSaveDialog);
+el("dropEnd").addEventListener("click", () => { closeDrop(); endOnlineGame(S.mySeat); });
 el("menuSettings").addEventListener("click", openSettings);
 rulesBtn.addEventListener("click", openRules);
 el("homeBtn").addEventListener("click", () => {
@@ -1168,7 +1185,7 @@ function handleNetEvent(evt) {
       startOnlineGame(evt.firstSeat);
       return;
     case "remoteAction":
-      advance(S.state, "对手行动");
+      advance(S.state, "对手行动", evt.action);
       return;
     case "undoReq":
       undoDesc.textContent = "对方请求悔棋，是否同意？";
@@ -1204,9 +1221,11 @@ function handleNetEvent(evt) {
       return;
     case "offline":
       toast("对手连接断开", true);
+      openDrop();
       return;
     case "timeout":
-      toast("对手无响应，对局已暂停", true);
+      toast("对手无响应", true);
+      openDrop();
       return;
     case "error":
       toast("联机错误：" + (evt.code ?? "unknown"), true);
@@ -1357,6 +1376,127 @@ async function manualMakeAnswer() {
   } catch (e) {
     toast("邀请码无效：" + e.message, true);
   }
+}
+
+
+/* ---------------------------------------------------------------- 掉线与存档 */
+
+let dropTimer = null;
+
+function openDrop() {
+  dropOverlay.hidden = false;
+  let left = 90;
+  dropCount.textContent = String(left);
+  clearInterval(dropTimer);
+  dropTimer = setInterval(() => {
+    left -= 1;
+    dropCount.textContent = String(Math.max(0, left));
+    if (left <= 0) clearInterval(dropTimer);
+  }, 1000);
+}
+
+function closeDrop() {
+  clearInterval(dropTimer);
+  dropOverlay.hidden = true;
+}
+
+function openSaveDialog() {
+  closeDrop();
+  saveName.value = defaultSlotName();
+  saveOverlay.hidden = false;
+  saveName.select();
+}
+
+function buildSlot() {
+  const actions = S.history.slice(1).map((h) => h.action).filter(Boolean);
+  return {
+    name: saveName.value.trim() || defaultSlotName(),
+    roomCode: S.net?.code ?? "",
+    plies: S.state.plies,
+    stateHash: stateHashOf(S.state),
+    config: { perMove: S.settings.perMove, bank: S.settings.bank },
+    state: S.state,
+    actions,
+    clocks: { banks: S.clocks.banks.slice(), moveLeft: S.clocks.moveLeft },
+  };
+}
+
+function stateHashOf(state) {
+  let h = 0x811c9dc5;
+  const mix = (n) => { h ^= n & 0xff; h = Math.imul(h, 0x01000193); };
+  for (const p of state.players) { mix(p.c); mix(p.r); }
+  for (const v of state.vWall) mix(v);
+  for (const v of state.hWall) mix(v);
+  for (const v of state.topWall) mix(v);
+  mix(state.turn); mix(state.wallsPlaced);
+  return (h >>> 0).toString(16).padStart(8, "0");
+}
+
+function confirmSave() {
+  const res = saveSlot(buildSlot());
+  if (!res.ok) {
+    toast(`存档位已满（${MAX_SLOTS} 个），请先在「对局记录」里删一个`, true);
+    saveOverlay.hidden = true;
+    openSlots();
+    return;
+  }
+  saveOverlay.hidden = true;
+  toast("已封存，可在「对局记录」中查看或导出");
+  goHome();
+}
+
+function renderSlots() {
+  const slots = loadSlots();
+  slotList.innerHTML = "";
+  if (slots.length === 0) {
+    slotList.innerHTML = `<p class="sub">还没有存档。联机时对手掉线可以选择「封存对局」。</p>`;
+    return;
+  }
+  for (const slot of slots) {
+    const row = document.createElement("div");
+    row.className = "slotRow";
+    row.innerHTML = `<div class="slotMeta"><b></b><span></span></div>`;
+    row.querySelector("b").textContent = slot.name;
+    row.querySelector("span").textContent =
+      `${slot.plies} 手 · ${new Date(slot.savedAt).toLocaleString("zh-CN")} · ${slot.roomCode || "本地"}`;
+
+    const actions = document.createElement("div");
+    actions.className = "slotActions";
+
+    const exp = document.createElement("button");
+    exp.className = "btn ghost";
+    exp.textContent = "导出";
+    exp.addEventListener("click", () => exportSlot(slot));
+    actions.appendChild(exp);
+
+    const del = document.createElement("button");
+    del.className = "btn ghost";
+    del.textContent = "删除";
+    del.addEventListener("click", () => {
+      if (!window.confirm(`删除存档「${slot.name}」？`)) return;
+      deleteSlot(slot.id);
+      renderSlots();
+    });
+    actions.appendChild(del);
+
+    row.appendChild(actions);
+    slotList.appendChild(row);
+  }
+}
+
+function exportSlot(slot) {
+  const blob = new Blob([JSON.stringify(slot, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = slotFileName(slot);
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  toast("已导出 JSON");
+}
+
+function openSlots() {
+  renderSlots();
+  slotsOverlay.hidden = false;
 }
 
 function copyRoomLink() {

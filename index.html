@@ -74,6 +74,9 @@
         <button class="menuItem" id="menuRules">
           <b>游戏规则</b><span>棋盘、行动、胜负与计时</span>
         </button>
+        <button class="menuItem" id="menuSlots">
+          <b>对局记录</b><span>掉线封存的棋局，可导出</span>
+        </button>
         <button class="menuItem" id="menuSettings">
           <b>设置</b><span>计时与悔棋次数</span>
         </button>
@@ -240,6 +243,46 @@
       <div class="panelActions">
         <button class="btn ghost" id="settingsCancel">取消</button>
         <button class="btn primary" id="settingsSave">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 掉线 -->
+  <div class="overlay" id="dropOverlay" hidden>
+    <div class="panel">
+      <div class="panelIcon">⚠️</div>
+      <h2>对手已断开</h2>
+      <p>
+        连接中断（<span id="dropCount">90</span> 秒内重连可继续，当前版本尚不支持自动重连）。<br />
+        你可以结束对局，或把当前局面封存下来。
+      </p>
+      <div class="panelActions">
+        <button class="btn ghost" id="dropEnd">结束（判对方负）</button>
+        <button class="btn primary" id="dropSave">封存对局</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 封存 -->
+  <div class="overlay" id="saveOverlay" hidden>
+    <div class="panel">
+      <h2>封存对局</h2>
+      <p class="sub">最多 3 个存档位，可在「对局记录」中查看或导出</p>
+      <input id="saveName" class="roomInput" maxlength="40" spellcheck="false" />
+      <div class="panelActions">
+        <button class="btn ghost" id="saveCancel">取消</button>
+        <button class="btn primary" id="saveConfirm">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 对局记录 -->
+  <div class="overlay" id="slotsOverlay" hidden>
+    <div class="panel">
+      <h2>对局记录</h2>
+      <div id="slotList" class="slotList"></div>
+      <div class="panelActions">
+        <button class="btn primary" id="slotsClose">关闭</button>
       </div>
     </div>
   </div>

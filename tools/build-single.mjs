@@ -47,6 +47,7 @@ const order = [
   "src/net/session.js",
   "src/net/peer.js",
   "src/net/manual.js",
+  "src/storage.js",
   "app.js",
 ];
 

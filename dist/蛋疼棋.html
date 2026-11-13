@@ -734,6 +734,31 @@ body {
 
 .codeBox:focus { outline: none; border-color: rgba(70, 211, 166, 0.6); }
 
+.slotList {
+  display: grid;
+  gap: 8px;
+  margin: 4px 0 16px;
+  max-height: 46vh;
+  overflow: auto;
+}
+
+.slotRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #16212a;
+}
+
+.slotMeta { display: grid; gap: 3px; text-align: left; min-width: 0; }
+.slotMeta b { font-size: 13px; }
+.slotMeta span { font-size: 11px; color: var(--muted); }
+.slotActions { display: flex; gap: 6px; flex: none; }
+.slotActions .btn { padding: 6px 10px; font-size: 12px; }
+
 /* ---------- 掷骰 ---------- */
 .diceRow {
   display: flex;
@@ -891,6 +916,9 @@ body {
         </button>
         <button class="menuItem" id="menuRules">
           <b>游戏规则</b><span>棋盘、行动、胜负与计时</span>
+        </button>
+        <button class="menuItem" id="menuSlots">
+          <b>对局记录</b><span>掉线封存的棋局，可导出</span>
         </button>
         <button class="menuItem" id="menuSettings">
           <b>设置</b><span>计时与悔棋次数</span>
@@ -1058,6 +1086,46 @@ body {
       <div class="panelActions">
         <button class="btn ghost" id="settingsCancel">取消</button>
         <button class="btn primary" id="settingsSave">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 掉线 -->
+  <div class="overlay" id="dropOverlay" hidden>
+    <div class="panel">
+      <div class="panelIcon">⚠️</div>
+      <h2>对手已断开</h2>
+      <p>
+        连接中断（<span id="dropCount">90</span> 秒内重连可继续，当前版本尚不支持自动重连）。<br />
+        你可以结束对局，或把当前局面封存下来。
+      </p>
+      <div class="panelActions">
+        <button class="btn ghost" id="dropEnd">结束（判对方负）</button>
+        <button class="btn primary" id="dropSave">封存对局</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 封存 -->
+  <div class="overlay" id="saveOverlay" hidden>
+    <div class="panel">
+      <h2>封存对局</h2>
+      <p class="sub">最多 3 个存档位，可在「对局记录」中查看或导出</p>
+      <input id="saveName" class="roomInput" maxlength="40" spellcheck="false" />
+      <div class="panelActions">
+        <button class="btn ghost" id="saveCancel">取消</button>
+        <button class="btn primary" id="saveConfirm">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 对局记录 -->
+  <div class="overlay" id="slotsOverlay" hidden>
+    <div class="panel">
+      <h2>对局记录</h2>
+      <div id="slotList" class="slotList"></div>
+      <div class="panelActions">
+        <button class="btn primary" id="slotsClose">关闭</button>
       </div>
     </div>
   </div>
@@ -2747,6 +2815,83 @@ async function answerManualOffer(offerCode, { onStatus } = {}) {
   return { transport, code };
 }
 
+/* ===== src/storage.js ===== */
+/**
+ * 本地存档位：最多 3 个，存未完成（掉线封存）的对局。
+ *
+ * 存储结构（localStorage，单 key）：
+ *   [{ id, name, savedAt, roomCode, plies, stateHash, config, state, actions, clocks }]
+ *
+ * 之所以连 state 一起存，是因为续局功能还没做；将来续局时
+ * actions + state 足以重建局面（也可用于回放）。
+ */
+
+const MAX_SLOTS = 3;
+
+const KEY = "danteng.slots.v1";
+
+function store(storage) {
+  return storage ?? globalThis.localStorage;
+}
+
+function loadSlots(storage) {
+  try {
+    const raw = store(storage).getItem(KEY);
+    const arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr : [];
+  } catch {
+    return [];
+  }
+}
+
+function persist(slots, storage) {
+  store(storage).setItem(KEY, JSON.stringify(slots));
+}
+
+/** 保存一个存档；满了返回 { ok:false, error:"full" }。 */
+function saveSlot(slot, storage) {
+  const slots = loadSlots(storage);
+  if (slots.length >= MAX_SLOTS) return { ok: false, error: "full", slots };
+  const entry = {
+    id: slot.id ?? `s${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`,
+    name: slot.name || defaultSlotName(),
+    savedAt: slot.savedAt ?? new Date().toISOString(),
+    roomCode: slot.roomCode ?? "",
+    plies: slot.plies ?? 0,
+    stateHash: slot.stateHash ?? "",
+    config: slot.config ?? null,
+    state: slot.state ?? null,
+    actions: slot.actions ?? [],
+    clocks: slot.clocks ?? null,
+  };
+  slots.unshift(entry);
+  persist(slots, storage);
+  return { ok: true, slot: entry, slots };
+}
+
+function deleteSlot(id, storage) {
+  const slots = loadSlots(storage).filter((s) => s.id !== id);
+  persist(slots, storage);
+  return slots;
+}
+
+function clearSlots(storage) {
+  persist([], storage);
+}
+
+/** 默认存档名：时间精确到秒。 */
+function defaultSlotName(date = new Date()) {
+  const p = (n) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${p(date.getMonth() + 1)}-${p(date.getDate())} `
+    + `${p(date.getHours())}:${p(date.getMinutes())}:${p(date.getSeconds())}`;
+}
+
+/** 导出用的文件名。 */
+function slotFileName(slot) {
+  const t = (slot.savedAt || "").replace(/[:.]/g, "-").replace("T", "_").slice(0, 19);
+  return `danteng-${slot.roomCode || "local"}-${t || "slot"}.json`;
+}
+
 /* ===== app.js ===== */
 /**
  * M2：棋盘与本地同屏对局界面。
@@ -2786,6 +2931,12 @@ const settingsSave = el("settingsSave");
 const settingsCancel = el("settingsCancel");
 const toHomeBtn = el("toHome");
 const resignBtn = el("resign");
+const dropOverlay = el("dropOverlay");
+const dropCount = el("dropCount");
+const saveOverlay = el("saveOverlay");
+const saveName = el("saveName");
+const slotsOverlay = el("slotsOverlay");
+const slotList = el("slotList");
 const netOverlay = el("netOverlay");
 const netMain = el("netMain");
 const netJoin = el("netJoin");
@@ -3246,6 +3397,7 @@ function onColLabelClick(c) {
 function commit() {
   if (!S.preview || !S.preview.valid) return;
   const label = S.preview.label;
+  const pendingAction = S.preview.action;
 
   if (S.mode === "online") {
     if (!S.net || S.state.turn !== S.mySeat) {
@@ -3259,7 +3411,7 @@ function commit() {
       toast("非法操作：" + res.error, true);
       return;
     }
-    advance(res.state, label);
+    advance(res.state, label, pendingAction);
     return;
   }
 
@@ -3269,16 +3421,16 @@ function commit() {
     return;
   }
   S.preview = null;
-  advance(res.state, label);
+  advance(res.state, label, pendingAction);
 }
 
 /** 应用一步后的收尾：重置本方计时、记录历史、处理终局。 */
-function advance(nextState, label = "行动") {
+function advance(nextState, label = "行动", action = null) {
   const by = S.state.turn;
   S.state = nextState;
   resetTurn(S.clocks);
   S.turnStartedAt = performance.now();
-  S.history.push({ state: nextState, clocks: clockSnapshot(S.clocks), by, label });
+  S.history.push({ state: nextState, clocks: clockSnapshot(S.clocks), by, label, action });
 
   if (nextState.winner !== null) {
     S.gameOver = true;
@@ -3641,6 +3793,7 @@ function finishDice(side, sidePicker, firstPerson) {
 }
 
 function goHome() {
+  closeDrop();
   stopNet();
   S.started = false;
   S.preview = null;
@@ -3729,6 +3882,12 @@ el("joinGo").addEventListener("click", joinRoom);
 el("copyRoom").addEventListener("click", copyRoomLink);
 el("cancelRoom").addEventListener("click", () => { stopNet(); netOverlay.hidden = true; homeOverlay.hidden = false; });
 el("menuRules").addEventListener("click", openRules);
+el("menuSlots").addEventListener("click", openSlots);
+el("slotsClose").addEventListener("click", () => { slotsOverlay.hidden = true; });
+el("saveCancel").addEventListener("click", () => { saveOverlay.hidden = true; });
+el("saveConfirm").addEventListener("click", confirmSave);
+el("dropSave").addEventListener("click", openSaveDialog);
+el("dropEnd").addEventListener("click", () => { closeDrop(); endOnlineGame(S.mySeat); });
 el("menuSettings").addEventListener("click", openSettings);
 rulesBtn.addEventListener("click", openRules);
 el("homeBtn").addEventListener("click", () => {
@@ -3903,7 +4062,7 @@ function handleNetEvent(evt) {
       startOnlineGame(evt.firstSeat);
       return;
     case "remoteAction":
-      advance(S.state, "对手行动");
+      advance(S.state, "对手行动", evt.action);
       return;
     case "undoReq":
       undoDesc.textContent = "对方请求悔棋，是否同意？";
@@ -3939,9 +4098,11 @@ function handleNetEvent(evt) {
       return;
     case "offline":
       toast("对手连接断开", true);
+      openDrop();
       return;
     case "timeout":
-      toast("对手无响应，对局已暂停", true);
+      toast("对手无响应", true);
+      openDrop();
       return;
     case "error":
       toast("联机错误：" + (evt.code ?? "unknown"), true);
@@ -4092,6 +4253,127 @@ async function manualMakeAnswer() {
   } catch (e) {
     toast("邀请码无效：" + e.message, true);
   }
+}
+
+
+/* ---------------------------------------------------------------- 掉线与存档 */
+
+let dropTimer = null;
+
+function openDrop() {
+  dropOverlay.hidden = false;
+  let left = 90;
+  dropCount.textContent = String(left);
+  clearInterval(dropTimer);
+  dropTimer = setInterval(() => {
+    left -= 1;
+    dropCount.textContent = String(Math.max(0, left));
+    if (left <= 0) clearInterval(dropTimer);
+  }, 1000);
+}
+
+function closeDrop() {
+  clearInterval(dropTimer);
+  dropOverlay.hidden = true;
+}
+
+function openSaveDialog() {
+  closeDrop();
+  saveName.value = defaultSlotName();
+  saveOverlay.hidden = false;
+  saveName.select();
+}
+
+function buildSlot() {
+  const actions = S.history.slice(1).map((h) => h.action).filter(Boolean);
+  return {
+    name: saveName.value.trim() || defaultSlotName(),
+    roomCode: S.net?.code ?? "",
+    plies: S.state.plies,
+    stateHash: stateHashOf(S.state),
+    config: { perMove: S.settings.perMove, bank: S.settings.bank },
+    state: S.state,
+    actions,
+    clocks: { banks: S.clocks.banks.slice(), moveLeft: S.clocks.moveLeft },
+  };
+}
+
+function stateHashOf(state) {
+  let h = 0x811c9dc5;
+  const mix = (n) => { h ^= n & 0xff; h = Math.imul(h, 0x01000193); };
+  for (const p of state.players) { mix(p.c); mix(p.r); }
+  for (const v of state.vWall) mix(v);
+  for (const v of state.hWall) mix(v);
+  for (const v of state.topWall) mix(v);
+  mix(state.turn); mix(state.wallsPlaced);
+  return (h >>> 0).toString(16).padStart(8, "0");
+}
+
+function confirmSave() {
+  const res = saveSlot(buildSlot());
+  if (!res.ok) {
+    toast(`存档位已满（${MAX_SLOTS} 个），请先在「对局记录」里删一个`, true);
+    saveOverlay.hidden = true;
+    openSlots();
+    return;
+  }
+  saveOverlay.hidden = true;
+  toast("已封存，可在「对局记录」中查看或导出");
+  goHome();
+}
+
+function renderSlots() {
+  const slots = loadSlots();
+  slotList.innerHTML = "";
+  if (slots.length === 0) {
+    slotList.innerHTML = `<p class="sub">还没有存档。联机时对手掉线可以选择「封存对局」。</p>`;
+    return;
+  }
+  for (const slot of slots) {
+    const row = document.createElement("div");
+    row.className = "slotRow";
+    row.innerHTML = `<div class="slotMeta"><b></b><span></span></div>`;
+    row.querySelector("b").textContent = slot.name;
+    row.querySelector("span").textContent =
+      `${slot.plies} 手 · ${new Date(slot.savedAt).toLocaleString("zh-CN")} · ${slot.roomCode || "本地"}`;
+
+    const actions = document.createElement("div");
+    actions.className = "slotActions";
+
+    const exp = document.createElement("button");
+    exp.className = "btn ghost";
+    exp.textContent = "导出";
+    exp.addEventListener("click", () => exportSlot(slot));
+    actions.appendChild(exp);
+
+    const del = document.createElement("button");
+    del.className = "btn ghost";
+    del.textContent = "删除";
+    del.addEventListener("click", () => {
+      if (!window.confirm(`删除存档「${slot.name}」？`)) return;
+      deleteSlot(slot.id);
+      renderSlots();
+    });
+    actions.appendChild(del);
+
+    row.appendChild(actions);
+    slotList.appendChild(row);
+  }
+}
+
+function exportSlot(slot) {
+  const blob = new Blob([JSON.stringify(slot, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = slotFileName(slot);
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  toast("已导出 JSON");
+}
+
+function openSlots() {
+  renderSlots();
+  slotsOverlay.hidden = false;
 }
 
 function copyRoomLink() {
