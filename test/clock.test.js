@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { createClock, tickClock, displayTime, resetTurn, clockSnapshot, clockRestore } from "../src/clock.js";
-import { createState, cloneState, autoMove, applyAction, stepTarget } from "../src/rules.js";
+import { createState, cloneState, autoMove, resolveRound, stepTarget } from "../src/rules.js";
 
 test("每步 15 秒：未用完时不扣时间库", () => {
   const c = createClock();
@@ -65,23 +65,22 @@ test("displayTime 在时间库阶段返回库剩余", () => {
   assert.equal(Math.round(displayTime(c, 0)), 55);
 });
 
-test("autoMove：起点向上", () => {
+test("autoMove：起点向上走一格", () => {
   const s = createState(0);
-  assert.deepEqual(autoMove(s), { type: "move", dir: "up" });
+  assert.deepEqual(autoMove(s, 0), { type: "move", dirs: ["up"] });
 });
 
 test("autoMove：可以直接越线时优先越线", () => {
   const s = cloneState(createState(0));
   s.players[0] = { c: 0, r: 0 };
-  assert.deepEqual(autoMove(s), { type: "move", dir: "up" });
+  assert.deepEqual(autoMove(s, 0), { type: "exit" });
 });
 
 test("autoMove：同长度时优先向上", () => {
   const s = cloneState(createState(0));
   s.players[0] = { c: 5, r: 5 };
-  const mv = autoMove(s);
-  const t = stepTarget(s, 5, 5, mv.dir);
+  const mv = autoMove(s, 0);
+  const t = stepTarget(s, 5, 5, mv.dirs[0], 0);
   assert.ok(t);
-  // 保证选中的方向确实是最短路之一
-  assert.equal(applyAction(s, mv).ok, true);
+  assert.equal(resolveRound(s, [mv, { type: "store" }]).ok, true);
 });

@@ -6,7 +6,7 @@
  */
 
 export const PROTOCOL_VERSION = 1;
-export const RULES_VERSION = "1.2";
+export const RULES_VERSION = "2.0";
 
 /** 对局参数指纹：两端必须一致，否则拒绝开局。 */
 export function configHash(config) {
@@ -32,9 +32,9 @@ export function stateHash(state) {
   for (const v of state.vWall) mix(v);
   for (const v of state.hWall) mix(v);
   for (const v of state.topWall) mix(v);
-  mix(state.turn);
+  mix(state.bank?.[0] ?? 0);
+  mix(state.bank?.[1] ?? 0);
   mix(state.wallsPlaced);
-  mix(state.tolerance);
   return (h >>> 0).toString(16).padStart(8, "0");
 }
 

@@ -1,8 +1,8 @@
 /**
  * 寻路：到终点的最短路。
  *
- * “终点”定义为某种虚拟出口：棋子位于第 1 行（r=0），且该列上端没有墙，
- * 再向上走一步即越线。因此到终点的步数 = 到某个可出线格子的步数 + 1。
+ * 墙有主人。mover 只被对方的墙挡住，自己的墙可以穿过。
+ * 终点是第 1 行再向上一步；该列上端若是对方的墙，则不能从这里越线。
  */
 
 import { COLS, ROWS, V_COUNT, H_COUNT } from "./board.js";
@@ -10,10 +10,16 @@ import { COLS, ROWS, V_COUNT, H_COUNT } from "./board.js";
 const SIZE = COLS * ROWS;
 const key = (c, r) => r * COLS + c;
 
+/** 墙值：0 空，1 属于玩家 0，2 属于玩家 1。 */
+export function blocksMover(wallVal, mover) {
+  return wallVal !== 0 && wallVal !== mover + 1;
+}
+
 /**
  * 从 (c0,r0) 出发，返回到达终点所需步数；无路可走时返回 Infinity。
+ * mover 是正在走路的一方。
  */
-export function distanceToGoal(state, c0, r0) {
+export function distanceToGoal(state, c0, r0, mover = 0) {
   const { vWall, hWall, topWall } = state;
   const dist = new Int16Array(SIZE).fill(-1);
   const q = new Int16Array(SIZE * 2);
@@ -29,9 +35,9 @@ export function distanceToGoal(state, c0, r0) {
     const r = q[head++];
     const d = dist[key(c, r)];
 
-    if (r === 0 && topWall[c] === 0) return d + 1;
+    if (r === 0 && !blocksMover(topWall[c], mover)) return d + 1;
 
-    if (r > 0 && hWall[c * H_COUNT + (r - 1)] === 0) {
+    if (r > 0 && !blocksMover(hWall[c * H_COUNT + (r - 1)], mover)) {
       const k = key(c, r - 1);
       if (dist[k] < 0) {
         dist[k] = d + 1;
@@ -39,7 +45,7 @@ export function distanceToGoal(state, c0, r0) {
         q[tail++] = r - 1;
       }
     }
-    if (r < ROWS - 1 && hWall[c * H_COUNT + r] === 0) {
+    if (r < ROWS - 1 && !blocksMover(hWall[c * H_COUNT + r], mover)) {
       const k = key(c, r + 1);
       if (dist[k] < 0) {
         dist[k] = d + 1;
@@ -47,7 +53,7 @@ export function distanceToGoal(state, c0, r0) {
         q[tail++] = r + 1;
       }
     }
-    if (c > 0 && vWall[(c - 1) * ROWS + r] === 0) {
+    if (c > 0 && !blocksMover(vWall[(c - 1) * ROWS + r], mover)) {
       const k = key(c - 1, r);
       if (dist[k] < 0) {
         dist[k] = d + 1;
@@ -55,7 +61,7 @@ export function distanceToGoal(state, c0, r0) {
         q[tail++] = r;
       }
     }
-    if (c < COLS - 1 && vWall[c * ROWS + r] === 0) {
+    if (c < COLS - 1 && !blocksMover(vWall[c * ROWS + r], mover)) {
       const k = key(c + 1, r);
       if (dist[k] < 0) {
         dist[k] = d + 1;
@@ -67,15 +73,15 @@ export function distanceToGoal(state, c0, r0) {
   return Infinity;
 }
 
-export function hasPath(state, c, r) {
-  return Number.isFinite(distanceToGoal(state, c, r));
+export function hasPath(state, c, r, mover = 0) {
+  return Number.isFinite(distanceToGoal(state, c, r, mover));
 }
 
 /**
  * 最短路经过的边（用于 AI 生成“堵路”候选）。
  * 返回 [{ kind, c, r }]，即路径上每一段可被封锁的墙位。
  */
-export function shortestPathWalls(state, c0, r0) {
+export function shortestPathWalls(state, c0, r0, mover = 0) {
   const { vWall, hWall, topWall } = state;
   const dist = new Int16Array(SIZE).fill(-1);
   const prev = new Int16Array(SIZE).fill(-1);
@@ -91,7 +97,7 @@ export function shortestPathWalls(state, c0, r0) {
     const c = q[head++];
     const r = q[head++];
     const d = dist[key(c, r)];
-    if (r === 0 && topWall[c] === 0) {
+    if (r === 0 && !blocksMover(topWall[c], mover)) {
       goalIdx = key(c, r);
       break;
     }
@@ -104,10 +110,10 @@ export function shortestPathWalls(state, c0, r0) {
         q[tail++] = nr;
       }
     };
-    if (r > 0 && hWall[c * H_COUNT + (r - 1)] === 0) relax(c, r - 1);
-    if (r < ROWS - 1 && hWall[c * H_COUNT + r] === 0) relax(c, r + 1);
-    if (c > 0 && vWall[(c - 1) * ROWS + r] === 0) relax(c - 1, r);
-    if (c < COLS - 1 && vWall[c * ROWS + r] === 0) relax(c + 1, r);
+    if (r > 0 && !blocksMover(hWall[c * H_COUNT + (r - 1)], mover)) relax(c, r - 1);
+    if (r < ROWS - 1 && !blocksMover(hWall[c * H_COUNT + r], mover)) relax(c, r + 1);
+    if (c > 0 && !blocksMover(vWall[(c - 1) * ROWS + r], mover)) relax(c - 1, r);
+    if (c < COLS - 1 && !blocksMover(vWall[c * ROWS + r], mover)) relax(c + 1, r);
   }
 
   if (goalIdx < 0) return [];
@@ -124,8 +130,10 @@ export function shortestPathWalls(state, c0, r0) {
   for (let i = 1; i < cells.length; i++) {
     const a = cells[i - 1];
     const b = cells[i];
-    const ac = a % COLS, ar = Math.floor(a / COLS);
-    const bc = b % COLS, br = Math.floor(b / COLS);
+    const ac = a % COLS;
+    const ar = Math.floor(a / COLS);
+    const bc = b % COLS;
+    const br = Math.floor(b / COLS);
     if (ar === br) {
       const left = Math.min(ac, bc);
       walls.push({ kind: "v", c: left, r: ar });
@@ -134,7 +142,6 @@ export function shortestPathWalls(state, c0, r0) {
       walls.push({ kind: "h", c: ac, r: top });
     }
   }
-  // 终点线上方的那一段
   const last = cells[cells.length - 1];
   const lc = last % COLS;
   walls.push({ kind: "top", c: lc, r: 0 });

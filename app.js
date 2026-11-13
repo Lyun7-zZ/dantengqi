@@ -4,8 +4,8 @@
  */
 
 import {
-  createState, applyAction, validateAction,
-  legalDirs, stepTarget, distanceOf, autoMove,
+  createState, resolveRound, validateAction,
+  legalDirs, stepTarget, autoMove, traceMove, distanceOf,
 } from "./src/rules.js";
 import { COL_NAMES, COLS, ROWS, wallName } from "./src/board.js";
 import {
@@ -37,6 +37,7 @@ const statusEl = el("status");
 const confirmBtn = el("confirm");
 const cancelBtn = el("cancel");
 const undoBtn = el("undo");
+const storeBtn = el("store");
 const restartBtn = el("restart");
 const overlay = el("overlay");
 const homeOverlay = el("homeOverlay");
@@ -120,6 +121,8 @@ const S = {
   lastTs: 0,
   net: null,        // { session, role, code }
   mySeat: null,
+  inputSeat: 0,
+  locked: [null, null],
   turnStartedAt: 0,
   undoTimer: null,
 };
@@ -130,6 +133,12 @@ const colLabelEls = new Map(); // 列标签（只用于越线提示）
 const pieceEls = [];
 let ghostEl = null;
 let exitBadge = null;
+
+function activeSeat() {
+  if (S.mode === "online") return S.mySeat ?? 0;
+  if (S.aiSeat != null) return 1 - S.aiSeat;
+  return S.inputSeat ?? 0;
+}
 
 const slotKey = (kind, c, r) => (kind === "top" ? `t:${c}` : `${kind}:${c}:${r}`);
 const cellKey = (c, r) => `${c},${r}`;
@@ -243,45 +252,42 @@ function buildBoard() {
   exitBadge.style.display = "none";
   exitBadge.innerHTML = "<span>▲ 越线</span>";
   exitBadge.addEventListener("click", () => {
-    const me = S.state?.players?.[S.state.turn];
-    if (!me) return;
-    if (me.r !== 0 || S.state.topWall[me.c] === 1) return;
-    if (S.preview && S.preview.action.type === "move" && S.preview.action.dir === "up") {
-      commit();
-      return;
-    }
-    setPreview({ type: "move", dir: "up" }, "越线");
-  });
+  const seat = activeSeat();
+  const me = S.state?.players?.[seat];
+  if (!me || S.locked[seat]) return;
+  if (me.r !== 0 || blocksSeat(S.state, seat, "top", me.c, 0)) return;
+  if (S.preview && S.preview.action.type === "exit") {
+    commit();
+    return;
+  }
+  setPreview({ type: "exit" }, "越线");
+});
   piecesEl.appendChild(exitBadge);
 }
 
-/* ---------------------------------------------------------------- 渲染 */
-
 function paint() {
   const st = S.state;
+  const seat = st ? activeSeat() : 0;
 
   for (const [, d] of cellEls) d.classList.remove("move-target", "preview", "p1", "exit-cell");
-  for (const [, d] of slotEls) {
-    d.classList.remove("preview", "invalid", "p1");
-  }
-  for (const [, d] of colLabelEls) {
-    d.classList.remove("can-exit", "exit-target", "p1");
-  }
+  for (const [, d] of slotEls) d.classList.remove("preview", "invalid", "p1", "owner0", "owner1");
+  for (const [, d] of colLabelEls) d.classList.remove("can-exit", "exit-target", "p1");
   if (ghostEl) ghostEl.style.display = "none";
   if (exitBadge) {
     exitBadge.style.display = "none";
     exitBadge.classList.remove("p1");
   }
-
   if (!st) return;
 
   for (const [key, d] of slotEls) {
     const parts = key.split(":");
-    let placed = false;
-    if (parts[0] === "v") placed = st.vWall[+parts[1] * ROWS + +parts[2]] === 1;
-    else if (parts[0] === "h") placed = st.hWall[+parts[1] * (ROWS - 1) + +parts[2]] === 1;
-    else placed = st.topWall[+parts[1]] === 1;
-    d.classList.toggle("placed", placed);
+    let raw = 0;
+    if (parts[0] === "v") raw = st.vWall[+parts[1] * ROWS + +parts[2]];
+    else if (parts[0] === "h") raw = st.hWall[+parts[1] * (ROWS - 1) + +parts[2]];
+    else raw = st.topWall[+parts[1]];
+    d.classList.toggle("placed", raw !== 0);
+    if (raw === 1) d.classList.add("owner0");
+    if (raw === 2) d.classList.add("owner1");
   }
 
   for (let p = 0; p < 2; p++) {
@@ -294,88 +300,73 @@ function paint() {
   pieceEls[0].classList.toggle("shift-left", same);
   pieceEls[1].classList.toggle("shift-right", same);
 
-  // 合法落点
-  // 合法落点始终显示（预选时也保留，方便改主意）
-  if (!S.gameOver) {
-    const me = st.players[st.turn];
-    const pclass = st.turn === 1 ? " p1" : "";
-    for (const dir of legalDirs(st, me.c, me.r)) {
-      const t = stepTarget(st, me.c, me.r, dir);
+  const picking = !S.gameOver && !S.locked[seat];
+  if (picking) {
+    const me = st.players[seat];
+    const origin = previewOrigin(st, seat);
+    for (const dir of legalDirs(st, origin.c, origin.r, seat)) {
+      const t = stepTarget(st, origin.c, origin.r, dir, seat);
       if (!t || t.exit) continue;
       const cell = cellEls.get(cellKey(t.c, t.r));
       if (!cell) continue;
       cell.classList.add("move-target");
-      if (pclass) cell.classList.add("p1");
+      if (seat === 1) cell.classList.add("p1");
     }
-    if (me.r === 0 && st.topWall[me.c] === 0) {
+    if (me.r === 0 && !blocksSeat(st, seat, "top", me.c, 0)) {
       const label = colLabelEls.get(me.c);
       if (label) {
         label.classList.add("can-exit", "exit-target");
-        if (st.turn === 1) label.classList.add("p1");
+        if (seat === 1) label.classList.add("p1");
       }
-      // 自己所在的格子同时作为“越线”大按钮
       const own = cellEls.get(cellKey(me.c, me.r));
       if (own) {
         own.classList.add("exit-cell");
-        if (st.turn === 1) own.classList.add("p1");
+        if (seat === 1) own.classList.add("p1");
       }
     }
   }
 
-  // 越线徽标：挂在终点线上（预览中仍显示）
-  if (exitBadge && !S.gameOver) {
-    const me = st.players[st.turn];
-    if (me.r === 0 && st.topWall[me.c] === 0) {
+  if (exitBadge && picking) {
+    const me = st.players[seat];
+    if (me.r === 0 && !blocksSeat(st, seat, "top", me.c, 0)) {
       exitBadge.style.display = "flex";
       exitBadge.style.left = `${me.c * CELL_W}%`;
-      exitBadge.classList.toggle("p1", st.turn === 1);
+      exitBadge.classList.toggle("p1", seat === 1);
     }
   }
 
-  // 预览
-  if (S.preview) {
-    const { action, valid } = S.preview;
-    if (action.type === "wall") {
-      const slot = slotEls.get(slotKey(action.kind, action.c, action.r));
-      if (slot) slot.classList.add(valid ? "preview" : "invalid");
-    } else if (action.type === "move") {
-      const me = st.players[st.turn];
-      const t = stepTarget(st, me.c, me.r, action.dir);
-      if (t && t.exit) {
-        const own = cellEls.get(cellKey(me.c, me.r));
-        if (own) {
-          own.classList.add("exit-cell");
-          if (st.turn === 1) own.classList.add("p1");
-        }
-      } else if (t) {
-        const cell = cellEls.get(cellKey(t.c, t.r));
-        if (cell) {
-          cell.classList.add("preview");
-          if (st.turn === 1) cell.classList.add("p1");
-        }
-        ghostEl.style.display = "block";
-        ghostEl.className = `piece ghost p${st.turn}`;
-        ghostEl.style.left = `${t.c * CELL_W}%`;
-        ghostEl.style.top = `${t.r * CELL_H}%`;
+  if (S.preview?.action.type === "wall") {
+    const slot = slotEls.get(slotKey(S.preview.action.kind, S.preview.action.c, S.preview.action.r));
+    if (slot) slot.classList.add(S.preview.valid ? "preview" : "invalid");
+  } else if (S.preview?.action.type === "move") {
+    const traced = traceMove(st, seat, S.preview.action.dirs);
+    if (traced.ok) {
+      const cell = cellEls.get(cellKey(traced.c, traced.r));
+      if (cell) {
+        cell.classList.add("preview");
+        if (seat === 1) cell.classList.add("p1");
       }
+      ghostEl.style.display = "block";
+      ghostEl.className = `piece ghost p${seat}`;
+      ghostEl.style.left = `${traced.c * CELL_W}%`;
+      ghostEl.style.top = `${traced.r * CELL_H}%`;
     }
   }
 
-  const name = st.turn === 0 ? "左方（青）" : "右方（橙）";
-  metaEl.textContent = `第 ${st.plies + 1} 手 · 墙 ${st.wallsPlaced}`;
-  statusEl.textContent = S.aiThinking
-    ? "电脑思考中…"
-    : S.preview
-      ? (S.preview.valid ? `确认${S.preview.label}？` : "这里会封死通路，换个位置")
-      : `${name}：点击高亮格移动，或点击格线放墙`;
+  metaEl.textContent = `第 ${st.plies + 1} 回合 · 墙 ${st.wallsPlaced} · 存点 ${st.bank[0]}/${st.bank[1]}`;
+  statusEl.textContent = S.locked[seat]
+    ? "已选定，等待对方"
+    : (S.preview
+      ? (S.preview.valid ? `确认${S.preview.label}？` : "这一步不合法")
+      : `${seat === 0 ? "左方（青）" : "右方（橙）"}：走一格；有存点时可再点一格。也可放墙或存点`);
 
-  confirmBtn.disabled = !S.preview || !S.preview.valid || S.gameOver;
+  confirmBtn.disabled = !S.preview || !S.preview.valid || S.gameOver || !!S.locked[seat];
   cancelBtn.disabled = !S.preview;
-  undoBtn.textContent = `悔棋 ${S.undoLeft[st.turn]}`;
-  undoBtn.disabled = S.gameOver || S.aiThinking
-    || (S.mode === "online" && (S.state.turn !== S.mySeat || !S.net))
-    || S.undoLeft[st.turn] <= 0 || S.history.length < 2;
-
+  if (storeBtn) storeBtn.disabled = S.gameOver || !!S.locked[seat] || st.bank[seat] !== 0;
+  undoBtn.textContent = `悔棋 ${S.undoLeft[seat]}`;
+  undoBtn.disabled = S.gameOver || !!S.locked[seat]
+    || (S.mode === "online" && (seat !== S.mySeat || !S.net))
+    || S.undoLeft[seat] <= 0 || S.history.length < 2;
   resignBtn.hidden = !S.started || S.gameOver;
   paintClocks();
 }
@@ -383,28 +374,54 @@ function paint() {
 function paintClocks() {
   if (!S.clocks || !S.state) return;
   const c = S.clocks;
-  const turn = S.state.turn;
+  const turn = activeSeat();
   for (let p = 0; p < 2; p++) {
     const box = clockEls[p];
-    // 大数字统一表示“本步可用时间”：轮到自己时是真实倒计时，否则显示下一步的初始额度
-    const main = p === turn ? displayTime(c, turn) : c.perMove;
+    const choosing = p === turn && !S.gameOver && !S.locked[p];
+    const main = choosing ? displayTime(c, turn) : c.perMove;
     const mainSec = Math.max(0, Math.ceil(main));
     clkEls[p].textContent = String(mainSec);
-    bankEls[p].textContent = `库 ${Math.ceil(c.banks[p])}`;
-    box.classList.toggle("active", p === turn && !S.gameOver);
+    bankEls[p].textContent = `库 ${Math.ceil(c.banks[p])} · 存 ${S.state.bank[p]}`;
+    box.classList.toggle("active", choosing);
     box.classList.toggle("p1", p === 1);
-    box.classList.toggle("warn", p === turn && mainSec <= 5 && !S.gameOver);
-    box.classList.toggle("inbank", p === turn && c.inBank && !S.gameOver);
+    box.classList.toggle("warn", choosing && mainSec <= 5);
+    box.classList.toggle("inbank", choosing && c.inBank);
   }
 }
 
 /* ---------------------------------------------------------------- 交互 */
 
+function blocksSeat(st, seat, kind, c, r) {
+  const raw = kind === "v"
+    ? st.vWall[c * ROWS + r]
+    : kind === "h"
+      ? st.hWall[c * (ROWS - 1) + r]
+      : st.topWall[c];
+  return raw !== 0 && raw !== seat + 1;
+}
+
+function previewOrigin(st, seat) {
+  const me = st.players[seat];
+  const action = S.preview?.action;
+  if (!action || action.type !== "move" || !action.dirs || action.dirs.length !== 1) return me;
+  if (st.bank[seat] < 1) return me;
+  const traced = traceMove(st, seat, action.dirs);
+  return traced.ok ? { c: traced.c, r: traced.r } : me;
+}
+
+function dirBetween(from, c, r) {
+  if (c === from.c && r === from.r - 1) return "up";
+  if (c === from.c && r === from.r + 1) return "down";
+  if (c === from.c - 1 && r === from.r) return "left";
+  if (c === from.c + 1 && r === from.r) return "right";
+  return null;
+}
+
 function setPreview(action, label) {
-  const check = validateAction(S.state, action);
+  const check = validateAction(S.state, activeSeat(), action);
   S.preview = { action, valid: check.ok, label };
   if (!check.ok && check.error === "blocks-path") {
-    toast("这面墙会封死通路（双方都必须留有到终点的路）", true);
+    toast("这面墙会封死对方的全部通路", true);
   }
   paint();
 }
@@ -415,56 +432,41 @@ function clearPreview() {
 }
 
 function onCellClick(c, r) {
-  if (S.gameOver || !S.started || S.aiThinking) return;
-  if (S.mode === "online" && S.state.turn !== S.mySeat) return;
+  if (S.gameOver || !S.started || S.locked[activeSeat()]) return;
   const st = S.state;
-  const me = st.players[st.turn];
+  const seat = activeSeat();
+  const me = st.players[seat];
 
-  // 站在第 1 行且出口未封：点自己的格子 = 越线（大热区）
   if (c === me.c && r === me.r) {
-    if (me.r === 0 && st.topWall[me.c] === 0) {
-      if (S.preview && S.preview.action.type === "move" && S.preview.action.dir === "up") {
-        commit();
-        return;
-      }
-      setPreview({ type: "move", dir: "up" }, "越线");
+    if (me.r === 0 && !blocksSeat(st, seat, "top", me.c, 0)) {
+      if (S.preview && S.preview.action.type === "exit") commit();
+      else setPreview({ type: "exit" }, "越线");
     }
     return;
   }
 
-  if (S.preview && S.preview.action.type === "move") {
-    const t = stepTarget(st, me.c, me.r, S.preview.action.dir);
-    if (t && !t.exit && t.c === c && t.r === r && S.preview.valid) {
+  if (S.preview && S.preview.action.type === "move" && S.preview.valid) {
+    const traced = traceMove(st, seat, S.preview.action.dirs);
+    if (traced.ok && traced.c === c && traced.r === r) {
       commit();
       return;
     }
   }
 
-  if (Math.abs(c - me.c) + Math.abs(r - me.r) !== 1) {
-    if (c !== me.c || r !== me.r) toast("一次只能走一格");
+  const from = previewOrigin(st, seat);
+  const dir = dirBetween(from, c, r);
+  if (!dir) {
+    toast("只能走到相邻格");
     return;
   }
-
-  let dir = null;
-  if (c === me.c && r === me.r - 1) dir = "up";
-  else if (c === me.c && r === me.r + 1) dir = "down";
-  else if (c === me.c - 1 && r === me.r) dir = "left";
-  else if (c === me.c + 1 && r === me.r) dir = "right";
-  if (!dir) return;
-
-  const t = stepTarget(st, me.c, me.r, dir);
-  if (!t) {
-    toast("这个方向有墙或已到边界", true);
-    return;
-  }
-  setPreview({ type: "move", dir }, t.exit ? "越线" : "移动");
+  const extending = !(from.c === me.c && from.r === me.r);
+  const dirs = extending ? S.preview.action.dirs.concat(dir) : [dir];
+  setPreview({ type: "move", dirs }, dirs.length === 2 ? "走两格" : "走一格");
 }
 
 function onWallClick(kind, c, r) {
-  if (S.gameOver || !S.started || S.aiThinking) return;
-  if (S.mode === "online" && S.state.turn !== S.mySeat) return;
+  if (S.gameOver || !S.started || S.locked[activeSeat()]) return;
   const st = S.state;
-
   if (S.preview && S.preview.action.type === "wall") {
     const a = S.preview.action;
     if (a.kind === kind && a.c === c && a.r === r && S.preview.valid) {
@@ -472,31 +474,22 @@ function onWallClick(kind, c, r) {
       return;
     }
   }
-
-  const placed = kind === "v"
-    ? st.vWall[c * ROWS + r] === 1
-    : st.hWall[c * (ROWS - 1) + r] === 1;
-  if (placed) return;
-
+  const raw = kind === "v" ? st.vWall[c * ROWS + r] : st.hWall[c * (ROWS - 1) + r];
+  if (raw !== 0) return;
   setPreview({ type: "wall", kind, c, r }, `封墙 ${wallName(kind, c, r)}`);
 }
 
 function onTopSlotClick(c) {
-  if (S.gameOver || !S.started || S.aiThinking) return;
-  if (S.mode === "online" && S.state.turn !== S.mySeat) return;
+  if (S.gameOver || !S.started || S.locked[activeSeat()]) return;
   const st = S.state;
-  const me = st.players[st.turn];
-
-  if (me.c === c && me.r === 0 && st.topWall[c] === 0) {
-    if (S.preview && S.preview.action.type === "move" && S.preview.action.dir === "up") {
-      commit();
-      return;
-    }
-    setPreview({ type: "move", dir: "up" }, "越线");
+  const seat = activeSeat();
+  const me = st.players[seat];
+  if (me.c === c && me.r === 0 && !blocksSeat(st, seat, "top", c, 0)) {
+    if (S.preview && S.preview.action.type === "exit") commit();
+    else setPreview({ type: "exit" }, "越线");
     return;
   }
-
-  if (st.topWall[c] === 1) return;
+  if (st.topWall[c] !== 0) return;
   if (S.preview && S.preview.action.type === "wall"
       && S.preview.action.kind === "top" && S.preview.action.c === c) {
     if (S.preview.valid) commit();
@@ -505,130 +498,117 @@ function onTopSlotClick(c) {
   setPreview({ type: "wall", kind: "top", c, r: 0 }, `封顶 ${COL_NAMES[c]}-0`);
 }
 
-/** 列标签：只在可以越线时可点，作为更大的越线热区。 */
 function onColLabelClick(c) {
-  if (S.gameOver || !S.started || S.aiThinking) return;
-  if (S.mode === "online" && S.state.turn !== S.mySeat) return;
-  const st = S.state;
-  const me = st.players[st.turn];
-  if (me.c !== c || me.r !== 0 || st.topWall[c] === 1) return;
-  if (S.preview && S.preview.action.type === "move" && S.preview.action.dir === "up") {
-    commit();
-    return;
-  }
-  setPreview({ type: "move", dir: "up" }, "越线");
+  if (S.gameOver || !S.started || S.locked[activeSeat()]) return;
+  const seat = activeSeat();
+  const me = S.state.players[seat];
+  if (me.c !== c || me.r !== 0 || blocksSeat(S.state, seat, "top", c, 0)) return;
+  if (S.preview && S.preview.action.type === "exit") commit();
+  else setPreview({ type: "exit" }, "越线");
 }
 
-function commit() {
-  if (!S.preview || !S.preview.valid) return;
-  const label = S.preview.label;
-  const pendingAction = S.preview.action;
-
-  if (S.mode === "online") {
-    if (!S.net || S.state.turn !== S.mySeat) {
-      toast("还没轮到你", true);
-      return;
-    }
-    const elapsed = Math.round(performance.now() - S.turnStartedAt);
-    const res = S.net.session.localAction(S.preview.action, elapsed);
-    S.preview = null;
-    if (!res.ok) {
-      toast("非法操作：" + res.error, true);
-      return;
-    }
-    advance(res.state, label, pendingAction);
-    return;
-  }
-
-  const res = applyAction(S.state, S.preview.action);
-  if (!res.ok) {
-    toast("非法操作：" + res.error, true);
-    return;
-  }
-  S.preview = null;
-  advance(res.state, label, pendingAction);
+function describeEvents(events) {
+  return events.map((e) => {
+    const who = e.player === 0 ? "左" : "右";
+    if (e.type === "move") return e.collided ? `${who}撞墙` : `${who}走${e.steps}格`;
+    if (e.type === "exit") return e.ok ? `${who}越线` : `${who}越线被挡`;
+    if (e.type === "store") return `${who}存点`;
+    if (e.type === "wall") return e.placed ? `${who}放墙` : `${who}放墙失败`;
+    return who;
+  }).join("，");
 }
 
-/** 应用一步后的收尾：重置本方计时、记录历史、处理终局。 */
-function advance(nextState, label = "行动", action = null) {
-  const by = S.state.turn;
+function ensureAILock() {
+  if (S.aiSeat == null || S.gameOver || !S.started) return;
+  if (S.locked[S.aiSeat]) return;
+  S.locked[S.aiSeat] = AI[S.mode](S.state, S.aiSeat, Math.random);
+}
+
+function finishRound(actions, nextState, events) {
+  const label = describeEvents(events);
   S.state = nextState;
   resetTurn(S.clocks);
   S.turnStartedAt = performance.now();
-  S.history.push({ state: nextState, clocks: clockSnapshot(S.clocks), by, label, action });
-
+  S.history.push({
+    state: nextState,
+    clocks: clockSnapshot(S.clocks),
+    actions: actions.map((a) => a),
+    label,
+  });
+  S.locked = [null, null];
+  S.preview = null;
+  S.inputSeat = 0;
+  S.lastTs = performance.now();
+  if (events.some((e) => e.collided)) toast("撞上了对方这一回合放的墙，停在墙前");
   if (nextState.winner !== null) {
     S.gameOver = true;
-    S.aiThinking = false;
     paint();
     setTimeout(showResult, 320);
     return;
   }
+  ensureAILock();
   paint();
-  maybeAI();
 }
 
-function actionLabel(action, before) {
-  if (action.type === "move") {
-    const p = before.players[before.turn];
-    const t = stepTarget(before, p.c, p.r, action.dir);
-    return t && t.exit ? "越线" : "移动";
-  }
-  return action.kind === "top"
-    ? `封顶 ${COL_NAMES[action.c]}-0`
-    : `封墙 ${wallName(action.kind, action.c, action.r)}`;
-}
+function commit() {
+  if (!S.preview || !S.preview.valid || S.locked[activeSeat()]) return;
+  const seat = activeSeat();
+  const action = S.preview.action;
 
-/** 人机模式：轮到电脑时自动走一步。 */
-function maybeAI() {
-  if (S.aiSeat === null || S.gameOver || !S.started) return;
-  if (S.state.turn !== S.aiSeat || S.aiThinking) return;
-
-  S.aiThinking = true;
-  paint();
-  const plies = S.state.plies;
-
-  setTimeout(() => {
-    if (S.gameOver || !S.started || S.state.turn !== S.aiSeat || S.state.plies !== plies) {
-      S.aiThinking = false;
-      paint();
+  if (S.mode === "online") {
+    if (!S.net || seat !== S.mySeat) {
+      toast("还不能操作", true);
       return;
     }
-    const before = S.state;
-    const action = AI[S.mode](before, Math.random);
-    const res = applyAction(before, action);
-    S.aiThinking = false;
+    S.locked[seat] = action;
+    S.preview = null;
+    const elapsed = Math.round(performance.now() - S.turnStartedAt);
+    const res = S.net.session.localAction(action, elapsed);
     if (!res.ok) {
-      paint();
-      return;
+      S.locked[seat] = null;
+      toast("非法操作：" + res.error, true);
     }
-    advance(res.state, actionLabel(action, before));
-  }, S.mode === "master" ? 280 : GAME_CONFIG.aiDelay);
+    paint();
+    return;
+  }
+
+  S.locked[seat] = action;
+  S.preview = null;
+  if (S.aiSeat == null && !(S.locked[0] && S.locked[1])) {
+    S.inputSeat = S.locked[0] ? 1 : 0;
+    resetTurn(S.clocks);
+    S.turnStartedAt = performance.now();
+    toast(`${seat === 0 ? "左方" : "右方"}已选定`);
+    paint();
+    return;
+  }
+  const chosen = [S.locked[0], S.locked[1]];
+  const res = resolveRound(S.state, chosen);
+  if (!res.ok) {
+    toast("这一步不能这样走：" + res.error, true);
+    S.locked[seat] = null;
+    paint();
+    return;
+  }
+  finishRound(chosen, res.state, res.events);
 }
 
-/** 超时：BFS 最短路代走（同长优先向上）。 */
 function onTimeout() {
-  if (S.gameOver || !S.state) return;
-  const mv = autoMove(S.state);
-  if (!mv) return;
-  const res = applyAction(S.state, mv);
-  if (!res.ok) return;
-  S.preview = null;
+  if (S.gameOver || !S.state || S.locked[activeSeat()]) return;
+  const mv = autoMove(S.state, activeSeat());
+  if (!mv || mv.type === "move" && !mv.dirs) return;
+  S.preview = { action: mv, valid: true, label: "超时代走" };
   toast("超时，系统代走");
-  advance(res.state, "超时代走");
+  commit();
 }
 
 /** 悔棋：撤销最近一手，由对方在确认框中同意。 */
 function undo() {
   if (S.gameOver || !S.started || S.aiThinking) return;
-  if (S.aiSeat !== null && S.state.turn === S.aiSeat) {
-    toast("等电脑走完再悔棋");
-    return;
-  }
   if (S.undoOverlayOpen) return;
 
   if (S.mode === "online") {
-    if (!S.net || S.state.turn !== S.mySeat) { toast("只能在自己的回合悔棋", true); return; }
+    if (!S.net || S.locked[S.mySeat]) { toast("本步已选定，不能悔棋", true); return; }
     if (S.history.length < 2) { toast("还没有可以悔的棋"); return; }
     S.net.session.requestUndo();
     toast("已发送悔棋请求，等待对方回应（30 秒）");
@@ -638,7 +618,7 @@ function undo() {
   }
 
   try {
-    const p = S.state.turn;
+    const p = activeSeat();
     if (S.undoLeft[p] <= 0) {
       toast("本局悔棋次数已用完", true);
       return;
@@ -649,10 +629,9 @@ function undo() {
     }
 
     const last = S.history[S.history.length - 1];
-    const who = last.by === 0 ? "左方" : "右方";
     S.pendingUndo = { last, requester: p };
     S.undoOverlayOpen = true;
-    undoDesc.textContent = `撤销${who}的「${last.label}」？\n（本方可悔 ${S.undoLeft[p]} 次）`;
+    undoDesc.textContent = `撤销上一回合「${last.label}」？\n（本方可悔 ${S.undoLeft[p]} 次）`;
     undoOverlay.hidden = false;
   } catch (e) {
     toast("悔棋失败：" + e.message, true);
@@ -668,27 +647,19 @@ function finishUndo(agree) {
 
   const { last, requester } = req;
 
-  if (S.aiSeat === null) {
-    S.history.pop();
-  } else {
-    // 人机：回到人类上一次行棋之前的局面（撤销自己一手 + 电脑应手）
-    const humanSeat = 1 - S.aiSeat;
-    let idx = -1;
-    for (let i = S.history.length - 2; i >= 0; i--) {
-      if (S.history[i].state.turn === humanSeat) { idx = i; break; }
-    }
-    if (idx >= 0) S.history = S.history.slice(0, idx + 1);
-    else S.history.pop();
-  }
+  S.history.pop();
 
   const target = S.history[S.history.length - 1];
   S.state = target.state;
   clockRestore(S.clocks, target.clocks);
   S.undoLeft[requester] -= 1;
   S.preview = null;
+  S.locked = [null, null];
+  S.inputSeat = 0;
   S.lastTs = performance.now();
+  ensureAILock();
   paint();
-  toast(`已撤销${last.by === 0 ? "左方" : "右方"}的「${last.label}」`);
+  toast(`已撤销上一回合`);
 }
 
 /* ---------------------------------------------------------------- 结算 */
@@ -698,7 +669,7 @@ function showResult() {
   if (st.winner === "draw") {
     panelIcon.textContent = "🤝";
     panelTitle.textContent = "平局";
-    panelDesc.textContent = "对手下一手同样可以越线，按“1 手容差”判和。";
+    panelDesc.textContent = "两人在同一回合越线。";
   } else {
     panelIcon.textContent = "🏁";
     if (S.mode === "online") {
@@ -764,6 +735,8 @@ function newGame(announce = false) {
   S.clocks = createClock({ perMove: S.settings.perMove, bank: S.settings.bank });
   S.history = [{ state: S.state, clocks: clockSnapshot(S.clocks) }];
   S.undoLeft = [S.settings.undoLimit, S.settings.undoLimit];
+  S.locked = [null, null];
+  S.inputSeat = 0;
   S.preview = null;
   S.gameOver = false;
   S.aiThinking = false;
@@ -910,14 +883,12 @@ function finishDice(side, sidePicker, firstPerson) {
   newGame();
   S.started = true;
   S.lastTs = performance.now();
+  ensureAILock();
   paint();
-
-  const firstSeat = S.firstSeat;
   const firstWho = S.aiSeat === null
     ? (firstSeat === 0 ? "左方" : "右方")
     : (firstSeat === S.aiSeat ? "电脑" : "你");
-  toast(`${firstWho}先手`);
-  maybeAI();
+  toast(`${firstWho}选边完成，双方同时行动`);
 }
 
 function goHome() {
@@ -965,6 +936,11 @@ function saveSettings() {
 confirmBtn.addEventListener("click", commit);
 cancelBtn.addEventListener("click", clearPreview);
 undoBtn.addEventListener("click", undo);
+storeBtn.addEventListener("click", () => {
+  if (S.gameOver || !S.started || S.locked[activeSeat()]) return;
+  setPreview({ type: "store" }, "存点");
+  commit();
+});
 undoYes.addEventListener("click", () => {
   if (S.mode === "online") {
     undoOverlay.hidden = true;
@@ -1031,6 +1007,7 @@ restartBtn.addEventListener("click", () => {
   if (S.state && S.state.plies > 0 && !window.confirm("当前对局还没结束，确定重新开始？")) return;
   newGame(true);
   S.started = true;
+  ensureAILock();
   S.lastTs = performance.now();
 });
 let resignArmedAt = 0;
@@ -1051,7 +1028,7 @@ resignBtn.addEventListener("click", () => {
   }
 
   // 人机：认输的是人类；本地：认输的是当前行棋方
-  const loser = S.aiSeat !== null ? 1 - S.aiSeat : S.state.turn;
+  const loser = S.aiSeat !== null ? 1 - S.aiSeat : activeSeat();
   endLocalGame(1 - loser);
 });
 
@@ -1063,6 +1040,7 @@ againBtn.addEventListener("click", () => {
   }
   newGame(true);
   S.started = true;
+  ensureAILock();
   S.lastTs = performance.now();
 });
 boardEl.addEventListener("contextmenu", (e) => {
@@ -1084,9 +1062,9 @@ setInterval(() => {
   const dt = (now - S.lastTs) / 1000;
   S.lastTs = now;
   if (!S.state || !S.clocks || !S.started || S.gameOver || overlaysOpen() || document.hidden) return;
-  if (S.mode === "online" && (S.state.turn !== S.mySeat || !S.net)) return;
+  if (S.locked[activeSeat()]) return;
   if (dt <= 0) return;
-  const r = tickClock(S.clocks, S.state.turn, Math.min(dt, 0.5));
+  const r = tickClock(S.clocks, activeSeat(), Math.min(dt, 0.5));
   paintClocks();
   if (r.timedOut) onTimeout();
 }, 100);
@@ -1172,11 +1150,12 @@ function attachSession(transport, role, code) {
     role,
     config: { ...cfg, configHash: configHash(cfg) },
     getState: () => S.state,
-    apply: (action) => {
-      const res = applyAction(S.state, action);
-      if (!res.ok) return { ok: false, error: res.error };
-      S.state = res.state;
-      return { ok: true, state: res.state };
+    validate: (state, seat, action) => validateAction(state, seat, action),
+    resolve: (actions) => {
+      const res = resolveRound(S.state, actions);
+      if (!res.ok) return res;
+      finishRound(actions, res.state, res.events);
+      return res;
     },
     onEvent: handleNetEvent,
   });
@@ -1184,7 +1163,7 @@ function attachSession(transport, role, code) {
   session.setSnapshotProvider(() => ({
     firstSeat: S.firstSeat,
     plies: S.state.plies,
-    actions: S.history.slice(1).map((h) => h.action).filter(Boolean),
+    actions: S.history.slice(1).map((h) => h.actions).filter(Boolean),
     clocks: { banks: S.clocks.banks.slice(), moveLeft: S.clocks.moveLeft },
     undoLeft: S.undoLeft.slice(),
   }));
@@ -1206,8 +1185,7 @@ function handleNetEvent(evt) {
     case "start":
       startOnlineGame(evt.firstSeat);
       return;
-    case "remoteAction":
-      advance(S.state, "对手行动", evt.action);
+    case "resolved":
       return;
     case "undoReq":
       undoDesc.textContent = "对方请求悔棋，是否同意？";
@@ -1480,11 +1458,11 @@ function applySnapshot(snap) {
     S.clocks = createClock({ perMove: S.settings.perMove, bank: S.settings.bank });
     clockRestore(S.clocks, snap.clocks);
     S.history = [{ state: S.state, clocks: clockSnapshot(S.clocks) }];
-    for (const action of snap.actions ?? []) {
-      const res = applyAction(S.state, action);
+    for (const actions of snap.actions ?? []) {
+      const res = resolveRound(S.state, actions);
       if (!res.ok) break;
       S.state = res.state;
-      S.history.push({ state: S.state, clocks: clockSnapshot(S.clocks), action });
+      S.history.push({ state: S.state, clocks: clockSnapshot(S.clocks), actions });
     }
     S.undoLeft = snap.undoLeft ?? S.undoLeft;
     S.mySeat = S.net.session.mySeat;
@@ -1523,7 +1501,7 @@ function openSaveDialog() {
 }
 
 function buildSlot() {
-  const actions = S.history.slice(1).map((h) => h.action).filter(Boolean);
+  const actions = S.history.slice(1).map((h) => h.actions).filter(Boolean);
   return {
     name: saveName.value.trim() || defaultSlotName(),
     roomCode: S.net?.code ?? "",
@@ -1543,7 +1521,7 @@ function stateHashOf(state) {
   for (const v of state.vWall) mix(v);
   for (const v of state.hWall) mix(v);
   for (const v of state.topWall) mix(v);
-  mix(state.turn); mix(state.wallsPlaced);
+  mix(state.bank[0]); mix(state.bank[1]); mix(state.wallsPlaced);
   return (h >>> 0).toString(16).padStart(8, "0");
 }
 

@@ -369,6 +369,8 @@ body {
 .slot-h .bar { width: 82%; height: 38%; }
 
 .slot:hover .bar { opacity: 0.4; }
+.slot.placed.owner0 .bar { background: var(--p0); }
+.slot.placed.owner1 .bar { background: var(--p1); }
 .slot.placed .bar { opacity: 1; }
 .slot.placed { cursor: default; }
 

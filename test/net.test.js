@@ -7,7 +7,7 @@ import {
   makeRoomCode, normalizeRoomCode,
 } from "../src/net/protocol.js";
 import { memoryPair } from "../src/net/transport.js";
-import { createState, applyAction } from "../src/rules.js";
+import { createState, resolveRound, validateAction } from "../src/rules.js";
 import { packCode, unpackCode } from "../src/net/code.js";
 
 const CONFIG = { perMove: 30, bank: 300 };
@@ -17,7 +17,10 @@ test("stateHash：相同局面一致，落子后变化", () => {
   const b = createState(0);
   assert.equal(stateHash(a), stateHash(b));
 
-  const moved = applyAction(a, { type: "move", dir: "up" }).state;
+  const moved = resolveRound(a, [
+    { type: "move", dirs: ["up"] },
+    { type: "store" },
+  ]).state;
   assert.notEqual(stateHash(moved), stateHash(a));
 });
 
