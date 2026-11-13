@@ -4,8 +4,8 @@
  *   node tools/build-single.mjs
  * → dist/蛋疼棋.html
  *
- * 做法：把 src/*.js 与 app.js 按依赖顺序拼接，去掉 import/export 语句，
- * 包进一个 IIFE，再把 CSS 与脚本内联进 index.html。
+ * 双模式：回合制（app.js）与异步（app-async.js）各打成一个函数作用域，
+ * 避免两套规则引擎里同名函数（createState / applyAction / setWall…）互相覆盖。
  */
 
 import { readFile, writeFile, mkdir } from "node:fs/promises";
@@ -35,7 +35,7 @@ function stripModuleSyntax(code) {
   return out.join("\n");
 }
 
-const order = [
+const TURN = [
   "src/config.js",
   "src/board.js",
   "src/path.js",
@@ -54,16 +54,46 @@ const order = [
   "app.js",
 ];
 
-const parts = [];
-for (const f of order) {
-  const code = stripModuleSyntax(await rd(f));
-  if (code.includes("export ")) {
-    throw new Error(`${f} 里还有未处理的 export`);
+const ASYNC = [
+  "src/config.js",
+  "src/board.js",
+  "src/path-async.js",
+  "src/rules-async.js",
+  "src/clock.js",
+  "src/ai-random-async.js",
+  "src/ai-async.js",
+  "src/net/protocol-async.js",
+  "src/net/code.js",
+  "src/net/transport.js",
+  "src/net/session-async.js",
+  "src/net/peer.js",
+  "src/net/manual.js",
+  "src/storage.js",
+  "app-async.js",
+];
+
+async function bundle(files, fnName) {
+  const parts = [];
+  for (const f of files) {
+    const code = stripModuleSyntax(await rd(f));
+    if (code.includes("export ")) throw new Error(`${f} 里还有未处理的 export`);
+    parts.push(`/* ===== ${f} ===== */\n${code}`);
   }
-  parts.push(`/* ===== ${f} ===== */\n${code}`);
+  return `function ${fnName}() {\n${parts.join("\n")}\n}`;
 }
 
-const bundle = `(function () {\n"use strict";\n${parts.join("\n")}\n})();`;
+const turnBundle = await bundle(TURN, "__dantengTurn");
+const asyncBundle = await bundle(ASYNC, "__dantengAsync");
+
+// loader.js 顶层有 await import(...)，内联时改成直接调用
+let loader = stripModuleSyntax(await rd("loader.js"));
+loader = loader.replace(
+  /await import\([^)]*\);/,
+  'if (play === "async") __dantengAsync(); else __dantengTurn();',
+);
+if (!loader.includes("__dantengTurn")) throw new Error("loader 的 import 没被替换");
+
+const bundleCode = `(function () {\n"use strict";\n${turnBundle}\n\n${asyncBundle}\n\n${loader}\n})();`;
 
 let html = await rd("index.html");
 const css = await rd("styles.css");
@@ -73,11 +103,11 @@ html = html.replace(
   `<style>\n${css}\n</style>`,
 );
 html = html.replace(
-  /<script type="module" src="\.\/app\.js"><\/script>/,
-  `<script>\n${bundle}\n</script>`,
+  /<script type="module" src="\.\/loader\.js"><\/script>/,
+  `<script>\n${bundleCode}\n</script>`,
 );
 
-if (html.includes('src="./app.js"') || html.includes('href="./styles.css"')) {
+if (html.includes('src="./loader.js"') || html.includes('href="./styles.css"')) {
   throw new Error("HTML 中的外链没有被替换掉");
 }
 

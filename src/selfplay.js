@@ -5,12 +5,12 @@
 import { createState, applyAction } from "./rules.js";
 import { AI, makeRng } from "./ai.js";
 
-export function playGame({ ai = "greedy", seed = 1, firstPlayer = 0, maxPlies = 600, tolerance = 1, wallLimit = Infinity } = {}) {
+export function playGame({ ai = "greedy", seed = 1, firstPlayer = 0, maxPlies = 600, tolerance = 1, wallLimit = Infinity, drawMode = "symmetric" } = {}) {
   const names = Array.isArray(ai) ? ai : [ai, ai];
   const policies = names.map((n) => AI[n]);
   policies.forEach((p) => p.reset?.());
   const rng = makeRng(seed);
-  let state = createState(firstPlayer, { tolerance, wallLimit });
+  let state = createState(firstPlayer, { tolerance, wallLimit, drawMode });
 
   while (state.winner === null && state.plies < maxPlies) {
     const action = policies[state.turn](state, rng);

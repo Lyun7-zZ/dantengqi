@@ -12,7 +12,7 @@ import { distanceToGoal, hasPath } from "./path.js";
 
 export const DIRS = ["up", "down", "left", "right"];
 
-export function createState(firstPlayer = 0, { tolerance = 1, wallLimit = Infinity } = {}) {
+export function createState(firstPlayer = 0, { tolerance = 1, wallLimit = Infinity, drawMode = "symmetric" } = {}) {
   return {
     vWall: new Uint8Array(V_COUNT * ROWS),
     hWall: new Uint8Array(H_COUNT * COLS),
@@ -22,6 +22,8 @@ export function createState(firstPlayer = 0, { tolerance = 1, wallLimit = Infini
       { c: COLS - 1, r: ROWS - 1 },
     ],
     turn: firstPlayer,
+    firstPlayer,
+    drawMode,
     tolerance,
     wallLimit: Array.isArray(wallLimit) ? [wallLimit[0], wallLimit[1]] : [wallLimit, wallLimit],
     wallsUsed: [0, 0],
@@ -38,6 +40,8 @@ export function cloneState(s) {
     topWall: s.topWall.slice(),
     players: s.players.map((p) => ({ c: p.c, r: p.r })),
     turn: s.turn,
+    firstPlayer: s.firstPlayer,
+    drawMode: s.drawMode,
     tolerance: s.tolerance,
     wallLimit: s.wallLimit.slice(),
     wallsUsed: s.wallsUsed.slice(),
@@ -150,7 +154,10 @@ export function applyAction(state, action) {
     if (t.exit) {
       const opp = next.players[1 - p];
       const oppDist = distanceToGoal(next, opp.c, opp.r);
-      const draw = oppDist <= next.tolerance;
+      const withinTolerance = oppDist <= next.tolerance;
+      const draw = next.drawMode === "firstOnly"
+        ? (p === next.firstPlayer && withinTolerance)
+        : withinTolerance;
       next.winner = draw ? "draw" : p;
       event = { type: "exit", player: p, draw, oppDist };
     } else {

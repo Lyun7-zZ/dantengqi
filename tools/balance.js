@@ -24,6 +24,7 @@ const limitArg = arg("wallLimit", null);
 
 const configs = only ? [only] : ["greedy", "random"];
 const tolerances = tolArg !== null ? [Number(tolArg)] : [0, 1, 2];
+const drawMode = arg("drawMode", "symmetric");
 const wallLimitRaw = arg("wallLimit", null);
 const wallLimit = wallLimitRaw
   ? (wallLimitRaw.includes(",") ? wallLimitRaw.split(",").map(Number) : Number(wallLimitRaw))
@@ -39,7 +40,7 @@ console.log(head.map((s) => pad(s, 11)).join(""));
 for (const ai of configs) {
   for (const tolerance of tolerances) {
     const t0 = Date.now();
-    const r = runBatch(games, { ai, seed, maxPlies, tolerance, wallLimit });
+    const r = runBatch(games, { ai, seed, maxPlies, tolerance, wallLimit, drawMode });
     const ms = Date.now() - t0;
     const row = [
       Array.isArray(ai) ? ai.join(" vs ") : ai,

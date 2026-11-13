@@ -3,7 +3,11 @@
  * 回合制走 app.js（深搜大师），异步走 app-async.js。
  */
 
-const play = sessionStorage.getItem("danteng.play") === "async" ? "async" : "turn";
+// 支持 ?play=async 直接进入异步模式（方便分享链接与自动化测试）
+const urlPlay = new URLSearchParams(location.search).get("play");
+const play = urlPlay === "async" || urlPlay === "turn"
+  ? urlPlay
+  : (sessionStorage.getItem("danteng.play") === "async" ? "async" : "turn");
 
 const turnBtn = document.getElementById("modeTurn");
 const asyncBtn = document.getElementById("modeAsync");
