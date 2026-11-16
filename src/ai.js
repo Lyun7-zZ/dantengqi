@@ -355,5 +355,12 @@ export const AI = {
   easy: easyAI,
   normal: tacticalAI,
   hard: createMasterAI({ timeMs: 350, maxDepth: 4, usePlan: false }),
-  master: createMasterAI({ timeMs: 1200, maxDepth: 6, usePlan: true }),
+  master: createMasterAI({
+    timeMs: 1200,
+    maxDepth: 6,
+    usePlan: true,
+    netWalls: true,
+    avoidRepeat: true,
+    repeatPenalty: 160,
+  }),
 };

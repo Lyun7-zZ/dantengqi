@@ -143,25 +143,52 @@ function candidatesAI(state, opts = {}) {
     out.push(a);
   };
   const mp = state.players[me];
+  const op = state.players[opp];
   for (const dir of legalDirs(state, mp.c, mp.r)) add({ type: "move", dir });
 
-  const op = state.players[opp];
-  for (const w of shortestPathWalls(state, op.c, op.r)) {
-    if (!wallPlaced(state, w.kind, w.c, w.r)) add({ type: "wall", kind: w.kind, c: w.c, r: w.r });
-  }
+  // 只保留真正让对手更慢的墙；不制造“双方一起被拖慢”的无效墙。
+  const netWalls = !!opts.netWalls;
+  const dm0 = netWalls ? distanceToGoal(state, mp.c, mp.r) : 0;
+  const dop0 = netWalls ? distanceToGoal(state, op.c, op.r) : 0;
+  const wallGain = (w) => {
+    const probe = cloneState(state);
+    setWall(probe, w.kind, w.c, w.r);
+    if (!hasPath(probe, mp.c, mp.r)) return null;
+    const dm = distanceToGoal(probe, mp.c, mp.r);
+    const dop = distanceToGoal(probe, op.c, op.r);
+    if (!Number.isFinite(dm) || !Number.isFinite(dop)) return null;
+    return { gainMe: dm - dm0, gainOpp: dop - dop0 };
+  };
+  const addWall = (w, top = false) => {
+    const a = w.type === "wall" ? w : { type: "wall", kind: w.kind, c: w.c, r: w.r };
+    if (wallPlaced(state, a.kind, a.c, a.r)) return;
+    if (netWalls) {
+      const g = wallGain(a);
+      if (!g) return;
+      const diff = g.gainOpp - g.gainMe;
+      if (top ? diff < 0 : diff <= 0) return;
+    }
+    add(a);
+  };
+
+  for (const w of shortestPathWalls(state, op.c, op.r)) addWall(w, w.kind === "t" || w.kind === "top");
 
   if (opts.scanAll) {
-    const base = distanceToGoal(state, op.c, op.r);
     const scored = [];
     for (const w of allWallSlots()) {
       if (wallPlaced(state, w.kind, w.c, w.r)) continue;
       const probe = cloneState(state);
       setWall(probe, w.kind, w.c, w.r);
-      if (!hasPath(probe, probe.players[me].c, probe.players[me].r)) continue;
+      if (!hasPath(probe, mp.c, mp.r)) continue;
+      const dm = netWalls ? distanceToGoal(probe, mp.c, mp.r) : 0;
       const dop = distanceToGoal(probe, op.c, op.r);
       if (!Number.isFinite(dop)) continue;
-      const gain = dop - base;
-      if (gain >= 1) scored.push([gain, { type: "wall", kind: w.kind, c: w.c, r: w.r }]);
+      const gainOpp = dop - dop0;
+      const score = netWalls ? gainOpp - (dm - dm0) : gainOpp;
+      if (netWalls) {
+        if (w.kind === "t" || w.kind === "top" ? score < 0 : score <= 0) continue;
+      } else if (gainOpp < 1) continue;
+      scored.push([score, { type: "wall", kind: w.kind, c: w.c, r: w.r }]);
     }
     scored.sort((x, y) => y[0] - x[0]);
     for (let i = 0; i < Math.min(opts.scanAll, scored.length); i++) add(scored[i][1]);
@@ -171,7 +198,7 @@ function candidatesAI(state, opts = {}) {
       if (state.topWall[c] === 0) add({ type: "wall", kind: "t", c, r: 0 });
     }
   }
-  if (opts.planWall) add(opts.planWall);
+  if (opts.planWall) addWall(opts.planWall);
   return out;
 }
 
@@ -188,7 +215,7 @@ function searchAI(state, depth, alpha, beta, ctx) {
   }
   if (state.winner !== null || depth === 0) return evalAI(state);
 
-  const cands = candidatesAI(state);
+  const cands = candidatesAI(state, ctx.candOpts ?? {});
   const scored = [];
   for (const a of cands) {
     const r = applyAction(state, a);
@@ -209,12 +236,12 @@ function searchAI(state, depth, alpha, beta, ctx) {
 }
 
 /** 迭代加深根搜索。 */
-function rootSearch(state, rng, timeMs, maxDepth) {
+function rootSearch(state, rng, timeMs, maxDepth, opts = {}) {
   const win = takeWin(state);
   if (win) return win;
 
   const me = state.turn;
-  const cands = candidatesAI(state, { scanAll: 6 });
+  const cands = candidatesAI(state, { scanAll: 6, ...(opts.candOpts ?? {}) });
   const ordered = [];
   for (const a of cands) {
     const r = applyAction(state, a);
@@ -226,7 +253,14 @@ function rootSearch(state, rng, timeMs, maxDepth) {
   if (!ordered.length) return autoMove(state);
   ordered.sort((x, y) => y.score - x.score);
 
-  const ctx = { deadline: aiNow() + Math.max(20, timeMs), nodes: 0, abort: false };
+  const ctx = {
+    deadline: aiNow() + Math.max(20, timeMs),
+    nodes: 0,
+    abort: false,
+    candOpts: opts.candOpts ?? {},
+  };
+  const repeatSet = opts.repeatSet;
+  const repeatPenalty = Number(opts.repeatPenalty ?? 0);
   let best = ordered[0].a;
   let bestScore = -Infinity;
 
@@ -235,8 +269,14 @@ function rootSearch(state, rng, timeMs, maxDepth) {
     let localBest = null;
     let localScore = -Infinity;
     for (const item of ordered) {
-      const v = -searchAI(item.st, depth - 1, -Infinity, -alpha, ctx);
+      let v = -searchAI(item.st, depth - 1, -Infinity, -alpha, ctx);
       if (ctx.abort) break;
+      // 两格来回：最近回到过的格子（墙数没变）降权。
+      if (repeatSet && repeatPenalty > 0 && item.a.type === "move") {
+        const np = item.st.players[me];
+        const key = `${np.r * COLS + np.c}:${item.st.wallsPlaced}`;
+        if (repeatSet.has(key)) v -= repeatPenalty;
+      }
       if (v > localScore) {
         localScore = v;
         localBest = item.a;
@@ -360,10 +400,33 @@ function makePlanAI(state) {
   return best;
 }
 
+/** 计划墙是否“损己不划算”：自己变长，且对手没有变得比自己更惨。 */
+function planWallNetBad(state, me, w) {
+  const opp = 1 - me;
+  const res = applyAction(state, w);
+  if (!res.ok) return true;
+  const dm0 = distanceOf(state, me);
+  const dop0 = distanceOf(state, opp);
+  const dm = distanceOf(res.state, me);
+  const dop = distanceOf(res.state, opp);
+  if (!Number.isFinite(dm) || !Number.isFinite(dop)) return true;
+  const gainMe = dm - dm0;
+  const gainOpp = dop - dop0;
+  return gainMe > 0 && gainOpp <= gainMe;
+}
+
 /** 构建一个带计划层的 AI。 */
-function createMasterAI({ timeMs = 1200, maxDepth = 6, usePlan = true } = {}) {
+function createMasterAI({
+  timeMs = 1200,
+  maxDepth = 6,
+  usePlan = true,
+  netWalls = false,
+  avoidRepeat = false,
+  repeatPenalty = 120,
+} = {}) {
   let plan = null;
   let plansUsed = 0;
+  let history = [];
   const stats = { plans: 0, planWalls: 0, searches: 0, maxPlies: 0 };
 
   function choose(state, rng) {
@@ -372,6 +435,13 @@ function createMasterAI({ timeMs = 1200, maxDepth = 6, usePlan = true } = {}) {
 
     const me = state.turn;
     const opp = 1 - me;
+    const mePos = state.players[me];
+
+    if (avoidRepeat) {
+      history.push(`${mePos.r * COLS + mePos.c}:${state.wallsPlaced}`);
+      if (history.length > 12) history.shift();
+    }
+    const repeatSet = avoidRepeat ? new Set(history.slice(0, -1)) : undefined;
 
     if (plan) {
       const my = state.players[me];
@@ -392,7 +462,11 @@ function createMasterAI({ timeMs = 1200, maxDepth = 6, usePlan = true } = {}) {
           const m = sim.winner === "draw" ? 0 : (Number.isFinite(sm) && Number.isFinite(so) ? so - sm : -1);
           if (m >= 2) {
             const w = nextPlanWallFor(state, plan.walls, me);
-            if (w) { stats.planWalls++; return w; }
+            if (w && !(netWalls && planWallNetBad(state, me, w))) {
+              stats.planWalls++;
+              return w;
+            }
+            plan = null;
           }
         }
         plan = null;
@@ -406,13 +480,20 @@ function createMasterAI({ timeMs = 1200, maxDepth = 6, usePlan = true } = {}) {
         plansUsed++;
         stats.plans++;
         const w = nextPlanWallFor(state, p.walls, me);
-        if (w) { stats.planWalls++; return w; }
+        if (w && !(netWalls && planWallNetBad(state, me, w))) {
+          stats.planWalls++;
+          return w;
+        }
         plan = null;
       }
     }
 
     stats.searches++;
-    return rootSearch(state, rng, timeMs, maxDepth);
+    return rootSearch(state, rng, timeMs, maxDepth, {
+      candOpts: { netWalls },
+      repeatSet,
+      repeatPenalty: avoidRepeat ? repeatPenalty : 0,
+    });
   }
 
   choose.stats = stats;
@@ -420,6 +501,7 @@ function createMasterAI({ timeMs = 1200, maxDepth = 6, usePlan = true } = {}) {
   choose.reset = () => {
     plan = null;
     plansUsed = 0;
+    history = [];
     stats.plans = 0;
     stats.planWalls = 0;
     stats.searches = 0;
@@ -440,4 +522,4 @@ function createMasterAI({ timeMs = 1200, maxDepth = 6, usePlan = true } = {}) {
 
 // 调试/自测入口（不参与对局逻辑）
 
-export { createMasterAI };
+export { createMasterAI, candidatesAI as _candidatesAI, rootSearch as _rootSearch, planWallNetBad as _planWallNetBad };
