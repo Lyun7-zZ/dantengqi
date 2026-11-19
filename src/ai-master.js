@@ -110,13 +110,18 @@ function evalAI(state) {
   }
   if (exits === 0) return 0;
   const m = dop - dm;
+  // 规则 1.3（drawMode=firstOnly）：先手领先 1 手只是平局，后手领先 1 手却是直接取胜
+  // 其它规则（对称容差）下两者都按平局处理
+  const firstOnly = state.drawMode === "firstOnly";
+  const meIsFirst = state.firstPlayer === undefined ? true : state.firstPlayer === me;
   let s;
   if (m >= 2) {
     // 领先：出口越少，越要立刻冲线；堆墙没有收益
     s = 5000 - 12 * dm - 35 * (10 - exits);
   } else if (m === 1) {
-    // 差 1 步：出口越少越接近平局
-    s = -100 - 20 * (10 - exits);
+    s = firstOnly && !meIsFirst
+      ? 4500 - 12 * dm - 20 * (10 - exits)
+      : -100 - 20 * (10 - exits);
   } else if (m === 0) {
     s = -250;
   } else {
