@@ -437,6 +437,54 @@ function paintClocks() {
   if (hint) thinkingTextEl.textContent = hint;
 }
 
+
+/* ---------------------------------------------------------------- AI 线程 */
+
+const WORKER_LEVELS = new Set(["hard", "master", "hell"]);
+let aiWorker = null; // null=未初始化，false=不可用
+let aiSeq = 0;
+const aiPending = new Map();
+
+function ensureAIWorker() {
+  if (aiWorker !== null) return aiWorker || null;
+  try {
+    const src = globalThis.__DANTENG_WORKER_SRC__;
+    if (src) {
+      const url = URL.createObjectURL(new Blob([src], { type: "text/javascript" }));
+      aiWorker = new Worker(url);
+    } else {
+      aiWorker = new Worker("src/ai-worker.js", { type: "module" });
+    }
+    aiWorker.onmessage = (e) => {
+      const d = e.data || {};
+      const resolve = aiPending.get(d.id);
+      if (!resolve) return;
+      aiPending.delete(d.id);
+      resolve(d.ok ? d.action : null);
+    };
+    aiWorker.onerror = () => { aiWorker = false; };
+  } catch {
+    aiWorker = false;
+  }
+  return aiWorker || null;
+}
+
+/** 让 AI 在后台线程思考；没有 Worker 时退回同步计算。 */
+function aiThink(level, state) {
+  if (!WORKER_LEVELS.has(level)) return Promise.resolve(AI[level](state, Math.random));
+  const w = ensureAIWorker();
+  if (!w) return Promise.resolve(AI[level](state, Math.random));
+  return new Promise((resolve) => {
+    const id = ++aiSeq;
+    aiPending.set(id, resolve);
+    w.postMessage({ id, level, state });
+  });
+}
+
+function resetAIWorker() {
+  if (aiWorker) aiWorker.postMessage({ type: "reset" });
+}
+
 /* ---------------------------------------------------------------- 交互 */
 
 function setPreview(action, label) {
@@ -627,28 +675,37 @@ function maybeAI() {
   paint();
   const plies = S.state.plies;
 
-  setTimeout(() => {
+  setTimeout(async () => {
     if (S.gameOver || !S.started || S.state.turn !== S.aiSeat || S.state.plies !== plies) {
       S.aiThinking = false;
       paint();
       return;
     }
     const before = S.state;
-    // 同步搜索会阻塞计时循环，这里把电脑实际思考时间补扣到它自己的时钟上
+    const viaWorker = WORKER_LEVELS.has(S.mode) && !!ensureAIWorker();
     const thinkStart = performance.now();
-    const action = AI[S.mode](before, Math.random);
-    const spent = (performance.now() - thinkStart) / 1000;
-    if (spent > 0) {
-      tickClock(S.clocks, S.aiSeat, spent);
-      S.clocks.lastLeft[S.aiSeat] = displayTime(S.clocks, S.aiSeat);
+    const action = await aiThink(S.mode, before);
+    // 等待期间局面可能已变（悔棋 / 重开 / 认输）
+    if (S.gameOver || !S.started || S.state !== before || S.state.plies !== plies) {
+      S.aiThinking = false;
+      paint();
+      return;
     }
-    const res = applyAction(before, action);
+    // 没有 Worker 时是同步计算，需要手动补扣它思考期间的时间
+    if (!viaWorker) {
+      const spent = (performance.now() - thinkStart) / 1000;
+      if (spent > 0) {
+        tickClock(S.clocks, S.aiSeat, spent);
+        S.clocks.lastLeft[S.aiSeat] = displayTime(S.clocks, S.aiSeat);
+      }
+    }
+    const res = action ? applyAction(before, action) : { ok: false };
     S.aiThinking = false;
     if (!res.ok) {
       paint();
       return;
     }
-    advance(res.state, actionLabel(action, before));
+    advance(res.state, actionLabel(res.action ?? action, before));
   }, S.mode === "master" || S.mode === "hell" ? 280 : GAME_CONFIG.aiDelay);
 }
 
@@ -830,6 +887,7 @@ function resetSeatsForNewGame() {
 
 function newGame(announce = false) {
   for (const k of Object.keys(AI)) AI[k]?.reset?.();
+  resetAIWorker();
   S.state = createState(S.firstSeat);
   S.clocks = createClock({ perMove: S.settings.perMove, bank: S.settings.bank });
   S.history = [{ state: S.state, clocks: clockSnapshot(S.clocks) }];

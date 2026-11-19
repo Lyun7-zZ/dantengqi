@@ -72,18 +72,34 @@ const ASYNC = [
   "app-async.js",
 ];
 
-async function bundle(files, fnName) {
+async function bundleBody(files) {
   const parts = [];
   for (const f of files) {
     const code = stripModuleSyntax(await rd(f));
     if (code.includes("export ")) throw new Error(`${f} 里还有未处理的 export`);
     parts.push(`/* ===== ${f} ===== */\n${code}`);
   }
-  return `function ${fnName}() {\n${parts.join("\n")}\n}`;
+  return parts.join("\n");
 }
+
+async function bundle(files, fnName) {
+  return `function ${fnName}() {\n${await bundleBody(files)}\n}`;
+}
+
+const WORKER = [
+  "src/config.js",
+  "src/board.js",
+  "src/path.js",
+  "src/rules.js",
+  "src/ai-random.js",
+  "src/ai-master.js",
+  "src/ai-worker.js",
+];
 
 const turnBundle = await bundle(TURN, "__dantengTurn");
 const asyncBundle = await bundle(ASYNC, "__dantengAsync");
+const workerBody = await bundleBody(WORKER);
+const workerSource = `(function(){"use strict";\n${workerBody}\n})();`;
 
 // loader.js 顶层有 await import(...)，内联时改成直接调用
 let loader = stripModuleSyntax(await rd("loader.js"));
@@ -93,7 +109,9 @@ loader = loader.replace(
 );
 if (!loader.includes("__dantengTurn")) throw new Error("loader 的 import 没被替换");
 
-const bundleCode = `(function () {\n"use strict";\n${turnBundle}\n\n${asyncBundle}\n\n${loader}\n})();`;
+const bundleCode = `(function () {\n"use strict";\n`
+  + `globalThis.__DANTENG_WORKER_SRC__ = ${JSON.stringify(workerSource)};\n`
+  + `${turnBundle}\n\n${asyncBundle}\n\n${loader}\n})();`;
 
 let html = await rd("index.html");
 const css = await rd("styles.css");

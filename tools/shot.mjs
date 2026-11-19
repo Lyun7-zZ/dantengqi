@@ -11,7 +11,9 @@ import { join, resolve } from "node:path";
 const EDGE = "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe";
 let url = process.argv[2] ?? "http://127.0.0.1:5173/?nodice=1";
 if (url === "--file") {
-  url = "file:///" + encodeURI(resolve(process.argv[3]).replace(/\\/g, "/"));
+  const raw = process.argv[3] || "";
+  const [fp, q] = raw.split("?");
+  url = "file:///" + encodeURI(resolve(fp).replace(/\\/g, "/")) + (q ? "?" + q : "");
 }
 const out = process.argv.slice(2).find((a) => a.endsWith(".png")) ?? "_shots/shot.png";
 const PORT = 9444;
@@ -72,14 +74,28 @@ if (!process.argv.includes("--nomove")) {
   await sleep(900);
 }
 
-if (process.argv.includes("--ai")) {
+if (process.argv.includes("--ai") || process.argv.includes("--probe")) {
+  const level = process.argv.includes("--probe") ? "hell" : "normal";
   await evalJs("document.getElementById('menuAI').click()");
   await sleep(250);
-  await evalJs("document.querySelector('.menuItem[data-level=\"normal\"]').click()");
+  await evalJs(`document.querySelector('.menuItem[data-level="${level}"]').click()`);
   await sleep(400);
   await evalJs("document.querySelector('.cell[data-c=\"0\"][data-r=\"10\"]').click()");
   await sleep(120);
   await evalJs("document.getElementById('confirm').click()");
+  await sleep(120);
+  if (process.argv.includes("--probe")) {
+    const t0 = Date.now();
+    await evalJs("1 + 1");
+    const lag = Date.now() - t0;
+    const thinking = await evalJs("window.__danteng.aiThinking");
+    console.log(`主线程探测延迟 ${lag}ms，aiThinking=${thinking}`);
+    await sleep(2500);
+    const lag2 = await (async () => { const t = Date.now(); await evalJs("2 + 2"); return Date.now() - t; })();
+    const left = await evalJs("[document.getElementById('clk0').textContent, document.getElementById('clk1').textContent].join('/')");
+    const bar = await evalJs("document.getElementById('turnBarFill').style.width");
+    console.log(`再次探测 ${lag2}ms，左上角倒计时=${left}，计时条=${bar}`);
+  }
   await sleep(250);
 }
 
