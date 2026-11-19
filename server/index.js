@@ -38,6 +38,7 @@ export function startServer({
   perMove = 30,
   bank = 300,
   random = Math.random,
+  disconnectMs = 90000,
   log = () => {},
 } = {}) {
   const rooms = new Rooms();
@@ -100,6 +101,13 @@ export function startServer({
 
       const result = rooms.detach(conn);
       if (!result) return;
+      if (result.playing) {
+        startDisconnectWindow(result.room, result.leftSeat);
+        broadcastRoom(result.room, {
+          t: "room", phase: "paused", room: result.room.code, seat: result.leftSeat,
+        });
+        return;
+      }
       if (result.closed) {
         for (const s of result.others) {
           sendJson(s.conn?.ws, { t: "room", phase: "closed", room: result.room.code });
@@ -131,7 +139,10 @@ export function startServer({
       const dt = Math.min(0.5, (now - (room.lastTick || now)) / 1000);
       room.lastTick = now;
       const r = tickGame(room.game, dt);
-      if (r.event) broadcastRoom(room, r.event);
+      if (r.event) {
+        recordHistory(room);
+        broadcastRoom(room, r.event);
+      }
       if (r.result) finishRoom(room, r.result);
     }
   }, TICK_MS);
@@ -176,7 +187,34 @@ export function startServer({
   function finishRoom(room, result) {
     room.phase = "finished";
     room.updatedAt = Date.now();
+    room.result = result;
+    clearTimeout(room.disconnectTimer);
+    room.disconnectTimer = null;
     broadcastRoom(room, result);
+  }
+
+  function recordHistory(room) {
+    if (!room.history) room.history = [];
+    room.history.push({
+      state: room.game.state,
+      clocks: { banks: room.game.clocks.banks.slice(), moveLeft: room.game.clocks.moveLeft, inBank: room.game.clocks.inBank },
+    });
+    if (room.history.length > 400) room.history.shift();
+  }
+
+  /** 掉线 90 秒未回来：判掉线方负。 */
+  function startDisconnectWindow(room, seat) {
+    clearTimeout(room.disconnectTimer);
+    room.disconnectSeat = seat;
+    room.disconnectTimer = setTimeout(() => {
+      room.disconnectTimer = null;
+      if (room.phase !== "playing") return;
+      if (room.seats[seat] && room.seats[seat].conn) return;
+      const winner = 1 - room.sides[seat];
+      finishRoom(room, {
+        t: "result", winner, reason: "disconnect", plies: room.game?.state.plies ?? 0,
+      });
+    }, disconnectMs);
   }
 
   // ---------- 掷骰与选边 ----------
@@ -198,6 +236,16 @@ export function startServer({
     room.phase = "playing";
     room.lastTick = Date.now();
     room.updatedAt = Date.now();
+    room.undoLeft = [3, 3];
+    room.pendingUndo = null;
+    room.pendingRematch = null;
+    room.history = [{
+      state: room.game.state,
+      clocks: { banks: room.game.clocks.banks.slice(), moveLeft: room.game.clocks.moveLeft, inBank: room.game.clocks.inBank },
+    }];
+    room.result = null;
+    clearTimeout(room.disconnectTimer);
+    room.disconnectTimer = null;
 
     const snap = gameSnapshot(room.game);
     snap.sides = sides;
@@ -266,9 +314,116 @@ export function startServer({
       ws.send(errorMessage(r.error, r.reason || ""));
       return;
     }
+    recordHistory(room);
     broadcastRoom(room, r.event);
     broadcastRoom(room, clockMsg(room));
     if (r.result) finishRoom(room, r.result);
+  }
+
+  // ---------- 悔棋 / 认输 / 再来一局 ----------
+
+  function snapshotState(room) {
+    const snap = gameSnapshot(room.game);
+    snap.sides = room.sides;
+    snap.firstSeat = room.firstSeat;
+    return snap;
+  }
+
+  function handleUndo(conn, msg) {
+    const room = conn.room;
+    const ws = conn.ws;
+    if (!room || room.phase !== "playing") { ws.send(errorMessage(ERR.BAD_MESSAGE, "no game")); return; }
+    const seat = conn.seat;
+
+    if (msg.op === "request") {
+      if (room.pendingUndo) { ws.send(errorMessage("undo-pending")); return; }
+      if ((room.undoLeft?.[seat] ?? 0) <= 0) { ws.send(errorMessage("no-undo")); return; }
+      if ((room.history?.length ?? 0) < 2) { ws.send(errorMessage("nothing-to-undo")); return; }
+      room.pendingUndo = { seat, at: Date.now() };
+      clearTimeout(room.undoTimer);
+      room.undoTimer = setTimeout(() => {
+        if (!room.pendingUndo) return;
+        room.pendingUndo = null;
+        broadcastRoom(room, { t: "undo", op: "expired" });
+      }, 30000);
+      broadcastRoom(room, { t: "undo", op: "request", seat });
+      return;
+    }
+
+    if (msg.op === "accept" || msg.op === "decline") {
+      const pending = room.pendingUndo;
+      if (!pending) { ws.send(errorMessage("no-undo-request")); return; }
+      if (seat === pending.seat) { ws.send(errorMessage("self-answer")); return; }
+      clearTimeout(room.undoTimer);
+      room.pendingUndo = null;
+
+      if (msg.op === "decline") {
+        broadcastRoom(room, { t: "undo", op: "declined" });
+        return;
+      }
+
+      // 回滚一手：恢复上一份快照
+      const hist = room.history || [];
+      if (hist.length < 2) { broadcastRoom(room, { t: "undo", op: "declined" }); return; }
+      hist.pop();
+      const prev = hist[hist.length - 1];
+      room.game.state = prev.state;
+      room.game.clocks.banks = prev.clocks.banks.slice();
+      room.game.clocks.moveLeft = prev.clocks.moveLeft;
+      room.game.clocks.inBank = prev.clocks.inBank;
+      room.undoLeft[pending.seat] = (room.undoLeft[pending.seat] ?? 1) - 1;
+      room.lastTick = Date.now();
+      broadcastRoom(room, { t: "undo", op: "done", seat: pending.seat });
+      broadcastRoom(room, snapshotState(room));
+      broadcastRoom(room, clockMsg(room));
+      return;
+    }
+  }
+
+  function handleResign(conn) {
+    const room = conn.room;
+    if (!room || room.phase !== "playing") return;
+    const seat = conn.seat;
+    const winner = 1 - room.sides[seat];
+    finishRoom(room, {
+      t: "result", winner, reason: "resign", plies: room.game?.state.plies ?? 0,
+    });
+  }
+
+  function handleRematch(conn, msg) {
+    const room = conn.room;
+    const ws = conn.ws;
+    if (!room) return;
+    if (room.phase !== "finished") { ws.send(errorMessage(ERR.BAD_MESSAGE, "not finished")); return; }
+    const seat = conn.seat;
+
+    if (msg.op === "request") {
+      if (room.pendingRematch) { ws.send(errorMessage("rematch-pending")); return; }
+      room.pendingRematch = { seat, at: Date.now() };
+      broadcastRoom(room, { t: "rematch", op: "request", seat });
+      return;
+    }
+    if (msg.op === "accept" || msg.op === "decline") {
+      const pending = room.pendingRematch;
+      if (!pending) { ws.send(errorMessage("no-rematch")); return; }
+      if (seat === pending.seat) { ws.send(errorMessage("self-answer")); return; }
+      room.pendingRematch = null;
+      if (msg.op === "decline") {
+        broadcastRoom(room, { t: "rematch", op: "declined" });
+        return;
+      }
+      // 重开：清状态、重新掷骰
+      room.game = null;
+      room.history = [];
+      room.undoLeft = [3, 3];
+      room.result = null;
+      room.sides = [null, null];
+      room.firstSeat = null;
+      room.phase = "ready";
+      broadcastRoom(room, { t: "rematch", op: "accepted" });
+      beginDice(room);
+      return;
+    }
   }
 
   // ---------- 消息分发 ----------
@@ -294,6 +449,11 @@ export function startServer({
           protocol: PROTOCOL_VERSION, rules: RULES_VERSION, resumed: true,
         });
         broadcastRoom(r.room, { t: "room", phase: r.room.phase, room: code });
+        clearTimeout(r.room.disconnectTimer);
+        r.room.disconnectTimer = null;
+        if (r.room.phase === "finished" && r.room.result) {
+          sendJson(ws, r.room.result);
+        }
         if (r.room.phase === "playing" && r.room.game) {
           const snap = gameSnapshot(r.room.game);
           snap.sides = r.room.sides;
@@ -340,6 +500,9 @@ export function startServer({
 
     if (msg.t === "choice") { handleChoice(conn, msg); return; }
     if (msg.t === "action") { handleAction(conn, msg); return; }
+    if (msg.t === "undo") { handleUndo(conn, msg); return; }
+    if (msg.t === "resign") { handleResign(conn, msg); return; }
+    if (msg.t === "rematch") { handleRematch(conn, msg); return; }
     if (msg.t === "pong") { conn.alive = true; return; }
 
     // M4 接管：undo / resign / rematch

@@ -3236,7 +3236,7 @@ function paint() {
   cancelBtn.disabled = !S.preview;
   undoBtn.textContent = `悔棋 ${S.undoLeft[st.turn]}`;
   undoBtn.disabled = S.gameOver || S.aiThinking
-    || (S.mode === "online" && (S.state.turn !== S.mySeat || !S.net))
+    || (S.mode === "online" && (S.state.turn !== S.mySeat || !NET.client))
     || S.undoLeft[st.turn] <= 0 || S.history.length < 2;
 
   resignBtn.hidden = !S.started || S.gameOver;
@@ -3592,7 +3592,9 @@ function undo() {
   if (S.undoOverlayOpen) return;
 
   if (S.mode === "online") {
-    toast("联机悔棋将在下一步开放", true);
+    if (!NET.client) { toast("与服务器断开", true); return; }
+    NET.client.send({ t: "undo", op: "request" });
+    toast("已请求悔棋，等待对方同意");
     return;
   }
 
@@ -3955,11 +3957,23 @@ confirmBtn.addEventListener("click", commit);
 cancelBtn.addEventListener("click", clearPreview);
 undoBtn.addEventListener("click", undo);
 undoYes.addEventListener("click", () => {
-  if (S.mode === "online") { undoOverlay.hidden = true; return; }
+  if (S.mode === "online") {
+    undoOverlay.hidden = true;
+    const op = S.prompt === "rematch" ? "rematch" : "undo";
+    NET.client?.send({ t: op, op: "accept" });
+    S.prompt = null;
+    return;
+  }
   finishUndo(true);
 });
 undoNo.addEventListener("click", () => {
-  if (S.mode === "online") { undoOverlay.hidden = true; return; }
+  if (S.mode === "online") {
+    undoOverlay.hidden = true;
+    const op = S.prompt === "rematch" ? "rematch" : "undo";
+    NET.client?.send({ t: op, op: "decline" });
+    S.prompt = null;
+    return;
+  }
   finishUndo(false);
 });
 
@@ -4018,7 +4032,7 @@ resignBtn.addEventListener("click", () => {
   S.endReason = "resign";
 
   if (S.mode === "online") {
-    toast("联机认输将在下一步开放", true);
+    if (NET.client) NET.client.send({ t: "resign" });
     return;
   }
 
@@ -4032,7 +4046,8 @@ el("rfHome").addEventListener("click", () => { resultFull.hidden = true; goHome(
 
 againBtn.addEventListener("click", () => {
   if (S.mode === "online") {
-    toast("联机再来一局将在下一步开放", true);
+    if (NET.client) NET.client.send({ t: "rematch", op: "request" });
+    toast("已请求再来一局，等待对方同意");
     return;
   }
   startGame(S.mode);
@@ -4215,13 +4230,15 @@ function handleServerMessage(msg) {
       }
       if (msg.phase === "waiting") setNetStatus("等待对手加入…");
       if (msg.phase === "ready") setNetStatus("对手已就位，准备掷骰");
+      if (msg.phase === "paused") toast("对方掉线，等待重连（90 秒）", true);
+      if (msg.phase === "resumed") toast("对方已重连");
       return;
     }
     case "dice":
       showServerDice(msg);
       return;
     case "state":
-      startOnlineGame(msg);
+      startOnlineGame(msg, { silent: true });
       return;
     case "event":
       applyServerEvent(msg);
@@ -4234,6 +4251,32 @@ function handleServerMessage(msg) {
         paintClocks();
       }
       return;
+    case "undo": {
+      if (msg.op === "request") {
+        S.prompt = "undo";
+        undoDesc.textContent = "对方请求悔棋，是否同意？";
+        undoOverlay.hidden = false;
+      } else if (msg.op === "done") {
+        toast("悔棋完成");
+      } else if (msg.op === "declined") {
+        toast("对方拒绝了悔棋", true);
+      } else if (msg.op === "expired") {
+        toast("悔棋请求已超时", true);
+      }
+      return;
+    }
+    case "rematch": {
+      if (msg.op === "request") {
+        S.prompt = "rematch";
+        undoDesc.textContent = "对方请求再来一局，是否同意？";
+        undoOverlay.hidden = false;
+      } else if (msg.op === "accepted") {
+        toast("对方同意再来一局");
+      } else if (msg.op === "declined") {
+        toast("对方拒绝了再来一局", true);
+      }
+      return;
+    }
     case "result":
       endOnlineGame(msg);
       return;
@@ -4273,7 +4316,7 @@ function showServerDice(msg) {
   }
 }
 
-function startOnlineGame(snap) {
+function startOnlineGame(snap, opts = {}) {
   S.mode = "online";
   S.started = true;
   S.gameOver = false;
@@ -4296,7 +4339,7 @@ function startOnlineGame(snap) {
   overlay.hidden = true;
   resultFull.hidden = true;
   paint();
-  toast(NET.seat === snap.firstSeat ? "你先手" : "对方先手");
+  if (!opts.silent) toast(NET.seat === snap.firstSeat ? "你先手" : "对方先手");
 }
 
 function applyServerEvent(msg) {

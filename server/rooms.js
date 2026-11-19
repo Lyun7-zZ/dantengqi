@@ -110,6 +110,12 @@ export class Rooms {
     room.updatedAt = this.now();
 
     const others = room.seats.filter((s) => s && s.conn);
+
+    // 对局中：保留房间，交给上层开 90 秒重连窗口
+    if (room.phase === "playing") {
+      return { room, closed: false, others, leftSeat: seat, playing: true };
+    }
+
     if (seat === room.hostSeat) {
       this.map.delete(room.code);
       room.phase = "closed";

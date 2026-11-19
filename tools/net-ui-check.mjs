@@ -167,6 +167,47 @@ try {
     B.evaluate("window.__danteng.state.plies + ':' + window.__danteng.state.turn"),
   ]);
   check("双方回合状态一致", hashes[0] === hashes[1], hashes.join(" / "));
+
+  // ---- 悔棋：没走的那方发起，走的那方同意 ----
+  const other = mover === A ? B : A;
+  await other.evaluate("document.getElementById('undo').click(); true");
+  const undoAsked = await waitFor(async () =>
+    !(await mover.evaluate("document.getElementById('undoOverlay').hidden")));
+  check("对方收到悔棋请求", !!undoAsked);
+  await mover.evaluate("document.getElementById('undoYes').click(); true");
+  const rolledBack = await waitFor(async () => {
+    const pa = await A.evaluate("window.__danteng.state.plies");
+    const pb = await B.evaluate("window.__danteng.state.plies");
+    return pa === 0 && pb === 0;
+  });
+  check("悔棋后双方回到 0 手", !!rolledBack);
+
+  // ---- 认输：点两次确认 ----
+  await mover.evaluate("document.getElementById('resign').click(); document.getElementById('resign').click(); true");
+  const over = await waitFor(async () => {
+    const oa = await A.evaluate("!document.getElementById('overlay').hidden");
+    const ob = await B.evaluate("!document.getElementById('overlay').hidden");
+    return oa && ob;
+  });
+  check("认输后双方都结束", !!over);
+  const titles = await Promise.all([
+    A.evaluate("document.getElementById('panelTitle').textContent"),
+    B.evaluate("document.getElementById('panelTitle').textContent"),
+  ]);
+  check("胜负显示相反", titles[0] !== titles[1], titles.join(" / "));
+
+  // ---- 再来一局：请求 → 同意 → 重新掷骰 ----
+  await A.evaluate("document.getElementById('again').click(); true");
+  const rematchAsked = await waitFor(async () =>
+    !(await B.evaluate("document.getElementById('undoOverlay').hidden")));
+  check("对方收到再来一局请求", !!rematchAsked);
+  await B.evaluate("document.getElementById('undoYes').click(); true");
+  const backToDice = await waitFor(async () => {
+    const da = await A.evaluate("!document.getElementById('diceOverlay').hidden");
+    const db = await B.evaluate("!document.getElementById('diceOverlay').hidden");
+    return da && db;
+  });
+  check("同意后双方重新掷骰", !!backToDice);
 } catch (e) {
   check("执行过程", false, e.message);
 } finally {
