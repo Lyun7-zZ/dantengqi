@@ -96,7 +96,11 @@ const againBtn = el("again");
 const toastEl = el("toast");
 
 const clockEls = [el("clock0"), el("clock1")];
-const barEls = [el("bar0"), el("bar1")];
+const turnBarEl = el("turnBar");
+const turnBarFill = el("turnBarFill");
+const resultSplit = el("resultSplit");
+const resLeft = el("resLeft");
+const resRight = el("resRight");
 const thinkingEl = el("thinking");
 const thinkingTextEl = el("thinkingText");
 const clkEls = [el("clk0"), el("clk1")];
@@ -401,14 +405,14 @@ function paintClocks() {
     box.classList.toggle("p1", p === 1);
     box.classList.toggle("warn", p === turn && mainSec <= 5 && !S.gameOver);
     box.classList.toggle("inbank", p === turn && c.inBank && !S.gameOver);
-
-    // 长条：轮到自己时按剩余时间收缩，否则保持满格
-    const active = p === turn && !S.gameOver;
-    const ratio = active
-      ? Math.min(1, Math.max(0, main / Math.max(1, c.perMove)))
-      : 1;
-    barEls[p].style.width = `${(ratio * 100).toFixed(1)}%`;
   }
+
+  // 顶部计时长条：当前玩家剩余本步时间的比例
+  const remain = displayTime(c, turn);
+  const ratio = S.gameOver ? 1 : Math.min(1, Math.max(0, remain / Math.max(1, c.perMove)));
+  turnBarFill.style.width = `${(ratio * 100).toFixed(1)}%`;
+  turnBarEl.classList.toggle("p1", turn === 1);
+  turnBarEl.classList.toggle("warn", !S.gameOver && remain <= 5);
 
   // 对方正在行动 / 电脑正在思考
   let hint = "";
@@ -620,7 +624,11 @@ function maybeAI() {
       return;
     }
     const before = S.state;
+    // 同步搜索会阻塞计时循环，这里把电脑实际思考时间补扣到它自己的时钟上
+    const thinkStart = performance.now();
     const action = AI[S.mode](before, Math.random);
+    const spent = (performance.now() - thinkStart) / 1000;
+    if (spent > 0) tickClock(S.clocks, S.aiSeat, spent);
     const res = applyAction(before, action);
     S.aiThinking = false;
     if (!res.ok) {
@@ -721,6 +729,16 @@ function finishUndo(agree) {
 
 function showResult() {
   const st = S.state;
+  const localSplit = S.mode === "local" && st.winner !== "draw";
+  resultSplit.hidden = !localSplit;
+  panelTitle.hidden = localSplit;
+  if (localSplit) {
+    const leftWon = st.winner === 0;
+    resLeft.textContent = leftWon ? "你赢了" : "你输了";
+    resRight.textContent = leftWon ? "你输了" : "你赢了";
+    resLeft.parentElement.classList.toggle("lose", !leftWon);
+    resRight.parentElement.classList.toggle("lose", leftWon);
+  }
   if (st.winner === "draw") {
     panelIcon.textContent = "🤝";
     panelTitle.textContent = "平局";
@@ -1077,10 +1095,7 @@ toHomeBtn.addEventListener("click", goHome);
 
 restartBtn.addEventListener("click", () => {
   if (S.state && S.state.plies > 0 && !window.confirm("当前对局还没结束，确定重新开始？")) return;
-  resetSeatsForNewGame();
-  newGame(true);
-  S.started = true;
-  S.lastTs = performance.now();
+  startGame(S.mode);
 });
 let resignArmedAt = 0;
 resignBtn.addEventListener("click", () => {
@@ -1110,10 +1125,7 @@ againBtn.addEventListener("click", () => {
     toast("已请求再来一局，等待对方同意");
     return;
   }
-  resetSeatsForNewGame();
-  newGame(true);
-  S.started = true;
-  S.lastTs = performance.now();
+  startGame(S.mode);
 });
 boardEl.addEventListener("contextmenu", (e) => {
   e.preventDefault();

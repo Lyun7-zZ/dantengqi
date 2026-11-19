@@ -866,27 +866,24 @@ body {
   letter-spacing: 0.04em;
 }
 
-/* 计时长条：随剩余时间收缩 */
-.clock { position: relative; overflow: hidden; }
-.clockBar {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 3px;
-  background: rgba(255, 255, 255, 0.08);
-  display: block;
+/* 顶部计时长条：占满一条，随当前玩家剩余时间收缩 */
+.turnBar {
+  position: relative;
+  height: 6px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+  flex: none;
 }
-.clockBar > span {
+.turnBar > span {
   display: block;
   height: 100%;
   width: 100%;
   background: var(--mint);
   transition: width 120ms linear, background 200ms linear;
-  border-radius: 0 2px 2px 0;
 }
-.clock.warn .clockBar > span { background: #ff7a6b; }
-.clock.p1 .clockBar > span { background: #e0a86a; }
+.turnBar.p1 > span { background: #e0a86a; }
+.turnBar.warn > span { background: #ff7a6b; }
 
 /* 对方行动提示条 */
 .thinking {
@@ -919,6 +916,26 @@ body {
   50% { opacity: 1; transform: scale(1.15); }
 }
 
+/* 本地双人结算：左右各按各自视角显示胜负 */
+.resultSplit {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 6px 0 10px;
+}
+.resultSide {
+  padding: 14px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: #16212a;
+}
+.resultSide b { font-size: 20px; letter-spacing: 0.04em; }
+.resultSide.left { border-left: 3px solid var(--mint); }
+.resultSide.right { border-right: 3px solid #e0a86a; }
+.resultSide.left b { color: var(--mint); }
+.resultSide.right b { color: #e0a86a; }
+.resultSide.lose b { color: var(--muted); }
+
 </style>
 </head>
 <body>
@@ -930,13 +947,11 @@ body {
           <i class="dot dot-p0"></i>
           <b class="clockMain" id="clk0">30</b>
           <span class="clockBank" id="bank0">库 300</span>
-          <i class="clockBar"><span id="bar0"></span></i>
         </div>
         <div class="clock" id="clock1">
           <i class="dot dot-p1"></i>
           <b class="clockMain" id="clk1">30</b>
           <span class="clockBank" id="bank1">库 300</span>
-          <i class="clockBar"><span id="bar1"></span></i>
         </div>
       </div>
       <div class="meta" id="meta">第 1 手 · 墙 0</div>
@@ -944,6 +959,8 @@ body {
       <button class="btn ghost" id="rulesBtn">规则</button>
       <button class="btn ghost" id="restart">重新开始</button>
     </header>
+
+    <div class="turnBar" id="turnBar"><span id="turnBarFill"></span></div>
 
     <div class="thinking" id="thinking" hidden>
       <i class="thinkingDot"></i><span id="thinkingText">对方正在操作…</span>
@@ -1252,6 +1269,10 @@ body {
     <div class="panel">
       <div class="panelIcon" id="panelIcon">🏁</div>
       <h2 id="panelTitle">对局结束</h2>
+      <div class="resultSplit" id="resultSplit" hidden>
+        <div class="resultSide left"><b id="resLeft">你赢了</b></div>
+        <div class="resultSide right"><b id="resRight">你输了</b></div>
+      </div>
       <p id="panelDesc"></p>
       <div class="panelActions">
         <button class="btn ghost" id="toHome">返回主菜单</button>
@@ -3825,7 +3846,11 @@ const againBtn = el("again");
 const toastEl = el("toast");
 
 const clockEls = [el("clock0"), el("clock1")];
-const barEls = [el("bar0"), el("bar1")];
+const turnBarEl = el("turnBar");
+const turnBarFill = el("turnBarFill");
+const resultSplit = el("resultSplit");
+const resLeft = el("resLeft");
+const resRight = el("resRight");
 const thinkingEl = el("thinking");
 const thinkingTextEl = el("thinkingText");
 const clkEls = [el("clk0"), el("clk1")];
@@ -4130,14 +4155,14 @@ function paintClocks() {
     box.classList.toggle("p1", p === 1);
     box.classList.toggle("warn", p === turn && mainSec <= 5 && !S.gameOver);
     box.classList.toggle("inbank", p === turn && c.inBank && !S.gameOver);
-
-    // 长条：轮到自己时按剩余时间收缩，否则保持满格
-    const active = p === turn && !S.gameOver;
-    const ratio = active
-      ? Math.min(1, Math.max(0, main / Math.max(1, c.perMove)))
-      : 1;
-    barEls[p].style.width = `${(ratio * 100).toFixed(1)}%`;
   }
+
+  // 顶部计时长条：当前玩家剩余本步时间的比例
+  const remain = displayTime(c, turn);
+  const ratio = S.gameOver ? 1 : Math.min(1, Math.max(0, remain / Math.max(1, c.perMove)));
+  turnBarFill.style.width = `${(ratio * 100).toFixed(1)}%`;
+  turnBarEl.classList.toggle("p1", turn === 1);
+  turnBarEl.classList.toggle("warn", !S.gameOver && remain <= 5);
 
   // 对方正在行动 / 电脑正在思考
   let hint = "";
@@ -4349,7 +4374,11 @@ function maybeAI() {
       return;
     }
     const before = S.state;
+    // 同步搜索会阻塞计时循环，这里把电脑实际思考时间补扣到它自己的时钟上
+    const thinkStart = performance.now();
     const action = AI[S.mode](before, Math.random);
+    const spent = (performance.now() - thinkStart) / 1000;
+    if (spent > 0) tickClock(S.clocks, S.aiSeat, spent);
     const res = applyAction(before, action);
     S.aiThinking = false;
     if (!res.ok) {
@@ -4450,6 +4479,16 @@ function finishUndo(agree) {
 
 function showResult() {
   const st = S.state;
+  const localSplit = S.mode === "local" && st.winner !== "draw";
+  resultSplit.hidden = !localSplit;
+  panelTitle.hidden = localSplit;
+  if (localSplit) {
+    const leftWon = st.winner === 0;
+    resLeft.textContent = leftWon ? "你赢了" : "你输了";
+    resRight.textContent = leftWon ? "你输了" : "你赢了";
+    resLeft.parentElement.classList.toggle("lose", !leftWon);
+    resRight.parentElement.classList.toggle("lose", leftWon);
+  }
   if (st.winner === "draw") {
     panelIcon.textContent = "🤝";
     panelTitle.textContent = "平局";
@@ -4806,10 +4845,7 @@ toHomeBtn.addEventListener("click", goHome);
 
 restartBtn.addEventListener("click", () => {
   if (S.state && S.state.plies > 0 && !window.confirm("当前对局还没结束，确定重新开始？")) return;
-  resetSeatsForNewGame();
-  newGame(true);
-  S.started = true;
-  S.lastTs = performance.now();
+  startGame(S.mode);
 });
 let resignArmedAt = 0;
 resignBtn.addEventListener("click", () => {
@@ -4839,10 +4875,7 @@ againBtn.addEventListener("click", () => {
     toast("已请求再来一局，等待对方同意");
     return;
   }
-  resetSeatsForNewGame();
-  newGame(true);
-  S.started = true;
-  S.lastTs = performance.now();
+  startGame(S.mode);
 });
 boardEl.addEventListener("contextmenu", (e) => {
   e.preventDefault();
@@ -7476,7 +7509,8 @@ const againBtn = el("again");
 const toastEl = el("toast");
 
 const clockEls = [el("clock0"), el("clock1")];
-const barEls = [el("bar0"), el("bar1")];
+const turnBarEl = el("turnBar");
+const turnBarFill = el("turnBarFill");
 const thinkingEl = el("thinking");
 const thinkingTextEl = el("thinkingText");
 const clkEls = [el("clk0"), el("clk1")];
@@ -7772,12 +7806,14 @@ function paintClocks() {
     box.classList.toggle("p1", p === 1);
     box.classList.toggle("warn", choosing && mainSec <= 5);
     box.classList.toggle("inbank", choosing && c.inBank);
-
-    const ratio = choosing
-      ? Math.min(1, Math.max(0, main / Math.max(1, c.perMove)))
-      : 1;
-    barEls[p].style.width = `${(ratio * 100).toFixed(1)}%`;
   }
+
+  // 顶部计时长条
+  const remain = displayTime(c, turn);
+  const ratio = S.gameOver ? 1 : Math.min(1, Math.max(0, remain / Math.max(1, c.perMove)));
+  turnBarFill.style.width = `${(ratio * 100).toFixed(1)}%`;
+  turnBarEl.classList.toggle("p1", turn === 1);
+  turnBarEl.classList.toggle("warn", !S.gameOver && remain <= 5);
 
   // 对方正在行动 / 电脑正在思考
   let hint = "";

@@ -15,13 +15,11 @@
           <i class="dot dot-p0"></i>
           <b class="clockMain" id="clk0">30</b>
           <span class="clockBank" id="bank0">库 300</span>
-          <i class="clockBar"><span id="bar0"></span></i>
         </div>
         <div class="clock" id="clock1">
           <i class="dot dot-p1"></i>
           <b class="clockMain" id="clk1">30</b>
           <span class="clockBank" id="bank1">库 300</span>
-          <i class="clockBar"><span id="bar1"></span></i>
         </div>
       </div>
       <div class="meta" id="meta">第 1 手 · 墙 0</div>
@@ -29,6 +27,8 @@
       <button class="btn ghost" id="rulesBtn">规则</button>
       <button class="btn ghost" id="restart">重新开始</button>
     </header>
+
+    <div class="turnBar" id="turnBar"><span id="turnBarFill"></span></div>
 
     <div class="thinking" id="thinking" hidden>
       <i class="thinkingDot"></i><span id="thinkingText">对方正在操作…</span>
@@ -337,6 +337,10 @@
     <div class="panel">
       <div class="panelIcon" id="panelIcon">🏁</div>
       <h2 id="panelTitle">对局结束</h2>
+      <div class="resultSplit" id="resultSplit" hidden>
+        <div class="resultSide left"><b id="resLeft">你赢了</b></div>
+        <div class="resultSide right"><b id="resRight">你输了</b></div>
+      </div>
       <p id="panelDesc"></p>
       <div class="panelActions">
         <button class="btn ghost" id="toHome">返回主菜单</button>

@@ -859,27 +859,24 @@ body {
   letter-spacing: 0.04em;
 }
 
-/* 计时长条：随剩余时间收缩 */
-.clock { position: relative; overflow: hidden; }
-.clockBar {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 3px;
-  background: rgba(255, 255, 255, 0.08);
-  display: block;
+/* 顶部计时长条：占满一条，随当前玩家剩余时间收缩 */
+.turnBar {
+  position: relative;
+  height: 6px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+  flex: none;
 }
-.clockBar > span {
+.turnBar > span {
   display: block;
   height: 100%;
   width: 100%;
   background: var(--mint);
   transition: width 120ms linear, background 200ms linear;
-  border-radius: 0 2px 2px 0;
 }
-.clock.warn .clockBar > span { background: #ff7a6b; }
-.clock.p1 .clockBar > span { background: #e0a86a; }
+.turnBar.p1 > span { background: #e0a86a; }
+.turnBar.warn > span { background: #ff7a6b; }
 
 /* 对方行动提示条 */
 .thinking {
@@ -911,3 +908,23 @@ body {
   0%, 100% { opacity: 0.25; transform: scale(0.85); }
   50% { opacity: 1; transform: scale(1.15); }
 }
+
+/* 本地双人结算：左右各按各自视角显示胜负 */
+.resultSplit {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 6px 0 10px;
+}
+.resultSide {
+  padding: 14px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: #16212a;
+}
+.resultSide b { font-size: 20px; letter-spacing: 0.04em; }
+.resultSide.left { border-left: 3px solid var(--mint); }
+.resultSide.right { border-right: 3px solid #e0a86a; }
+.resultSide.left b { color: var(--mint); }
+.resultSide.right b { color: #e0a86a; }
+.resultSide.lose b { color: var(--muted); }

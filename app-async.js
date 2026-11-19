@@ -98,7 +98,8 @@ const againBtn = el("again");
 const toastEl = el("toast");
 
 const clockEls = [el("clock0"), el("clock1")];
-const barEls = [el("bar0"), el("bar1")];
+const turnBarEl = el("turnBar");
+const turnBarFill = el("turnBarFill");
 const thinkingEl = el("thinking");
 const thinkingTextEl = el("thinkingText");
 const clkEls = [el("clk0"), el("clk1")];
@@ -394,12 +395,14 @@ function paintClocks() {
     box.classList.toggle("p1", p === 1);
     box.classList.toggle("warn", choosing && mainSec <= 5);
     box.classList.toggle("inbank", choosing && c.inBank);
-
-    const ratio = choosing
-      ? Math.min(1, Math.max(0, main / Math.max(1, c.perMove)))
-      : 1;
-    barEls[p].style.width = `${(ratio * 100).toFixed(1)}%`;
   }
+
+  // 顶部计时长条
+  const remain = displayTime(c, turn);
+  const ratio = S.gameOver ? 1 : Math.min(1, Math.max(0, remain / Math.max(1, c.perMove)));
+  turnBarFill.style.width = `${(ratio * 100).toFixed(1)}%`;
+  turnBarEl.classList.toggle("p1", turn === 1);
+  turnBarEl.classList.toggle("warn", !S.gameOver && remain <= 5);
 
   // 对方正在行动 / 电脑正在思考
   let hint = "";
