@@ -390,6 +390,14 @@ try {
   check("结算页说明是认输",
     (await evaluate("document.getElementById('panelDesc').textContent")).includes("认输"));
 
+  // 平局后点「再来一局」：结算面板必须关掉，不能一直挂在屏幕中央
+  await evaluate("window.__danteng.state.winner = 'draw'; window.__ui.showResult(); true");
+  await sleep(120);
+  check("平局结算面板已显示", (await evaluate("!document.getElementById('overlay').hidden")) === true);
+  await click("#again", "再来一局");
+  await sleep(200);
+  check("再来一局后结算面板已关闭", (await evaluate("document.getElementById('overlay').hidden")) === true);
+
   ws.close();
 } catch (e) {
   check("执行过程", false, e.message);

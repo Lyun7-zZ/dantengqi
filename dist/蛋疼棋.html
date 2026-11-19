@@ -4654,7 +4654,7 @@ function showResult() {
   if (st.winner === "draw") {
     panelIcon.textContent = "🤝";
     panelTitle.textContent = "平局";
-    panelDesc.textContent = "对手下一手同样可以越线，按“1 手容差”判和。";
+    panelDesc.textContent = "先手越线时，后手下一手同样可以越线，按规则判和。";
   } else {
     panelIcon.textContent = "🏁";
     if (S.mode === "online") {
@@ -4747,6 +4747,8 @@ function newGame(announce = false) {
 /** 从主菜单开局。 */
 function startGame(mode) {
   resultFull.hidden = true;
+  overlay.hidden = true;
+  undoOverlay.hidden = true;
   S.pendingMode = mode;
   S.mode = mode;
   S.aiPerson = mode === "local" ? null : 1;
@@ -5698,7 +5700,7 @@ if (demo) {
 }
 
 window.__danteng = S;
-window.__ui = { cellEls, slotEls, pieceEls };
+window.__ui = { cellEls, slotEls, pieceEls, showResult };
 
 if (demo === "rules") openRules();
 if (demo === "settings") openSettings();
