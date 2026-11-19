@@ -881,16 +881,16 @@ body {
 /* 对方行动提示条：整宽醒目条 */
 .thinking {
   position: fixed;
-  top: 62px;
+  top: 72px;
   left: 0;
   right: 0;
   z-index: 40;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  padding: 10px 0;
-  font-size: 15px;
+  gap: 8px;
+  padding: 6px 0;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.10em;
   color: var(--p0);
