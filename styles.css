@@ -858,3 +858,56 @@ body {
   border-radius: 11px;
   letter-spacing: 0.04em;
 }
+
+/* 计时长条：随剩余时间收缩 */
+.clock { position: relative; overflow: hidden; }
+.clockBar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  display: block;
+}
+.clockBar > span {
+  display: block;
+  height: 100%;
+  width: 100%;
+  background: var(--mint);
+  transition: width 120ms linear, background 200ms linear;
+  border-radius: 0 2px 2px 0;
+}
+.clock.warn .clockBar > span { background: #ff7a6b; }
+.clock.p1 .clockBar > span { background: #e0a86a; }
+
+/* 对方行动提示条 */
+.thinking {
+  position: fixed;
+  top: 76px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 16px;
+  border-radius: 999px;
+  background: rgba(22, 33, 42, 0.92);
+  border: 1px solid var(--line);
+  color: var(--mint);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+.thinkingDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: thinkPulse 1s ease-in-out infinite;
+}
+@keyframes thinkPulse {
+  0%, 100% { opacity: 0.25; transform: scale(0.85); }
+  50% { opacity: 1; transform: scale(1.15); }
+}

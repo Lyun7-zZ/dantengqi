@@ -96,6 +96,9 @@ const againBtn = el("again");
 const toastEl = el("toast");
 
 const clockEls = [el("clock0"), el("clock1")];
+const barEls = [el("bar0"), el("bar1")];
+const thinkingEl = el("thinking");
+const thinkingTextEl = el("thinkingText");
 const clkEls = [el("clk0"), el("clk1")];
 const bankEls = [el("bank0"), el("bank1")];
 
@@ -398,7 +401,26 @@ function paintClocks() {
     box.classList.toggle("p1", p === 1);
     box.classList.toggle("warn", p === turn && mainSec <= 5 && !S.gameOver);
     box.classList.toggle("inbank", p === turn && c.inBank && !S.gameOver);
+
+    // 长条：轮到自己时按剩余时间收缩，否则保持满格
+    const active = p === turn && !S.gameOver;
+    const ratio = active
+      ? Math.min(1, Math.max(0, main / Math.max(1, c.perMove)))
+      : 1;
+    barEls[p].style.width = `${(ratio * 100).toFixed(1)}%`;
   }
+
+  // 对方正在行动 / 电脑正在思考
+  let hint = "";
+  if (S.started && !S.gameOver && S.state) {
+    if (S.mode === "online" && S.net) {
+      if (S.state.turn !== S.mySeat) hint = "对方正在操作…";
+    } else if (S.aiSeat !== null && S.state.turn === S.aiSeat) {
+      hint = "电脑正在思考…";
+    }
+  }
+  thinkingEl.hidden = hint === "";
+  if (hint) thinkingTextEl.textContent = hint;
 }
 
 /* ---------------------------------------------------------------- 交互 */
@@ -707,6 +729,8 @@ function showResult() {
     panelIcon.textContent = "🏁";
     if (S.mode === "online") {
       panelTitle.textContent = st.winner === S.mySeat ? "你赢了" : "你输了";
+    } else if (S.aiSeat !== null) {
+      panelTitle.textContent = st.winner === 1 - S.aiSeat ? "你赢了" : "你输了";
     } else {
       panelTitle.textContent = st.winner === 0 ? "左方获胜" : "右方获胜";
     }
@@ -761,6 +785,12 @@ function loadSettings() {
 function paintHomeFine() {
   const s = S.settings;
   homeFine.textContent = `每步 ${s.perMove} 秒 · 时间库 ${s.bank} 秒 · 悔棋 ${s.undoLimit} 次`;
+}
+
+/** 重新开始 / 再来一局：不再掷骰，固定“先手执左”，人机时电脑执右。 */
+function resetSeatsForNewGame() {
+  S.firstSeat = 0;
+  if (S.mode !== "local" && S.mode !== "online") S.aiSeat = 1;
 }
 
 function newGame(announce = false) {
@@ -1047,6 +1077,7 @@ toHomeBtn.addEventListener("click", goHome);
 
 restartBtn.addEventListener("click", () => {
   if (S.state && S.state.plies > 0 && !window.confirm("当前对局还没结束，确定重新开始？")) return;
+  resetSeatsForNewGame();
   newGame(true);
   S.started = true;
   S.lastTs = performance.now();
@@ -1079,6 +1110,7 @@ againBtn.addEventListener("click", () => {
     toast("已请求再来一局，等待对方同意");
     return;
   }
+  resetSeatsForNewGame();
   newGame(true);
   S.started = true;
   S.lastTs = performance.now();

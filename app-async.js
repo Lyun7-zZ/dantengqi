@@ -98,6 +98,9 @@ const againBtn = el("again");
 const toastEl = el("toast");
 
 const clockEls = [el("clock0"), el("clock1")];
+const barEls = [el("bar0"), el("bar1")];
+const thinkingEl = el("thinking");
+const thinkingTextEl = el("thinkingText");
 const clkEls = [el("clk0"), el("clk1")];
 const bankEls = [el("bank0"), el("bank1")];
 
@@ -391,7 +394,24 @@ function paintClocks() {
     box.classList.toggle("p1", p === 1);
     box.classList.toggle("warn", choosing && mainSec <= 5);
     box.classList.toggle("inbank", choosing && c.inBank);
+
+    const ratio = choosing
+      ? Math.min(1, Math.max(0, main / Math.max(1, c.perMove)))
+      : 1;
+    barEls[p].style.width = `${(ratio * 100).toFixed(1)}%`;
   }
+
+  // 对方正在行动 / 电脑正在思考
+  let hint = "";
+  if (S.started && !S.gameOver) {
+    if (S.mode === "online" && S.net) {
+      if (!S.locked[S.mySeat]) hint = "对方正在操作…";
+    } else if (S.aiSeat !== null && !S.locked[S.aiSeat]) {
+      hint = "电脑正在思考…";
+    }
+  }
+  thinkingEl.hidden = hint === "";
+  if (hint) thinkingTextEl.textContent = hint;
 }
 
 /* ---------------------------------------------------------------- 交互 */
@@ -684,7 +704,11 @@ function showResult() {
     if (S.mode === "online") {
       panelTitle.textContent = st.winner === S.mySeat ? "你赢了" : "你输了";
     } else {
+      if (S.aiSeat !== null) {
+      panelTitle.textContent = st.winner === 1 - S.aiSeat ? "你赢了" : "你输了";
+    } else {
       panelTitle.textContent = st.winner === 0 ? "左方获胜" : "右方获胜";
+    }
     }
     const loser = 1 - st.winner;
     panelDesc.textContent = S.endReason === "resign"

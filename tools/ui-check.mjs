@@ -275,9 +275,12 @@ try {
   await click('.menuItem[data-level="normal"]', "普通");
   await sleep(150);
   check("进入人机模式", (await evaluate("window.__danteng.aiSeat !== null")) === true);
+  check("计时长条已渲染", /%$/.test(await evaluate("document.getElementById('bar0').style.width")));
   const aiPlies = await state("s.plies");
   await click('.cell[data-c="0"][data-r="10"]', "A-11");
   await click("#confirm", "确认");
+  await sleep(150);
+  check("电脑思考时显示提示条", (await evaluate("!document.getElementById('thinking').hidden")) === true);
   await sleep(1400);
   check("人机模式电脑自动应手", (await state("s.plies")) === aiPlies + 2);
   check("电脑应手后轮回人类", (await state("s.turn")) === 0);
