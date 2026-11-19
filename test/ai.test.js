@@ -1,7 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { createMasterAI, _candidatesAI, _planWallNetBad, _rootSearch } from "../src/ai-master.js";
+import { createMasterAI, _candidatesAI, _planWallNetBad, _rootSearch, _planStepFor, _opponentOnNecessaryPath } from "../src/ai-master.js";
+import { AI } from "../src/ai.js";
 import { createState, cloneState, applyAction } from "../src/rules.js";
 
 test("大师 AI 的走子合法", () => {
@@ -87,4 +88,34 @@ test("大师档启用无效墙过滤与防来回后仍能正常走子", () => {
   const action = ai(state, Math.random);
   assert.ok(action);
   assert.equal(applyAction(state, action).ok, true);
+});
+
+test("宗师档走子合法且不会封死自己", () => {
+  const state = createState(0);
+  const action = AI.grandmaster(state, Math.random);
+  assert.ok(action);
+  assert.equal(applyAction(state, action).ok, true);
+});
+
+test("宗师计划在唯一出口被对手占据时优先移动", () => {
+  const state = createState(0);
+  state.players[0] = { c: 4, r: 11 };
+  state.players[1] = { c: 4, r: 10 };
+  state.turn = 0;
+  state.vWall[3 * 12 + 11] = 1;
+  state.vWall[4 * 12 + 11] = 1;
+  assert.equal(_opponentOnNecessaryPath(state, 0), true);
+  const step = _planStepFor(state, [], 0);
+  assert.ok(step);
+  assert.equal(step.type, "move");
+});
+
+test("开局前 4 手不铺顶墙（候选过滤）", () => {
+  const state = createState(0);
+  state.plies = 0;
+  const early = _candidatesAI(state, { topWallMinPlies: 4, topWallKind: "top" });
+  assert.ok(!early.some((a) => a.type === "wall" && a.kind === "top"));
+  state.plies = 4;
+  const later = _candidatesAI(state, { topWallMinPlies: 4, topWallKind: "top" });
+  assert.ok(later.some((a) => a.type === "wall" && a.kind === "top"));
 });

@@ -148,6 +148,7 @@ function candidatesAI(state, opts = {}) {
 
   // 只保留真正让对手更慢的墙；不制造“双方一起被拖慢”的无效墙。
   const netWalls = !!opts.netWalls;
+  const topWallMinPlies = Number(opts.topWallMinPlies ?? 0);
   const dm0 = netWalls ? distanceToGoal(state, mp.c, mp.r) : 0;
   const dop0 = netWalls ? distanceToGoal(state, op.c, op.r) : 0;
   const wallGain = (w) => {
@@ -161,6 +162,7 @@ function candidatesAI(state, opts = {}) {
   };
   const addWall = (w, top = false) => {
     const a = w.type === "wall" ? w : { type: "wall", kind: w.kind, c: w.c, r: w.r };
+    if (top && state.plies < topWallMinPlies) return;
     if (wallPlaced(state, a.kind, a.c, a.r)) return;
     if (netWalls) {
       const g = wallGain(a);
@@ -177,6 +179,7 @@ function candidatesAI(state, opts = {}) {
     const scored = [];
     for (const w of allWallSlots()) {
       if (wallPlaced(state, w.kind, w.c, w.r)) continue;
+      if ((w.kind === "top" || w.kind === "t") && state.plies < topWallMinPlies) continue;
       const probe = cloneState(state);
       setWall(probe, w.kind, w.c, w.r);
       if (!hasPath(probe, mp.c, mp.r)) continue;
@@ -193,9 +196,13 @@ function candidatesAI(state, opts = {}) {
     scored.sort((x, y) => y[0] - x[0]);
     for (let i = 0; i < Math.min(opts.scanAll, scored.length); i++) add(scored[i][1]);
   }
-  if (opts.topWalls || marginFor(state, me) <= 0) {
+  if ((opts.topWalls || marginFor(state, me) <= 0) && state.plies >= topWallMinPlies) {
+    const topKind = opts.topWallKind === "top" ? "top" : "t";
     for (let c = 0; c < COLS; c++) {
-      if (state.topWall[c] === 0) add({ type: "wall", kind: "t", c, r: 0 });
+      if (state.topWall[c] !== 0) continue;
+      const w = { type: "wall", kind: topKind, c, r: 0 };
+      if (topKind === "top") addWall(w, true);
+      else add(w);
     }
   }
   if (opts.planWall) addWall(opts.planWall);
@@ -243,11 +250,19 @@ function rootSearch(state, rng, timeMs, maxDepth, opts = {}) {
   const me = state.turn;
   const cands = candidatesAI(state, { scanAll: 6, ...(opts.candOpts ?? {}) });
   const ordered = [];
+  const startWallBias = Number(opts.startWallBias ?? 0);
+  const startWallPlies = Number(opts.startWallPlies ?? 0);
   for (const a of cands) {
     const r = applyAction(state, a);
     if (!r.ok) continue;
     let s = orderScore(r.state);
     if (a.type === "move") s += 0.01;
+    if (startWallBias && state.plies < startWallPlies && a.type === "wall") {
+      if (a.kind === "h" && a.r >= ROWS - 3) s += startWallBias;
+      else if (a.kind === "h" && a.r >= ROWS - 6) s += startWallBias * 0.4;
+      else if (a.kind === "top") s -= startWallBias;
+      else if (a.kind === "h" && a.r <= 2) s -= startWallBias * 0.6;
+    }
     ordered.push({ a, st: r.state, score: s });
   }
   if (!ordered.length) return autoMove(state);
@@ -332,8 +347,8 @@ function nextPlanWallFor(state, walls, me) {
   return null;
 }
 
-/** 模拟“我按计划封墙、对手每步走最优应手”的完整过程。 */
-function simulatePlan(state, walls, me) {
+/** 模拟“我按计划封墙、对手每步走最优应手”的完整过程（大师旧行为）。 */
+function simulatePlanLegacy(state, walls, me) {
   let s = state;
   let placed = 0;
   for (let i = 0; i < walls.length + 2; i++) {
@@ -356,8 +371,116 @@ function simulatePlan(state, walls, me) {
   return s;
 }
 
+/** BFS：从 (c0,r0) 出发、绕开 avoid 格，是否还能到终点。 */
+function hasPathAvoiding(state, c0, r0, ac, ar) {
+  const { vWall, hWall, topWall } = state;
+  const seen = new Uint8Array(AI2_SIZE);
+  const q = [];
+  const startK = ai2Key(c0, r0);
+  seen[startK] = 1;
+  q.push(c0, r0);
+  for (let head = 0; head < q.length; head += 2) {
+    const c = q[head];
+    const r = q[head + 1];
+    if (r === 0 && topWall[c] === 0) return true;
+    const tryCell = (nc, nr) => {
+      if (nc === ac && nr === ar) return;
+      const k = ai2Key(nc, nr);
+      if (seen[k]) return;
+      seen[k] = 1;
+      q.push(nc, nr);
+    };
+    if (r > 0 && hWall[c * H_COUNT + (r - 1)] === 0) tryCell(c, r - 1);
+    if (r < ROWS - 1 && hWall[c * H_COUNT + r] === 0) tryCell(c, r + 1);
+    if (c > 0 && vWall[(c - 1) * ROWS + r] === 0) tryCell(c - 1, r);
+    if (c < COLS - 1 && vWall[c * ROWS + r] === 0) tryCell(c + 1, r);
+  }
+  return false;
+}
+
+/** 对手是否站在我“未来必经之路”上。 */
+function opponentOnNecessaryPath(state, me) {
+  const p = state.players[me];
+  const op = state.players[1 - me];
+  if (!hasPath(state, p.c, p.r)) return false;
+  return !hasPathAvoiding(state, p.c, p.r, op.c, op.r);
+}
+
+/** 自己走一步：合法走子里离终点最近的。 */
+function bestProgressMove(state, me) {
+  const p = state.players[me];
+  let best = null;
+  let bestD = Infinity;
+  for (const dir of legalDirs(state, p.c, p.r)) {
+    const a = { type: "move", dir };
+    const r = applyAction(state, a);
+    if (!r.ok) continue;
+    if (r.state.winner !== null) return a;
+    const d = distanceOf(r.state, me);
+    if (d < bestD) {
+      bestD = d;
+      best = a;
+    }
+  }
+  return best;
+}
+
+/** 宗师计划一步：会走；软/硬必经路保护；自堵检查。 */
+function planStepFor(state, walls, me, opts = {}) {
+  const move = bestProgressMove(state, me);
+  const w = nextPlanWallFor(state, walls, me);
+  const guard = opts.necessaryPathGuard;
+  if (w && guard && opponentOnNecessaryPath(state, me)) {
+    if (guard === "hard" || (guard === "soft" && planWallNetBad(state, me, w))) {
+      return move;
+    }
+  }
+  if (!w) return move;
+  const res = applyAction(state, w);
+  if (!res.ok) return move;
+  const dm0 = distanceOf(state, me);
+  const dop0 = distanceOf(state, 1 - me);
+  const dm = distanceOf(res.state, me);
+  const dop = distanceOf(res.state, 1 - me);
+  if (!Number.isFinite(dm) || !Number.isFinite(dop)) return move;
+  const gainMe = dm - dm0;
+  const gainOpp = dop - dop0;
+  if (gainMe > 0 && gainOpp <= gainMe) return move;
+  if (dm0 <= 3) return move;
+  return w;
+}
+
+/** 宗师计划：放墙/自己走交替模拟。 */
+function simulatePlanMoves(state, walls, me, opts = {}) {
+  let s = state;
+  let placed = 0;
+  for (let i = 0; i < walls.length * 2 + 6; i++) {
+    if (s.winner !== null) break;
+    if (s.turn !== me) {
+      const a = bestOpponentAction(s, 1 - me);
+      if (!a) return null;
+      const r = applyAction(s, a);
+      if (!r.ok) return null;
+      s = r.state;
+      continue;
+    }
+    const step = planStepFor(s, walls, me, opts);
+    if (!step) return null;
+    const r = applyAction(s, step);
+    if (!r.ok) return null;
+    if (step.type === "wall") placed++;
+    s = r.state;
+  }
+  if (!placed) return null;
+  return s;
+}
+
+function simulatePlan(state, walls, me, opts = {}) {
+  return opts.planMoves ? simulatePlanMoves(state, walls, me, opts) : simulatePlanLegacy(state, walls, me);
+}
+
 /** 生成并评估锁路计划：横排留一个缺口，缺口在离对手最远一侧。 */
-function makePlanAI(state) {
+function makePlanAI(state, opts = {}) {
   const me = state.turn;
   const opp = 1 - me;
   const my = state.players[me];
@@ -372,8 +495,11 @@ function makePlanAI(state) {
   if (my.r > 10) return null;
 
   let best = null;
-  const rows = [my.r, my.r - 1];
-  for (const row of rows) {
+  const rows = [];
+  if (opts.startPlan && my.r >= 8) rows.push(10, 9);
+  rows.push(my.r, my.r - 1);
+  const uniqRows = [...new Set(rows)];
+  for (const row of uniqRows) {
     if (row < 1 || row > 10) continue;
     if (op.r <= row) continue;
     for (const gap of [0, 9, my.c]) {
@@ -384,16 +510,26 @@ function makePlanAI(state) {
         walls.push({ type: "wall", kind: "h", c, r: row });
       }
       if (!walls.length) continue;
-      const sim = simulatePlan(state, walls, me);
-      if (!sim) continue;
-      if (sim.winner === opp) continue;
-      const sdm = distanceOf(sim, me);
-      const sdo = distanceOf(sim, opp);
-      if (!Number.isFinite(sdm) || !Number.isFinite(sdo)) continue;
-      if (countOpenExits(sim) === 0) continue;
-      const m = sim.winner === "draw" ? 0 : sdo - sdm;
-      if (m >= 2 && (!best || m > best.margin)) {
-        best = { row, gap, walls, margin: m, dMe: dm, dOpp: dop, ply: state.plies };
+      const sims = [];
+      const primary = simulatePlan(state, walls, me, opts);
+      if (primary) sims.push(primary);
+      // 宗师：如果“会走”的模拟没有计划，回退到大师的旧模拟，保证不丢锁路机会。
+      if (opts.planFallback) {
+        const legacy = simulatePlanLegacy(state, walls, me);
+        if (legacy && legacy !== primary) sims.push(legacy);
+      }
+      if (!sims.length) continue;
+      for (const sim of sims) {
+        if (sim.winner === opp) continue;
+        const sdm = distanceOf(sim, me);
+        const sdo = distanceOf(sim, opp);
+        if (!Number.isFinite(sdm) || !Number.isFinite(sdo)) continue;
+        if (countOpenExits(sim) === 0) continue;
+        const m = sim.winner === "draw" ? 0 : sdo - sdm;
+        const netOk = !opts.planWallNet || (sdm - dm <= sdo - dop);
+        if (m >= 2 && netOk && (!best || m > best.margin)) {
+          best = { row, gap, walls, margin: m, dMe: dm, dOpp: dop, ply: state.plies };
+        }
       }
     }
   }
@@ -423,11 +559,23 @@ function createMasterAI({
   netWalls = false,
   avoidRepeat = false,
   repeatPenalty = 120,
+  planMoves = false,
+  planWallNet = false,
+  planFallback = false,
+  necessaryPathGuard = false,
+  startWallBias = 0,
+  startWallPlies = 0,
+  topWallMinPlies = 0,
+  topWallKind = "t",
+  startPlan = false,
+  endgameDepth = 0,
 } = {}) {
   let plan = null;
   let plansUsed = 0;
   let history = [];
   const stats = { plans: 0, planWalls: 0, searches: 0, maxPlies: 0 };
+  if (planMoves) stats.planMoves = 0;
+  if (necessaryPathGuard) stats.necessaryMoves = 0;
 
   function choose(state, rng) {
     const win = takeWin(state);
@@ -453,6 +601,19 @@ function createMasterAI({
         state.winner !== null;
       if (stale) {
         plan = null;
+      } else if (planMoves) {
+        // 宗师：计划生成时已算过，执行期只走一步，避免重复整段模拟。
+        const step = planStepFor(state, plan.walls, me, { necessaryPathGuard });
+        if (step) {
+          if (step.type === "wall" && netWalls && planWallNetBad(state, me, step)) {
+            plan = null;
+          } else {
+            if (step.type === "wall") stats.planWalls++;
+            else stats.planMoves++;
+            return step;
+          }
+        }
+        plan = null;
       } else {
         // 用当前局面重算计划价值；变差就放弃
         const sim = simulatePlan(state, plan.walls, me);
@@ -474,26 +635,49 @@ function createMasterAI({
     }
 
     if (usePlan && plansUsed < 2) {
-      const p = makePlanAI(state);
+      const p = makePlanAI(state, { planMoves, planWallNet, planFallback, necessaryPathGuard, startPlan });
       if (p) {
         plan = p;
         plansUsed++;
         stats.plans++;
-        const w = nextPlanWallFor(state, p.walls, me);
-        if (w && !(netWalls && planWallNetBad(state, me, w))) {
-          stats.planWalls++;
-          return w;
+        const step = planMoves
+          ? planStepFor(state, p.walls, me, { necessaryPathGuard })
+          : nextPlanWallFor(state, p.walls, me);
+        if (step && !(step.type === "wall" && netWalls && planWallNetBad(state, me, step))) {
+          if (step.type === "wall") stats.planWalls++;
+          else stats.planMoves++;
+          return step;
         }
         plan = null;
       }
     }
 
     stats.searches++;
-    return rootSearch(state, rng, timeMs, maxDepth, {
-      candOpts: { netWalls },
+    const dm = distanceOf(state, me);
+    const dop = distanceOf(state, opp);
+    const endgame = endgameDepth > 0 &&
+      countOpenExits(state) <= 4 &&
+      Number.isFinite(dm) && Number.isFinite(dop) &&
+      Math.max(dm, dop) <= 5;
+    const depth = endgame ? Math.max(maxDepth, endgameDepth) : maxDepth;
+    const action = rootSearch(state, rng, timeMs, depth, {
+      candOpts: { netWalls, topWallMinPlies, topWallKind },
+      startWallBias,
+      startWallPlies,
       repeatSet,
       repeatPenalty: avoidRepeat ? repeatPenalty : 0,
     });
+    if (necessaryPathGuard && action.type === "wall" && opponentOnNecessaryPath(state, me)) {
+      const should = necessaryPathGuard === "hard" || planWallNetBad(state, me, action);
+      if (should) {
+        const mv = bestProgressMove(state, me);
+        if (mv) {
+          stats.necessaryMoves++;
+          return mv;
+        }
+      }
+    }
+    return action;
   }
 
   choose.stats = stats;
@@ -506,6 +690,8 @@ function createMasterAI({
     stats.planWalls = 0;
     stats.searches = 0;
     stats.maxPlies = 0;
+    if (planMoves) stats.planMoves = 0;
+    if (necessaryPathGuard) stats.necessaryMoves = 0;
   };
   choose.planInfo = () => plan;
   return choose;
@@ -522,4 +708,4 @@ function createMasterAI({
 
 // 调试/自测入口（不参与对局逻辑）
 
-export { createMasterAI, candidatesAI as _candidatesAI, rootSearch as _rootSearch, planWallNetBad as _planWallNetBad };
+export { createMasterAI, candidatesAI as _candidatesAI, rootSearch as _rootSearch, planWallNetBad as _planWallNetBad, planStepFor as _planStepFor, opponentOnNecessaryPath as _opponentOnNecessaryPath };

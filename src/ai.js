@@ -363,4 +363,18 @@ export const AI = {
     avoidRepeat: true,
     repeatPenalty: 160,
   }),
+  // 宗师：以大师计划为底，加入计划走动/回退、必经路保护、
+  // 更深收官和更高预算；大师本体参数保持不变。
+  grandmaster: createMasterAI({
+    timeMs: 3000,
+    maxDepth: 7,
+    usePlan: true,
+    netWalls: true,
+    avoidRepeat: true,
+    repeatPenalty: 160,
+    planMoves: true,
+    planFallback: true,
+    necessaryPathGuard: "soft",
+    endgameDepth: 9,
+  }),
 };
