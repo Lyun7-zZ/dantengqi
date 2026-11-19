@@ -480,7 +480,11 @@ function aiThink(level, state) {
   return new Promise((resolve) => {
     const id = ++aiSeq;
     aiPending.set(id, resolve);
-    w.postMessage({ id, level, state });
+    // 地狱档尽量用满每步时限，但至少给超时代走留出 2 秒
+    const timeMs = level === "hell"
+      ? Math.min(28000, Math.max(2000, (S.settings.perMove - 2) * 1000))
+      : undefined;
+    w.postMessage({ id, level, state, timeMs });
   });
 }
 

@@ -8,11 +8,12 @@ import { createMasterAI } from "./ai-master.js";
 const CONFIG = {
   hard: { timeMs: 350, maxDepth: 4, usePlan: false },
   master: { timeMs: 1200, maxDepth: 6, usePlan: true },
-  hell: { timeMs: 5000, maxDepth: 20, usePlan: true },
+  hell: { timeMs: 28000, maxDepth: 20, usePlan: true },
 };
 
 let ai = null;
 let level = null;
+let lastBudget = null;
 
 self.onmessage = (e) => {
   const d = e.data;
@@ -20,6 +21,7 @@ self.onmessage = (e) => {
   if (d.type === "reset") {
     ai = null;
     level = null;
+    lastBudget = null;
     return;
   }
   const cfg = CONFIG[d.level];
@@ -27,9 +29,12 @@ self.onmessage = (e) => {
     self.postMessage({ id: d.id, ok: false, error: "no-level" });
     return;
   }
-  if (!ai || level !== d.level) {
-    ai = createMasterAI(cfg);
+  // 页面上可以按“每步时限”动态收缩预算，避免 AI 思考超过本步时间
+  const budget = d.timeMs ? { ...cfg, timeMs: d.timeMs } : cfg;
+  if (!ai || level !== d.level || budget.timeMs !== lastBudget) {
+    ai = createMasterAI(budget);
     level = d.level;
+    lastBudget = budget.timeMs;
   }
   try {
     const action = ai(d.state, Math.random);

@@ -357,6 +357,6 @@ export const AI = {
   normal: tacticalAI,
   hard: createMasterAI({ timeMs: 350, maxDepth: 4, usePlan: false }),
   master: createMasterAI({ timeMs: 1200, maxDepth: 6, usePlan: true }),
-  // 地狱：每步最多 5 秒，靠迭代加深尽量搜到底；同步搜索，期间界面会卡住
-  hell: createMasterAI({ timeMs: 5000, maxDepth: 20, usePlan: true }),
+  // 地狱：尽量用满每步时限（默认 30 秒，这里留 2 秒余量）
+  hell: createMasterAI({ timeMs: 28000, maxDepth: 20, usePlan: true }),
 };
