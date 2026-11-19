@@ -93,6 +93,25 @@ function pathCount(state, p, cap = 24) {
 }
 
 /** 结构评估：胜势奖励“更快到达”，并把“出口被关光”视为平局。 */
+/** p 附近（列差 ≤3）仍开放的出口数量。 */
+function nearExits(state, p) {
+  const pc = state.players[p].c;
+  let n = 0;
+  for (let c = 0; c < COLS; c++) {
+    if (state.topWall[c] === 0 && Math.abs(c - pc) <= 3) n++;
+  }
+  return n;
+}
+
+/**
+ * 局面评估（站在 state.turn 的角度）。
+ *
+ * v2 相比 v1：
+ *   - 领先时用连续的速度项代替粗糙的分档，引导搜索找更快的赢法；
+ *   - 所有区间都计入「最短路条数」与「近端出口」两个结构项，
+ *     因为残局里“能封我几条路”比“我还差几步”更能决定胜负；
+ *   - 显式惩罚对手站在终点线（下一步就能出）的局面。
+ */
 function evalAI(state) {
   if (state.winner !== null) {
     if (state.winner === "draw") return 0;
@@ -109,30 +128,31 @@ function evalAI(state) {
     return AI_WIN / 2;
   }
   if (exits === 0) return 0;
+
   const m = dop - dm;
   // 规则 1.3（drawMode=firstOnly）：先手领先 1 手只是平局，后手领先 1 手却是直接取胜
-  // 其它规则（对称容差）下两者都按平局处理
   const firstOnly = state.drawMode === "firstOnly";
   const meIsFirst = state.firstPlayer === undefined ? true : state.firstPlayer === me;
-  let s;
-  if (m >= 2) {
-    // 领先：出口越少，越要立刻冲线；堆墙没有收益
-    s = 5000 - 12 * dm - 35 * (10 - exits);
-  } else if (m === 1) {
-    s = firstOnly && !meIsFirst
-      ? 4500 - 12 * dm - 20 * (10 - exits)
-      : -100 - 20 * (10 - exits);
-  } else if (m === 0) {
-    s = -250;
-  } else {
-    // 落后：出口越少越容易逼平
-    s = -5000 + 10 * m + 30 * (10 - exits);
+
+  const ways = pathCount(state, me, 20) - pathCount(state, opp, 20);
+  const near = nearExits(state, me) - nearExits(state, opp);
+  const doorstep = (dm === 1 ? 120 : 0) - (dop === 1 ? 120 : 0);
+  const openPenalty = 10 - exits;
+
+  const winning = m >= 2 || (firstOnly && !meIsFirst && m === 1);
+  const drawish = m === 1 && !winning;
+
+  if (winning) {
+    // 赢面：优先缩短自己的步数，其次保住路线，不再堆墙
+    return 6000 - 18 * dm - 20 * openPenalty
+      + Math.min(m, 6) * 25 + 6 * ways + 4 * near + doorstep;
   }
-  if (m >= -2 && m <= 2) {
-    s += 5 * (pathCount(state, me, 20) - pathCount(state, opp, 20));
+  if (drawish) {
+    // 先手只领先 1 手：想赢就必须再拉开，否则只能保平
+    return -60 + 20 * ways + 12 * near - 8 * openPenalty + doorstep;
   }
-  s += 6;
-  return s;
+  // 落后（含均势）：出口越少越可能逼平，差距越大越糟
+  return -5400 + 14 * m + 26 * openPenalty + 5 * ways + 6 * near + doorstep;
 }
 
 /** 走法生成：走子 + 对手最短路墙 + （根节点）全墙扫描的高收益墙 + 计划墙。 */
