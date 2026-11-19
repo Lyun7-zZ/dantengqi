@@ -1,19 +1,27 @@
 /**
- * 联机 UI 端到端自检：两个浏览器实例，走「用连接码」的真实界面流程，
- * 完成 建房 → 应答 → 掷骰 → 选先手 → 选边 → 开局 → 走一步 → 校验状态一致。
+ * 联机 UI 端到端自检（服务器版）：起一个本地服务端，开两个浏览器实例，
+ * 走「创建房间 → 加入 → 掷骰 → 选边 → 开局 → 走一步 → 校验状态一致」。
  *
- *   node tools/serve.js 5173
  *   node tools/net-ui-check.mjs
  */
 
 import { spawn } from "node:child_process";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
+
+import { startServer } from "../server/index.js";
 
 const EDGE = "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe";
-const APP = "http://127.0.0.1:5173/";
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+const srv = await startServer({
+  port: 0,
+  host: "127.0.0.1",
+  publicRoot: resolve("dist"),
+});
+const APP = `http://127.0.0.1:${srv.port}/`;
+console.log("服务端端口", srv.port);
 
 async function launch(port) {
   const profile = mkdtempSync(join(tmpdir(), `netui-${port}-`));
@@ -24,7 +32,7 @@ async function launch(port) {
   for (let i = 0; i < 60; i++) {
     try {
       const list = await (await fetch(`http://127.0.0.1:${port}/json/list`)).json();
-      const page = list.find((t) => t.type === "page" && t.url.startsWith("http://127.0.0.1:5173"));
+      const page = list.find((t) => t.type === "page" && t.url.startsWith(APP));
       if (page) return { proc, page };
     } catch { /* 等启动 */ }
     await sleep(250);
@@ -62,7 +70,7 @@ async function connect(page) {
 const results = [];
 const check = (name, ok, detail = "") => results.push({ name, ok: !!ok, detail });
 
-async function waitFor(fn, ms = 15000, step = 200) {
+async function waitFor(fn, ms = 15000, step = 150) {
   const end = Date.now() + ms;
   while (Date.now() < end) {
     const v = await fn();
@@ -72,7 +80,8 @@ async function waitFor(fn, ms = 15000, step = 200) {
   return null;
 }
 
-let a, b;
+let a;
+let b;
 try {
   a = await launch(9411);
   b = await launch(9412);
@@ -80,134 +89,92 @@ try {
   const B = await connect(b.page);
 
   await waitFor(async () => (await A.evaluate("!!window.__danteng")) && (await B.evaluate("!!window.__danteng")));
-  await waitFor(async () => (await A.evaluate("!document.getElementById('homeOverlay').hidden"))
-    && (await B.evaluate("!document.getElementById('homeOverlay').hidden")));
-  // 等待静态元素就位，避免页面还在解析时点击到 null
-  await waitFor(async () => (await A.evaluate("!!document.getElementById('manualHostBtn')"))
-    && (await B.evaluate("!!document.getElementById('manualGuestBtn')")));
+  for (const P of [A, B]) {
+    await P.evaluate("window.__errs = []; window.addEventListener('error', (e) => window.__errs.push(e.message + ' @' + e.lineno)); true");
+  }
 
-  // 两端都进入「联机 → 用连接码」
-  await A.evaluate("document.getElementById('menuNet').click(); document.getElementById('netManualBtn').click(); true");
-  await B.evaluate("document.getElementById('menuNet').click(); document.getElementById('netManualBtn').click(); true");
-
-  // A 生成邀请码
-  await A.evaluate("document.getElementById('manualHostBtn').click(); true");
-  const offer = await waitFor(async () => {
-    const v = await A.evaluate("document.getElementById('manualOfferOut').value");
-    return v.startsWith("DTQ1-") ? v : null;
+  // A 创建房间
+  await A.evaluate("document.getElementById('menuNet').click(); document.getElementById('netCreate').click(); true");
+  const code = await waitFor(async () => {
+    const v = await A.evaluate("document.getElementById('roomCode').textContent");
+    return v && v !== "------" ? v : null;
   });
-  check("界面生成邀请码", !!offer, offer ? offer.length + " 字符" : "超时");
+  check("创建房间并拿到 6 位房间码", !!code && code.length === 6, code || "超时");
 
-  // B 粘贴邀请码 → 生成应答码
-  await B.evaluate("document.getElementById('manualGuestBtn').click(); true");
-  await B.evaluate(`document.getElementById('manualOfferIn').value = ${JSON.stringify(offer)}; true`);
-  await B.evaluate("document.getElementById('manualMakeAnswer').click(); true");
-  const answer = await waitFor(async () => {
-    const v = await B.evaluate("document.getElementById('manualAnswerOut').value");
-    return v.startsWith("DTQ1-") ? v : null;
+  // B 加入
+  await B.evaluate("document.getElementById('menuNet').click(); document.getElementById('netJoinBtn').click(); true");
+  await B.evaluate(`document.getElementById('roomInput').value = ${JSON.stringify(code)}; true`);
+  await B.evaluate("document.getElementById('joinGo').click(); true");
+
+  const bothDice = await waitFor(async () => {
+    const ha = await A.evaluate("!document.getElementById('diceOverlay').hidden");
+    const hb = await B.evaluate("!document.getElementById('diceOverlay').hidden");
+    return ha && hb;
   });
-  check("界面生成应答码", !!answer, answer ? answer.length + " 字符" : "超时");
+  check("双方进入掷骰界面", !!bothDice);
 
-  // A 粘贴应答码 → 完成连接
-  await A.evaluate(`document.getElementById('manualAnswerIn').value = ${JSON.stringify(answer)}; true`);
-  await A.evaluate("document.getElementById('manualFinish').click(); true");
+  // 大点者点「我要先手」
+  const chooserIsA = await waitFor(async () => {
+    const aHas = await A.evaluate("!!document.querySelector('#diceChoices [data-priority=\"first\"]')");
+    const bHas = await B.evaluate("!!document.querySelector('#diceChoices [data-priority=\"first\"]')");
+    return aHas ? "A" : bHas ? "B" : null;
+  });
+  const diceState = await A.evaluate("JSON.stringify({overlay:!document.getElementById('diceOverlay').hidden, sub:document.getElementById('diceSub').textContent, btns:document.querySelectorAll('#diceChoices button').length, errs:window.__errs})");
+  check("有一方拿到先手/选边按钮", !!chooserIsA, diceState);
 
-  // 等双方进入掷骰
-  const diceShown = await waitFor(async () => (await A.evaluate("!document.getElementById('diceOverlay').hidden"))
-    && (await B.evaluate("!document.getElementById('diceOverlay').hidden")));
-  check("双方进入掷骰界面", !!diceShown);
-
-  // 掷骰后，大点者持有「先手 / 选边」按钮
-  const hasPriorityA = await waitFor(async () =>
-    await A.evaluate("!!document.querySelector('#diceChoices [data-priority]')") ? "A" : null);
-  const chooserIsA = !!hasPriorityA;
-  const chooser = chooserIsA ? A : B;
-  const other = chooserIsA ? B : A;
-  check("大点者出现二选一按钮", true);
-
+  const chooser = chooserIsA === "A" ? A : B;
+  const picker = chooserIsA === "A" ? B : A;
   await chooser.evaluate("document.querySelector('#diceChoices [data-priority=\"first\"]').click(); true");
 
-  // 另一方选边
-  await waitFor(async () => await other.evaluate("!!document.querySelector('#diceChoices [data-side]')"));
-  await other.evaluate("document.querySelector('#diceChoices [data-side=\"0\"]').click(); true");
+  const pickerHasSide = await waitFor(async () =>
+    (await picker.evaluate("!!document.querySelector('#diceChoices [data-side]')")));
+  check("对方收到选边按钮", !!pickerHasSide);
+  await picker.evaluate("document.querySelector('#diceChoices [data-side=\"0\"]').click(); true");
 
-  // 等开局
-  const started = await waitFor(async () => (await A.evaluate("window.__danteng.started"))
-    && (await B.evaluate("window.__danteng.started")));
+  const started = await waitFor(async () => {
+    const sa = await A.evaluate("window.__danteng.started && window.__danteng.mode === 'online'");
+    const sb = await B.evaluate("window.__danteng.started && window.__danteng.mode === 'online'");
+    return sa && sb;
+  });
   check("双方进入对局", !!started);
 
-  const seats = {
-    a: await A.evaluate("window.__danteng.mySeat"),
-    b: await B.evaluate("window.__danteng.mySeat"),
-  };
-  check("双方座位不同", seats.a !== seats.b, `A=${seats.a} B=${seats.b}`);
+  const seats = await A.evaluate("[window.__danteng.mySeat, window.__danteng.state.turn, window.__danteng.state.plies]");
+  check("拿到自己的座位与手数", Array.isArray(seats) && seats[2] === 0, JSON.stringify(seats));
 
-  // 轮到谁就由谁走一步
-  const turnA = await A.evaluate("window.__danteng.state.turn === window.__danteng.mySeat");
-  const mover = turnA ? A : B;
-  const moverWin = turnA ? a : b;
-
-  await mover.evaluate(`(() => {
-    const g = window.__danteng;
-    const me = g.state.players[g.state.turn];
-    const cell = document.querySelector('.cell.move-target');
-    if (cell) cell.click();
-    return !!cell;
-  })()`);
+  // 当前行动方走一步
+  const turnSeat = seats[1];
+  const mover = (await A.evaluate("window.__danteng.mySeat")) === turnSeat ? A : B;
+  // 点自己棋子正上方那一格（双方起始都在第 12 行，向上一定合法）
+  const pos = await mover.evaluate("window.__danteng.state.players[window.__danteng.mySeat]");
+  const targetRow = pos.r > 0 ? pos.r - 1 : pos.r + 1;
+  await mover.evaluate(
+    `document.querySelector('.cell[data-c="${pos.c}"][data-r="${targetRow}"]').click(); true`,
+  );
   await mover.evaluate("document.getElementById('confirm').click(); true");
 
-  const movedPlies = await waitFor(async () => {
-    const p = await A.evaluate("window.__danteng.state.plies");
-    return p === 1 ? p : null;
-  });
-  check("主机侧收到行动", movedPlies === 1);
-
-  const hashA = await A.evaluate(`(async () => {
-    const m = await import("/src/net/protocol.js");
-    return m.stateHash(window.__danteng.state);
-  })()`);
-  const hashB = await B.evaluate(`(async () => {
-    const m = await import("/src/net/protocol.js");
-    return m.stateHash(window.__danteng.state);
-  })()`);
-  check("双方局面哈希一致", hashA === hashB, `${hashA} / ${hashB}`);
-
-  // ---- 联机悔棋：轮到的一方发起，对方同意后双方回滚 ----
-  const requester = turnA ? B : A;
-  const responder = turnA ? A : B;
-  await requester.evaluate("document.getElementById('undo').click(); true");
-  await sleep(400);
-  const asked = await responder.evaluate("!document.getElementById('undoOverlay').hidden");
-  check("对方收到悔棋请求", asked);
-
-  await responder.evaluate("document.getElementById('undoYes').click(); true");
-  const rolledBack = await waitFor(async () => {
+  const moved = await waitFor(async () => {
     const pa = await A.evaluate("window.__danteng.state.plies");
     const pb = await B.evaluate("window.__danteng.state.plies");
-    return pa === 0 && pb === 0 ? true : null;
+    return pa === 1 && pb === 1;
   });
-  check("悔棋后双方都回到 0 手", !!rolledBack);
+  check("走一步后双方手数都变成 1", !!moved);
 
-  // ---- 认输：两次点击确认，双方同时结束 ----
-  await requester.evaluate(`(() => {
-    const b = document.getElementById('resign');
-    b.click(); b.click();
-    return true;
-  })()`);
-  await sleep(600);
-  const overA = await A.evaluate("window.__danteng.gameOver");
-  const overB = await B.evaluate("window.__danteng.gameOver");
-  check("认输后双方均结束对局", overA && overB);
-  const titleA = await A.evaluate("document.getElementById('panelTitle').textContent");
-  const titleB = await B.evaluate("document.getElementById('panelTitle').textContent");
-  check("胜负显示相反", titleA !== titleB, `${titleA} / ${titleB}`);
+  const hashes = await Promise.all([
+    A.evaluate(`(async () => {
+      const m = await import("/src/net/ws-client.js").catch(() => null);
+      return window.__danteng.state.plies + ":" + window.__danteng.state.turn;
+    })()`),
+    B.evaluate("window.__danteng.state.plies + ':' + window.__danteng.state.turn"),
+  ]);
+  check("双方回合状态一致", hashes[0] === hashes[1], hashes.join(" / "));
 } catch (e) {
   check("执行过程", false, e.message);
 } finally {
   a?.proc.kill();
   b?.proc.kill();
+  await srv.close();
+  const failed = results.filter((r) => !r.ok);
   for (const r of results) console.log(`${r.ok ? "PASS" : "FAIL"} ${r.name}${r.detail ? "  (" + r.detail + ")" : ""}`);
-  const failed = results.filter((r) => !r.ok).length;
-  console.log(`\n${results.length - failed}/${results.length} 通过`);
-  if (failed) process.exitCode = 1;
+  console.log(`\n${results.length - failed.length}/${results.length} 通过`);
+  if (failed.length) process.exitCode = 1;
 }

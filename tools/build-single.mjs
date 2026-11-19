@@ -44,12 +44,7 @@ const TURN = [
   "src/ai-random.js",
   "src/ai-master.js",
   "src/ai.js",
-  "src/net/protocol.js",
-  "src/net/code.js",
-  "src/net/transport.js",
-  "src/net/session.js",
-  "src/net/peer.js",
-  "src/net/manual.js",
+  "src/net/ws-client.js",
   "src/storage.js",
   "app.js",
 ];

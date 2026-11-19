@@ -146,11 +146,25 @@ export function tickGame(game, dt) {
   return { timedOut: true, event, result };
 }
 
+/**
+ * 局面通过网络传输前，把定型数组转成普通数组。
+ * JSON 序列化会把 Int8Array 变成 {"0":0,...}，客户端 cloneState 会崩。
+ */
+export function toWireState(state) {
+  return {
+    ...state,
+    vWall: Array.from(state.vWall),
+    hWall: Array.from(state.hWall),
+    topWall: Array.from(state.topWall),
+    players: state.players.map((p) => ({ c: p.c, r: p.r })),
+  };
+}
+
 /** 下发给客户端的局面快照。 */
 export function gameSnapshot(game) {
   return {
     t: "state",
-    state: game.state,
+    state: toWireState(game.state),
     clocks: {
       perMove: game.clocks.perMove,
       bank: game.clocks.bank,
