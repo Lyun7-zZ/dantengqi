@@ -606,7 +606,7 @@ function maybeAI() {
       return;
     }
     advance(res.state, actionLabel(action, before));
-  }, S.mode === "master" ? 280 : GAME_CONFIG.aiDelay);
+  }, S.mode === "master" || S.mode === "hell" ? 280 : GAME_CONFIG.aiDelay);
 }
 
 /** 超时：BFS 最短路代走（同长优先向上）。 */

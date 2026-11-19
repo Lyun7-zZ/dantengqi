@@ -933,7 +933,7 @@ body {
           <b>玩家对战</b><span>同屏双人</span>
         </button>
         <button class="menuItem" id="menuAI">
-          <b>人机对战</b><span>简单 / 普通 / 困难 / 大师</span>
+          <b>人机对战</b><span>简单 / 普通 / 困难 / 大师 / 地狱</span>
         </button>
         <button class="menuItem" id="menuNet">
           <b>联机对战</b><span>房间码 · 点对点直连</span>
@@ -961,6 +961,9 @@ body {
         </button>
         <button class="menuItem" data-level="master">
           <b>大师</b><span id="blurbMaster">六层搜索 + 锁路计划</span>
+        </button>
+        <button class="menuItem" data-level="hell">
+          <b>地狱</b><span>每步最多思考 20 秒（思考时界面会卡住）</span>
         </button>
         <button class="menuItem back" id="aiBack">
           <b>返回</b>
@@ -2566,6 +2569,8 @@ const AI = {
   normal: tacticalAI,
   hard: createMasterAI({ timeMs: 350, maxDepth: 4, usePlan: false }),
   master: createMasterAI({ timeMs: 1200, maxDepth: 6, usePlan: true }),
+  // 地狱：每步最多 20 秒，靠迭代加深尽量搜到底；同步搜索，期间界面会卡住
+  hell: createMasterAI({ timeMs: 20000, maxDepth: 10, usePlan: true }),
 };
 
 /* ===== src/net/protocol.js ===== */
@@ -4251,7 +4256,7 @@ function maybeAI() {
       return;
     }
     advance(res.state, actionLabel(action, before));
-  }, S.mode === "master" ? 280 : GAME_CONFIG.aiDelay);
+  }, S.mode === "master" || S.mode === "hell" ? 280 : GAME_CONFIG.aiDelay);
 }
 
 /** 超时：BFS 最短路代走（同长优先向上）。 */
