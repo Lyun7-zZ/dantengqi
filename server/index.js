@@ -1,5 +1,5 @@
 /**
- * 蛋疼棋联机服务器（M1：静态页面 + 房间创建/加入 + 心跳）。
+ * 蛋疼棋联机服务器（M2：掷骰分边、行棋校验、服务端计时、超时代走）。
  *
  *   node server/index.js [--port 6657]
  *
@@ -17,6 +17,9 @@ import {
   PROTOCOL_VERSION, RULES_VERSION, ERR,
   parseClientMessage, errorMessage, sendJson, normalizeRoomCode,
 } from "./protocol.js";
+import {
+  rollDice, resolveChoice, createGame, applyMove, tickGame, gameSnapshot,
+} from "./game.js";
 
 const root = dirname(fileURLToPath(import.meta.url));
 const DEFAULT_PUBLIC = join(root, "..", "dist");
@@ -25,11 +28,16 @@ const HEARTBEAT_MS = 20000;
 const MAX_PER_IP = 8;
 const RATE_WINDOW_MS = 1000;
 const RATE_LIMIT = 10;
+const TICK_MS = 100;
+const CLOCK_BROADCAST_MS = 500;
 
 export function startServer({
   port = 6657,
   host = "0.0.0.0",
   publicRoot = DEFAULT_PUBLIC,
+  perMove = 30,
+  bank = 300,
+  random = Math.random,
   log = () => {},
 } = {}) {
   const rooms = new Rooms();
@@ -115,6 +123,26 @@ export function startServer({
 
   const sweeper = setInterval(() => rooms.sweep(), 60 * 1000);
 
+  // 计时推进：每 100ms 走一次，超时由服务端代走
+  const ticker = setInterval(() => {
+    const now = Date.now();
+    for (const room of rooms.map.values()) {
+      if (room.phase !== "playing" || !room.game) continue;
+      const dt = Math.min(0.5, (now - (room.lastTick || now)) / 1000);
+      room.lastTick = now;
+      const r = tickGame(room.game, dt);
+      if (r.event) broadcastRoom(room, r.event);
+      if (r.result) finishRoom(room, r.result);
+    }
+  }, TICK_MS);
+
+  // 每 500ms 同步一次剩余时间
+  const clockSync = setInterval(() => {
+    for (const room of rooms.map.values()) {
+      if (room.phase === "playing" && room.game) broadcastRoom(room, clockMsg(room));
+    }
+  }, CLOCK_BROADCAST_MS);
+
   function rateOk(conn) {
     const now = Date.now();
     if (now - conn.windowStart > RATE_WINDOW_MS) {
@@ -131,6 +159,120 @@ export function startServer({
     }
   }
 
+  function clockMsg(room) {
+    const g = room.game;
+    return {
+      t: "clock",
+      side: g.state.turn,
+      ply: g.state.plies,
+      perMove: g.clocks.perMove,
+      bank: g.clocks.bank,
+      banks: g.clocks.banks.slice(),
+      moveLeft: g.clocks.moveLeft,
+      inBank: g.clocks.inBank,
+    };
+  }
+
+  function finishRoom(room, result) {
+    room.phase = "finished";
+    room.updatedAt = Date.now();
+    broadcastRoom(room, result);
+  }
+
+  // ---------- 掷骰与选边 ----------
+
+  function beginDice(room) {
+    const pts = rollDice(random);
+    const chooser = pts[0] > pts[1] ? 0 : 1;
+    room.phase = "dice";
+    room.dice = { pts, chooser };
+    room.pending = null;
+    broadcastRoom(room, { t: "dice", stage: "priority", pts, chooser });
+    log(`房间 ${room.code} 掷骰 ${pts.join(":")}，由座位 ${chooser} 先选`);
+  }
+
+  function startPlay(room, { sides, firstSeat }) {
+    room.sides = sides;
+    room.firstSeat = firstSeat;
+    room.game = createGame({ firstSide: sides[firstSeat], perMove, bank });
+    room.phase = "playing";
+    room.lastTick = Date.now();
+    room.updatedAt = Date.now();
+
+    const snap = gameSnapshot(room.game);
+    snap.sides = sides;
+    snap.firstSeat = firstSeat;
+    broadcastRoom(room, snap);
+    broadcastRoom(room, clockMsg(room));
+    log(`房间 ${room.code} 开局：先手座位 ${firstSeat}（棋盘边 ${sides[firstSeat]}）`);
+  }
+
+  function handleChoice(conn, msg) {
+    const room = conn.room;
+    const ws = conn.ws;
+    if (!room || room.phase !== "dice") { ws.send(errorMessage(ERR.BAD_MESSAGE, "not in dice")); return; }
+    const seat = conn.seat;
+
+    // 第一阶段：大点者选「先手」或「选边」
+    if (room.pending === null) {
+      if (seat !== room.dice.chooser) { ws.send(errorMessage("not-chooser")); return; }
+      if (msg.priority === "first") {
+        room.pending = "side";
+        room.firstChooser = seat;
+        broadcastRoom(room, { t: "dice", stage: "side", picker: 1 - seat });
+        return;
+      }
+      if (msg.priority === "side") {
+        const r = resolveChoice({ chooserSeat: seat, pickerSeat: 1 - seat, priority: "side", side: msg.side });
+        if (!r.ok) { ws.send(errorMessage(r.error)); return; }
+        startPlay(room, r);
+        return;
+      }
+      ws.send(errorMessage(ERR.BAD_MESSAGE, "bad choice"));
+      return;
+    }
+
+    // 第二阶段：对方选边
+    if (msg.side === 0 || msg.side === 1) {
+      if (seat !== 1 - room.firstChooser) { ws.send(errorMessage("not-picker")); return; }
+      const r = resolveChoice({
+        chooserSeat: room.firstChooser, pickerSeat: seat, priority: "first", side: msg.side,
+      });
+      if (!r.ok) { ws.send(errorMessage(r.error)); return; }
+      startPlay(room, r);
+      return;
+    }
+    ws.send(errorMessage(ERR.BAD_MESSAGE, "bad side"));
+  }
+
+  function handleAction(conn, msg) {
+    const room = conn.room;
+    const ws = conn.ws;
+    if (!room || room.phase !== "playing" || !room.game) {
+      ws.send(errorMessage(ERR.BAD_MESSAGE, "no game"));
+      return;
+    }
+    if (msg.ply !== room.game.state.plies) {
+      ws.send(errorMessage(ERR.STALE_PLY, `server ply ${room.game.state.plies}`));
+      return;
+    }
+    const side = room.sides[conn.seat];
+    if (side === null || side === undefined) {
+      ws.send(errorMessage(ERR.NOT_YOUR_TURN));
+      return;
+    }
+    const r = applyMove(room.game, side, msg.action);
+    if (!r.ok) {
+      ws.send(errorMessage(r.error, r.reason || ""));
+      return;
+    }
+    broadcastRoom(room, r.event);
+    broadcastRoom(room, clockMsg(room));
+    if (r.result) finishRoom(room, r.result);
+  }
+
+  // ---------- 消息分发 ----------
+
   function handleMessage(conn, msg) {
     const ws = conn.ws;
 
@@ -143,7 +285,6 @@ export function startServer({
       conn.greeted = true;
       conn.client = typeof msg.client === "string" ? msg.client.slice(0, 40) : null;
 
-      // 带房间码 + token 表示重连
       const code = normalizeRoomCode(msg.room);
       if (code && msg.token) {
         const r = rooms.reattach(code, msg.token, conn);
@@ -153,6 +294,13 @@ export function startServer({
           protocol: PROTOCOL_VERSION, rules: RULES_VERSION, resumed: true,
         });
         broadcastRoom(r.room, { t: "room", phase: r.room.phase, room: code });
+        if (r.room.phase === "playing" && r.room.game) {
+          const snap = gameSnapshot(r.room.game);
+          snap.sides = r.room.sides;
+          snap.firstSeat = r.room.firstSeat;
+          sendJson(ws, snap);
+          sendJson(ws, clockMsg(r.room));
+        }
         return;
       }
       sendJson(ws, { t: "welcome", protocol: PROTOCOL_VERSION, rules: RULES_VERSION });
@@ -186,12 +334,15 @@ export function startServer({
       });
       broadcastRoom(r.room, { t: "room", phase: r.room.phase, room: r.room.code });
       log(`房间 ${r.room.code} 加入，座位 ${r.seat}`);
+      if (r.room.phase === "ready") beginDice(r.room);
       return;
     }
 
+    if (msg.t === "choice") { handleChoice(conn, msg); return; }
+    if (msg.t === "action") { handleAction(conn, msg); return; }
     if (msg.t === "pong") { conn.alive = true; return; }
 
-    // M2 起接管：action / undo / resign / rematch
+    // M4 接管：undo / resign / rematch
     ws.send(errorMessage(ERR.BAD_MESSAGE, "not implemented yet"));
   }
 
@@ -209,6 +360,8 @@ export function startServer({
         close: () => new Promise((res) => {
           clearInterval(heartbeat);
           clearInterval(sweeper);
+          clearInterval(ticker);
+          clearInterval(clockSync);
           for (const c of conns) { try { c.ws.terminate(); } catch { /* ignore */ } }
           for (const c of wss.clients) { try { c.terminate(); } catch { /* ignore */ } }
           wss.close(() => {

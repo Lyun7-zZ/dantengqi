@@ -43,6 +43,13 @@ export class Rooms {
       phase: "waiting",
       hostSeat: seat,
       seats: [null, null],
+      dice: null,
+      pending: null,
+      firstChooser: null,
+      sides: [null, null],
+      firstSeat: null,
+      game: null,
+      lastTick: 0,
     };
     room.seats[seat] = { token: makeToken(), conn };
     conn.room = room;

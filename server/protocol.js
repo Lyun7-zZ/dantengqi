@@ -11,7 +11,7 @@ export const MAX_MESSAGE_BYTES = 16 * 1024;
 
 /** 客户端可发送的消息类型。 */
 export const CLIENT_TYPES = new Set([
-  "hello", "create", "join", "action", "undo", "resign", "rematch", "pong",
+  "hello", "create", "join", "choice", "action", "undo", "resign", "rematch", "pong",
 ]);
 
 export const ERR = {
