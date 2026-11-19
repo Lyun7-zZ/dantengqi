@@ -203,7 +203,8 @@ export function distanceOf(state, player) {
 }
 
 /**
- * 超时代走：BFS 最短路，同长度时优先向上。
+ * AI 兜底走子：BFS 最短路，同长度时优先向上。
+ * （超时不再调用它；超时直接判负。）
  * 依赖 DIRS 的顺序（up 在最前），只在严格更短时替换，从而保证同长优先“上”。
  */
 export function autoMove(state) {

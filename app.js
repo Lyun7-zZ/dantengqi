@@ -5,7 +5,7 @@
 
 import {
   createState, applyAction, validateAction,
-  legalDirs, stepTarget, distanceOf, autoMove,
+  legalDirs, stepTarget, distanceOf,
 } from "./src/rules.js";
 import { COL_NAMES, COLS, ROWS, wallName } from "./src/board.js";
 import {
@@ -609,16 +609,19 @@ function maybeAI() {
   }, S.mode === "master" || S.mode === "grandmaster" ? 280 : GAME_CONFIG.aiDelay);
 }
 
-/** 超时：BFS 最短路代走（同长优先向上）。 */
+/** 超时：时间耗尽直接判负，不再由系统代走。 */
 function onTimeout() {
   if (S.gameOver || !S.state) return;
-  const mv = autoMove(S.state);
-  if (!mv) return;
-  const res = applyAction(S.state, mv);
-  if (!res.ok) return;
   S.preview = null;
-  toast("超时，系统代走");
-  advance(res.state, "超时代走");
+  S.endReason = "timeout";
+  if (S.mode === "online" && S.net) {
+    // 超时方是本地玩家；先通知对手，再在本地结算为败。
+    S.net.session.resign();
+    endOnlineGame(1 - S.mySeat);
+    return;
+  }
+  endLocalGame(1 - S.state.turn);
+  toast("超时判负", true);
 }
 
 /** 悔棋：撤销最近一手，由对方在确认框中同意。 */
@@ -711,9 +714,13 @@ function showResult() {
       panelTitle.textContent = st.winner === 0 ? "左方获胜" : "右方获胜";
     }
     const loser = 1 - st.winner;
-    panelDesc.textContent = S.endReason === "resign"
-      ? `认输结束。共 ${st.plies} 手，封墙 ${st.wallsPlaced} 面。`
-      : `对手距终点还剩 ${distanceOf(st, loser)} 步。共 ${st.plies} 手，封墙 ${st.wallsPlaced} 面。`;
+    if (S.endReason === "timeout") {
+      panelDesc.textContent = `超时判负。共 ${st.plies} 手，封墙 ${st.wallsPlaced} 面。`;
+    } else if (S.endReason === "resign") {
+      panelDesc.textContent = `认输结束。共 ${st.plies} 手，封墙 ${st.wallsPlaced} 面。`;
+    } else {
+      panelDesc.textContent = `对手距终点还剩 ${distanceOf(st, loser)} 步。共 ${st.plies} 手，封墙 ${st.wallsPlaced} 面。`;
+    }
   }
   overlay.hidden = false;
 }
@@ -1278,7 +1285,8 @@ function handleNetEvent(evt) {
       onResumed();
       return;
     case "resign":
-      endOnlineGame(S.mySeat);
+      // 本地主动认输/超时已经自行结算；只处理对手发来的认输。
+      if (evt.by !== "me") endOnlineGame(S.mySeat);
       return;
     case "rematchReq":
       if (window.confirm("对方请求再来一局，是否同意？")) {

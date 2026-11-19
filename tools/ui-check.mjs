@@ -254,7 +254,7 @@ try {
   const c1 = Number(await evaluate(`document.getElementById('clk${cur}').textContent`));
   check("计时器在倒数", c1 < c0, `${c0} → ${c1}`);
 
-  // 10. 超时代走：把当前方本步与时间库清零，等待自动走子
+  // 10. 超时判负：把当前方本步与时间库清零，等待结算
   const pliesBefore = await state("s.plies");
   const turnBefore2 = await state("s.turn");
   await evaluate(`(() => {
@@ -265,8 +265,9 @@ try {
     g.lastTs = performance.now();
   })()`);
   await sleep(900);
-  check("超时后系统自动走了一步", (await state("s.plies")) === pliesBefore + 1);
-  check("超时后切换到对方回合", (await state("s.turn")) === 1 - turnBefore2);
+  check("超时后不再自动走子", (await state("s.plies")) === pliesBefore);
+  check("超时方判负", (await state("s.state.winner")) === 1 - turnBefore2);
+  check("超时后游戏结束", (await state("s.gameOver")) === true);
 
   // 11. 人机：从主菜单进入“人机 · 普通”
   await click("#homeBtn", "菜单");
