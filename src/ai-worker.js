@@ -8,7 +8,7 @@ import { createMasterAI } from "./ai-master.js";
 const CONFIG = {
   hard: { timeMs: 350, maxDepth: 4, usePlan: false },
   master: { timeMs: 1200, maxDepth: 6, usePlan: true },
-  hell: { timeMs: 5000, maxDepth: 10, usePlan: true },
+  hell: { timeMs: 5000, maxDepth: 20, usePlan: true },
 };
 
 let ai = null;

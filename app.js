@@ -430,7 +430,10 @@ function paintClocks() {
     if (S.mode === "online" && S.net) {
       if (S.state.turn !== S.mySeat) hint = "对方正在操作…";
     } else if (S.aiSeat !== null && S.state.turn === S.aiSeat) {
-      hint = "电脑正在思考…";
+      const secs = S.aiThinking && S.aiThinkStart
+        ? Math.floor((performance.now() - S.aiThinkStart) / 1000)
+        : 0;
+      hint = secs > 0 ? `电脑正在思考… ${secs}s` : "电脑正在思考…";
     }
   }
   thinkingEl.hidden = hint === "";
@@ -672,6 +675,7 @@ function maybeAI() {
   if (S.state.turn !== S.aiSeat || S.aiThinking) return;
 
   S.aiThinking = true;
+  S.aiThinkStart = performance.now();
   paint();
   const plies = S.state.plies;
 
@@ -701,6 +705,7 @@ function maybeAI() {
     }
     const res = action ? applyAction(before, action) : { ok: false };
     S.aiThinking = false;
+    S.aiThinkStart = 0;
     if (!res.ok) {
       paint();
       return;
