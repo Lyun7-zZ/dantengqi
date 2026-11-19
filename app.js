@@ -1202,6 +1202,7 @@ setInterval(() => {
 
 /* ---------------------------------------------------------------- 联机（服务器） */
 
+// 用 sessionStorage：同一浏览器的多个标签页各自保存令牌，互不覆盖
 const RECONNECT_KEY = "danteng.reconnect.v2";
 
 const NET = {
@@ -1221,13 +1222,13 @@ function wsEndpoint() {
 }
 
 function loadReconnect() {
-  try { return JSON.parse(localStorage.getItem(RECONNECT_KEY) || "null"); } catch { return null; }
+  try { return JSON.parse(sessionStorage.getItem(RECONNECT_KEY) || "null"); } catch { return null; }
 }
 function saveReconnect(v) {
-  try { localStorage.setItem(RECONNECT_KEY, JSON.stringify(v)); } catch { /* ignore */ }
+  try { sessionStorage.setItem(RECONNECT_KEY, JSON.stringify(v)); } catch { /* ignore */ }
 }
 function clearReconnect() {
-  try { localStorage.removeItem(RECONNECT_KEY); } catch { /* ignore */ }
+  try { sessionStorage.removeItem(RECONNECT_KEY); } catch { /* ignore */ }
 }
 
 function setNetStatus(text) {
