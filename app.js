@@ -98,9 +98,11 @@ const toastEl = el("toast");
 const clockEls = [el("clock0"), el("clock1")];
 const turnBarEl = el("turnBar");
 const turnBarFill = el("turnBarFill");
-const resultSplit = el("resultSplit");
-const resLeft = el("resLeft");
-const resRight = el("resRight");
+const resultFull = el("resultFull");
+const rfLeft = el("rfLeft");
+const rfRight = el("rfRight");
+const rfLeftHalf = el("rfLeftHalf");
+const rfRightHalf = el("rfRightHalf");
 const thinkingEl = el("thinking");
 const thinkingTextEl = el("thinkingText");
 const clkEls = [el("clk0"), el("clk1")];
@@ -396,8 +398,9 @@ function paintClocks() {
   const turn = S.state.turn;
   for (let p = 0; p < 2; p++) {
     const box = clockEls[p];
-    // 大数字统一表示“本步可用时间”：轮到自己时是真实倒计时，否则显示下一步的初始额度
-    const main = p === turn ? displayTime(c, turn) : c.perMove;
+    // 大数字：轮到自己时是真实倒计时；否则显示该玩家上一步结束时的剩余
+    const main = p === turn ? displayTime(c, turn) : (c.lastLeft?.[p] ?? c.perMove);
+    if (p === turn) c.lastLeft[p] = displayTime(c, turn);
     const mainSec = Math.max(0, Math.ceil(main));
     clkEls[p].textContent = String(mainSec);
     bankEls[p].textContent = `库 ${Math.ceil(c.banks[p])}`;
@@ -405,14 +408,21 @@ function paintClocks() {
     box.classList.toggle("p1", p === 1);
     box.classList.toggle("warn", p === turn && mainSec <= 5 && !S.gameOver);
     box.classList.toggle("inbank", p === turn && c.inBank && !S.gameOver);
+    box.classList.toggle("bankMode", p === turn && c.inBank && !S.gameOver);
   }
 
-  // 顶部计时长条：当前玩家剩余本步时间的比例
+  // 顶部计时长条：正常按本步时间收缩；进入时间库后按库剩余比例，并变红描边
+  const inBank = !S.gameOver && c.inBank;
   const remain = displayTime(c, turn);
-  const ratio = S.gameOver ? 1 : Math.min(1, Math.max(0, remain / Math.max(1, c.perMove)));
+  const ratio = S.gameOver
+    ? 1
+    : inBank
+      ? Math.min(1, Math.max(0, c.banks[turn] / Math.max(1, c.bank)))
+      : Math.min(1, Math.max(0, remain / Math.max(1, c.perMove)));
   turnBarFill.style.width = `${(ratio * 100).toFixed(1)}%`;
   turnBarEl.classList.toggle("p1", turn === 1);
-  turnBarEl.classList.toggle("warn", !S.gameOver && remain <= 5);
+  turnBarEl.classList.toggle("bank", inBank);
+  turnBarEl.classList.toggle("warn", !S.gameOver && !inBank && remain <= 5);
 
   // 对方正在行动 / 电脑正在思考
   let hint = "";
@@ -628,7 +638,10 @@ function maybeAI() {
     const thinkStart = performance.now();
     const action = AI[S.mode](before, Math.random);
     const spent = (performance.now() - thinkStart) / 1000;
-    if (spent > 0) tickClock(S.clocks, S.aiSeat, spent);
+    if (spent > 0) {
+      tickClock(S.clocks, S.aiSeat, spent);
+      S.clocks.lastLeft[S.aiSeat] = displayTime(S.clocks, S.aiSeat);
+    }
     const res = applyAction(before, action);
     S.aiThinking = false;
     if (!res.ok) {
@@ -730,14 +743,18 @@ function finishUndo(agree) {
 function showResult() {
   const st = S.state;
   const localSplit = S.mode === "local" && st.winner !== "draw";
-  resultSplit.hidden = !localSplit;
-  panelTitle.hidden = localSplit;
   if (localSplit) {
     const leftWon = st.winner === 0;
-    resLeft.textContent = leftWon ? "你赢了" : "你输了";
-    resRight.textContent = leftWon ? "你输了" : "你赢了";
-    resLeft.parentElement.classList.toggle("lose", !leftWon);
-    resRight.parentElement.classList.toggle("lose", leftWon);
+    rfLeft.textContent = leftWon ? "你赢了" : "你输了";
+    rfRight.textContent = leftWon ? "你输了" : "你赢了";
+    rfLeftHalf.classList.toggle("win", leftWon);
+    rfLeftHalf.classList.toggle("lose", !leftWon);
+    rfRightHalf.classList.toggle("win", !leftWon);
+    rfRightHalf.classList.toggle("lose", leftWon);
+    resultFull.hidden = false;
+    overlay.hidden = true;
+  } else {
+    resultFull.hidden = true;
   }
   if (st.winner === "draw") {
     panelIcon.textContent = "🤝";
@@ -757,7 +774,7 @@ function showResult() {
       ? `认输结束。共 ${st.plies} 手，封墙 ${st.wallsPlaced} 面。`
       : `对手距终点还剩 ${distanceOf(st, loser)} 步。共 ${st.plies} 手，封墙 ${st.wallsPlaced} 面。`;
   }
-  overlay.hidden = false;
+  if (!localSplit) overlay.hidden = false;
 }
 
 /* ---------------------------------------------------------------- 其他 */
@@ -826,12 +843,14 @@ function newGame(announce = false) {
   S.lastTs = performance.now();
   overlay.hidden = true;
   undoOverlay.hidden = true;
+  resultFull.hidden = true;
   paint();
   if (announce) toast("已重新开始");
 }
 
 /** 从主菜单开局。 */
 function startGame(mode) {
+  resultFull.hidden = true;
   S.pendingMode = mode;
   S.mode = mode;
   S.aiPerson = mode === "local" ? null : 1;
@@ -1118,6 +1137,9 @@ resignBtn.addEventListener("click", () => {
   const loser = S.aiSeat !== null ? 1 - S.aiSeat : S.state.turn;
   endLocalGame(1 - loser);
 });
+
+el("rfAgain").addEventListener("click", () => againBtn.click());
+el("rfHome").addEventListener("click", () => { resultFull.hidden = true; goHome(); });
 
 againBtn.addEventListener("click", () => {
   if (S.mode === "online" && S.net) {

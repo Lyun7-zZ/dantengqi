@@ -13,17 +13,25 @@ export function createClock({ perMove = 15, bank = 60 } = {}) {
     banks: [bank, bank],
     moveLeft: perMove,
     inBank: false,
+    // 每位玩家“上一回合还剩多少”，用于非己方回合的显示
+    lastLeft: [perMove, perMove],
   };
 }
 
 export function clockSnapshot(c) {
-  return { banks: c.banks.slice(), moveLeft: c.moveLeft, inBank: c.inBank };
+  return {
+    banks: c.banks.slice(),
+    moveLeft: c.moveLeft,
+    inBank: c.inBank,
+    lastLeft: c.lastLeft ? c.lastLeft.slice() : [c.perMove, c.perMove],
+  };
 }
 
 export function clockRestore(c, s) {
   c.banks = s.banks.slice();
   c.moveLeft = s.moveLeft;
   c.inBank = s.inBank;
+  c.lastLeft = s.lastLeft ? s.lastLeft.slice() : [c.perMove, c.perMove];
 }
 
 export function resetTurn(c) {

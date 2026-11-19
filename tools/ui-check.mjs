@@ -325,10 +325,10 @@ try {
   check("越线后判定获胜", (await state("s.winner === 0")) === true);
   check("结算页显示获胜",
     (await evaluate("document.getElementById('panelTitle').textContent")) === "左方获胜");
-  check("本地双人结算左右分栏",
-    (await evaluate("!document.getElementById('resultSplit').hidden")) === true
-    && (await evaluate("document.getElementById('resLeft').textContent")) === "你赢了"
-    && (await evaluate("document.getElementById('resRight').textContent")) === "你输了");
+  check("本地双人结算全屏左右分栏",
+    (await evaluate("!document.getElementById('resultFull').hidden")) === true
+    && (await evaluate("document.getElementById('rfLeft').textContent")) === "你赢了"
+    && (await evaluate("document.getElementById('rfRight').textContent")) === "你输了");
 
   // 14. 掷骰选边：移除“跳过掷骰”的注入脚本后重新加载
   await send("Page.removeScriptToEvaluateOnNewDocument", { identifier });

@@ -872,41 +872,106 @@ body {
   display: block;
   height: 100%;
   width: 100%;
-  background: var(--mint);
+  background: var(--p0);
   transition: width 120ms linear, background 200ms linear;
 }
 .turnBar.p1 > span { background: #e0a86a; }
 .turnBar.warn > span { background: #ff7a6b; }
 
-/* 对方行动提示条 */
+/* 对方行动提示条：整宽醒目条 */
 .thinking {
   position: fixed;
-  top: 76px;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 62px;
+  left: 0;
+  right: 0;
   z-index: 40;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 7px 16px;
-  border-radius: 999px;
-  background: rgba(22, 33, 42, 0.92);
-  border: 1px solid var(--line);
-  color: var(--mint);
-  font-size: 13px;
-  letter-spacing: 0.04em;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 0;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.10em;
+  color: var(--p0);
+  background: linear-gradient(90deg, rgba(70, 211, 166, 0.18), rgba(70, 211, 166, 0.06) 50%, rgba(70, 211, 166, 0.18));
+  border-top: 1px solid rgba(70, 211, 166, 0.35);
+  border-bottom: 1px solid rgba(70, 211, 166, 0.35);
 }
 .thinkingDot {
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   background: currentColor;
-  animation: thinkPulse 1s ease-in-out infinite;
+  animation: thinkPulse 0.9s ease-in-out infinite;
 }
 @keyframes thinkPulse {
-  0%, 100% { opacity: 0.25; transform: scale(0.85); }
-  50% { opacity: 1; transform: scale(1.15); }
+  0%, 100% { opacity: 0.25; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+/* 时间库模式：整条变红描边 */
+.turnBar.bank {
+  box-shadow: inset 0 0 0 2px var(--danger);
+}
+.turnBar.bank > span { background: var(--danger); }
+.clock.bankMode .clockMain {
+  color: var(--danger);
+  animation: bankBlink 0.9s steps(2, end) infinite;
+}
+@keyframes bankBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+/* 本地双人结算：全屏左右分栏 */
+.resultFull {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--bg);
+}
+.rfHalf {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.rfHalf b {
+  font-size: 44px;
+  letter-spacing: 0.12em;
+}
+.rfLeft {
+  background: linear-gradient(rgba(70, 211, 166, 0.14), rgba(70, 211, 166, 0.14));
+  border-right: 3px solid var(--p0);
+}
+.rfRight {
+  background: linear-gradient(rgba(242, 164, 92, 0.12), rgba(242, 164, 92, 0.12));
+  border-left: 3px solid var(--p1);
+}
+.rfLeft.win b {
+  color: #ffd479;
+  text-shadow: 0 0 28px rgba(255, 212, 121, 0.35);
+}
+.rfRight.win b {
+  color: #ffd479;
+  text-shadow: 0 0 28px rgba(255, 212, 121, 0.35);
+}
+.rfLeft.lose b { color: #7b8a97; }
+.rfRight.lose b { color: #7b8a97; }
+.rfActions {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 46px;
+  z-index: 101;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+.rfActions .btn {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
 }
 
 /* 本地双人结算：左右各按各自视角显示胜负 */
@@ -923,8 +988,8 @@ body {
   background: #16212a;
 }
 .resultSide b { font-size: 20px; letter-spacing: 0.04em; }
-.resultSide.left { border-left: 3px solid var(--mint); }
+.resultSide.left { border-left: 3px solid var(--p0); }
 .resultSide.right { border-right: 3px solid #e0a86a; }
-.resultSide.left b { color: var(--mint); }
+.resultSide.left b { color: var(--p0); }
 .resultSide.right b { color: #e0a86a; }
 .resultSide.lose b { color: var(--muted); }

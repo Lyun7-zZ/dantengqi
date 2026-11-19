@@ -13,7 +13,7 @@ let url = process.argv[2] ?? "http://127.0.0.1:5173/?nodice=1";
 if (url === "--file") {
   url = "file:///" + encodeURI(resolve(process.argv[3]).replace(/\\/g, "/"));
 }
-const out = process.argv[4] ?? (process.argv[3]?.endsWith(".png") ? process.argv[3] : "_shots/shot.png");
+const out = process.argv.slice(2).find((a) => a.endsWith(".png")) ?? "_shots/shot.png";
 const PORT = 9444;
 const profile = mkdtempSync(join(tmpdir(), "danteng-shot-"));
 
@@ -65,10 +65,45 @@ const evalJs = async (expr) => (await send("Runtime.evaluate", { expression: exp
 // 开局：本地对战，走一步
 await evalJs("document.getElementById('menuLocal').click()");
 await sleep(400);
-await evalJs("document.querySelector('.cell[data-c=\"0\"][data-r=\"10\"]').click()");
-await sleep(150);
-await evalJs("document.getElementById('confirm').click()");
-await sleep(900);
+if (!process.argv.includes("--nomove")) {
+  await evalJs("document.querySelector('.cell[data-c=\"0\"][data-r=\"10\"]').click()");
+  await sleep(150);
+  await evalJs("document.getElementById('confirm').click()");
+  await sleep(900);
+}
+
+if (process.argv.includes("--ai")) {
+  await evalJs("document.getElementById('menuAI').click()");
+  await sleep(250);
+  await evalJs("document.querySelector('.menuItem[data-level=\"normal\"]').click()");
+  await sleep(400);
+  await evalJs("document.querySelector('.cell[data-c=\"0\"][data-r=\"10\"]').click()");
+  await sleep(120);
+  await evalJs("document.getElementById('confirm').click()");
+  await sleep(250);
+}
+
+if (process.argv.includes("--bank")) {
+  await evalJs(`(() => {
+    const c = window.__danteng.clocks;
+    c.moveLeft = 0;
+    c.inBank = true;
+    c.banks[0] = 150;
+  })()`);
+  await sleep(400);
+}
+
+if (process.argv.includes("--split")) {
+  await evalJs(`(() => {
+    const f = document.getElementById("resultFull");
+    f.hidden = false;
+    document.getElementById("rfLeft").textContent = "你赢了";
+    document.getElementById("rfRight").textContent = "你输了";
+    document.getElementById("rfLeftHalf").classList.add("win");
+    document.getElementById("rfRightHalf").classList.add("lose");
+  })()`);
+  await sleep(300);
+}
 
 const shot = await send("Page.captureScreenshot", { format: "png" });
 writeFileSync(out, Buffer.from(shot.result.data, "base64"));

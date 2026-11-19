@@ -319,6 +319,16 @@
     </div>
   </div>
 
+  <!-- 本地双人结算：全屏左右分栏 -->
+  <div class="resultFull" id="resultFull" hidden>
+    <div class="rfHalf rfLeft" id="rfLeftHalf"><b id="rfLeft">你赢了</b></div>
+    <div class="rfHalf rfRight" id="rfRightHalf"><b id="rfRight">你输了</b></div>
+    <div class="rfActions">
+      <button class="btn primary" id="rfAgain">再来一局</button>
+      <button class="btn ghost" id="rfHome">返回主菜单</button>
+    </div>
+  </div>
+
   <!-- 悔棋确认 -->
   <div class="overlay" id="undoOverlay" hidden>
     <div class="panel">
@@ -337,10 +347,6 @@
     <div class="panel">
       <div class="panelIcon" id="panelIcon">🏁</div>
       <h2 id="panelTitle">对局结束</h2>
-      <div class="resultSplit" id="resultSplit" hidden>
-        <div class="resultSide left"><b id="resLeft">你赢了</b></div>
-        <div class="resultSide right"><b id="resRight">你输了</b></div>
-      </div>
       <p id="panelDesc"></p>
       <div class="panelActions">
         <button class="btn ghost" id="toHome">返回主菜单</button>
