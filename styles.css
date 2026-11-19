@@ -839,3 +839,38 @@ body {
   border-radius: 11px;
   letter-spacing: 0.04em;
 }
+
+
+/* ---------- 开局选项 ---------- */
+.startOpts {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(20, 29, 36, 0.72);
+  text-align: left;
+}
+
+.startOpt {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.startOpt input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--p0);
+  flex: 0 0 auto;
+}
+
+.startOpt.disabled {
+  color: var(--muted);
+  cursor: not-allowed;
+}

@@ -5,7 +5,7 @@
 
 import {
   createState, applyAction, validateAction,
-  legalDirs, stepTarget, distanceOf,
+  legalDirs, stepTarget, distanceOf, autoMove,
 } from "./src/rules.js";
 import { COL_NAMES, COLS, ROWS, wallName } from "./src/board.js";
 import {
@@ -85,6 +85,10 @@ const diceEls = [el("dice0"), el("dice1")];
 const diceNameEls = [el("diceName0"), el("diceName1")];
 const diceDesc = el("diceDesc");
 const diceChoices = el("diceChoices");
+const startOpts = el("startOpts");
+const optUntimed = el("optUntimed");
+const optTimeoutAuto = el("optTimeoutAuto");
+const optAutoRow = el("optAutoRow");
 const undoOverlay = el("undoOverlay");
 const undoDesc = el("undoDesc");
 const undoYes = el("undoYes");
@@ -115,6 +119,8 @@ const S = {
   aiThinking: false,
   preview: null,   // { action, valid, label }
   gameOver: false,
+  untimed: false,          // 本地/人机：不限时，不推进计时
+  timeoutAutoMove: true,   // 超时是否由系统代走（默认开启）
   history: [],     // [{ state, clocks }]
   undoLeft: [3, 3],
   pendingUndo: null,
@@ -387,6 +393,17 @@ function paintClocks() {
   if (!S.clocks || !S.state) return;
   const c = S.clocks;
   const turn = S.state.turn;
+  if (S.untimed) {
+    for (let p = 0; p < 2; p++) {
+      const box = clockEls[p];
+      clkEls[p].textContent = "∞";
+      bankEls[p].textContent = "不限时";
+      box.classList.toggle("active", p === turn && !S.gameOver);
+      box.classList.toggle("p1", p === 1);
+      box.classList.remove("warn", "inbank");
+    }
+    return;
+  }
   for (let p = 0; p < 2; p++) {
     const box = clockEls[p];
     // 大数字统一表示“本步可用时间”：轮到自己时是真实倒计时，否则显示下一步的初始额度
@@ -609,10 +626,19 @@ function maybeAI() {
   }, S.mode === "master" || S.mode === "grandmaster" ? 280 : GAME_CONFIG.aiDelay);
 }
 
-/** 超时：时间耗尽直接判负，不再由系统代走。 */
+/** 超时：按开局选项决定由系统代走，或直接判负。 */
 function onTimeout() {
-  if (S.gameOver || !S.state) return;
+  if (S.gameOver || !S.state || S.untimed) return;
   S.preview = null;
+  if (S.timeoutAutoMove) {
+    const mv = autoMove(S.state);
+    if (!mv) return;
+    const res = applyAction(S.state, mv);
+    if (!res.ok) return;
+    toast("超时，系统代走");
+    advance(res.state, "超时代走");
+    return;
+  }
   S.endReason = "timeout";
   if (S.mode === "online" && S.net) {
     // 超时方是本地玩家；先通知对手，再在本地结算为败。
@@ -789,20 +815,40 @@ function newGame(announce = false) {
   if (announce) toast("已重新开始");
 }
 
+/** 不限时与超时代走的联动。 */
+function syncStartOptionUI() {
+  const untimed = !!optUntimed.checked;
+  optTimeoutAuto.disabled = untimed;
+  optAutoRow.classList.toggle("disabled", untimed);
+}
+
 /** 从主菜单开局。 */
 function startGame(mode) {
   S.pendingMode = mode;
   S.mode = mode;
   S.aiPerson = mode === "local" ? null : 1;
 
+  // 每局开始默认：限时、超时代走开启；联机不提供本局选项。
+  S.untimed = false;
+  S.timeoutAutoMove = true;
+  optUntimed.checked = false;
+  optTimeoutAuto.checked = true;
+  optUntimed.disabled = false;
+  optUntimed.closest("label")?.classList.remove("disabled");
+  optAutoRow.classList.remove("disabled");
+  syncStartOptionUI();
+  startOpts.hidden = mode === "online";
+
   if (NO_DICE) {
     finishDice(0, 0, 0);
     return;
   }
 
+  // 先让玩家确认“不限时/超时代走”，再开始掷骰；否则电脑会自动选边，
+  // 选项还没看清就开局了。
   diceOverlay.hidden = false;
-  renderChoices([]);
-  rollDice();
+  diceDesc.textContent = "选择开局选项，然后开始掷骰";
+  renderChoices([{ label: "开始掷骰", primary: true, onClick: beginDice }]);
 }
 
 function personNames() {
@@ -821,6 +867,16 @@ function renderChoices(items) {
     b.addEventListener("click", it.onClick);
     diceChoices.appendChild(b);
   }
+}
+
+function beginDice() {
+  if (diceOverlay.hidden) return;
+  optUntimed.disabled = true;
+  optTimeoutAuto.disabled = true;
+  optUntimed.closest("label")?.classList.add("disabled");
+  optAutoRow.classList.add("disabled");
+  renderChoices([]);
+  rollDice();
 }
 
 function rollDice() {
@@ -906,6 +962,10 @@ function chooseSide(side) {
  * firstPerson: 先手的人。
  */
 function finishDice(side, sidePicker, firstPerson) {
+  if (S.mode !== "online") {
+    S.untimed = !!optUntimed.checked;
+    S.timeoutAutoMove = !!optTimeoutAuto.checked;
+  }
   const seatOfPerson = [0, 0];
   seatOfPerson[sidePicker] = side;
   seatOfPerson[1 - sidePicker] = 1 - side;
@@ -975,6 +1035,7 @@ function saveSettings() {
   toast("设置已保存，下一局生效");
 }
 
+optUntimed.addEventListener("change", syncStartOptionUI);
 confirmBtn.addEventListener("click", commit);
 cancelBtn.addEventListener("click", clearPreview);
 undoBtn.addEventListener("click", undo);
@@ -1109,6 +1170,7 @@ setInterval(() => {
   const dt = (now - S.lastTs) / 1000;
   S.lastTs = now;
   if (!S.state || !S.clocks || !S.started || S.gameOver || overlaysOpen() || document.hidden) return;
+  if (S.untimed) return;
   if (S.mode === "online" && (S.state.turn !== S.mySeat || !S.net)) return;
   if (dt <= 0) return;
   const r = tickClock(S.clocks, S.state.turn, Math.min(dt, 0.5));
@@ -1324,6 +1386,10 @@ function handleNetEvent(evt) {
 
 function showOnlineDice(evt) {
   diceOverlay.hidden = false;
+  // 联机两端必须使用同一套计时规则；本版联机固定为限时 + 超时代走。
+  startOpts.hidden = true;
+  S.untimed = false;
+  S.timeoutAutoMove = true;
   diceNameEls[0].textContent = "你";
   diceNameEls[1].textContent = "对手";
   diceEls[0].textContent = String(evt.mine);
@@ -1389,7 +1455,10 @@ function endOnlineGame(winnerSeat) {
 
 function startOnlineGame(firstSeat) {
   diceOverlay.hidden = true;
+  startOpts.hidden = true;
   renderChoices([]);
+  S.untimed = false;
+  S.timeoutAutoMove = true;
   S.firstSeat = firstSeat;
   S.mySeat = S.net.session.mySeat;
   newGame();

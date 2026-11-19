@@ -254,9 +254,10 @@ try {
   const c1 = Number(await evaluate(`document.getElementById('clk${cur}').textContent`));
   check("计时器在倒数", c1 < c0, `${c0} → ${c1}`);
 
-  // 10. 超时判负：把当前方本步与时间库清零，等待结算
+  // 10. 默认开启超时代走：把当前方本步与时间库清零，等待自动走子
   const pliesBefore = await state("s.plies");
   const turnBefore2 = await state("s.turn");
+  check("默认开启超时代走", (await state("s.timeoutAutoMove")) === true);
   await evaluate(`(() => {
     const g = window.__danteng;
     const t = g.state.turn;
@@ -265,9 +266,46 @@ try {
     g.lastTs = performance.now();
   })()`);
   await sleep(900);
-  check("超时后不再自动走子", (await state("s.plies")) === pliesBefore);
-  check("超时方判负", (await state("s.state.winner")) === 1 - turnBefore2);
-  check("超时后游戏结束", (await state("s.gameOver")) === true);
+  check("超时后系统自动走了一步", (await state("s.plies")) === pliesBefore + 1);
+  check("超时后切换到对方回合", (await state("s.turn")) === 1 - turnBefore2);
+
+  // 10b. 关闭超时代走后，超时判负
+  await click("#homeBtn", "菜单");
+  await sleep(250);
+  await click("#menuLocal", "玩家对战");
+  await sleep(200);
+  const pliesBefore2 = await state("s.plies");
+  const turnBefore3 = await state("s.turn");
+  await evaluate(`(() => {
+    const g = window.__danteng;
+    g.timeoutAutoMove = false;
+    const t = g.state.turn;
+    g.clocks.moveLeft = 0.2;
+    g.clocks.banks[t] = 0;
+    g.lastTs = performance.now();
+  })()`);
+  await sleep(900);
+  check("关闭后超时不再自动走子", (await state("s.plies")) === pliesBefore2);
+  check("关闭后超时方判负", (await state("s.state.winner")) === 1 - turnBefore3);
+  check("关闭后超时游戏结束", (await state("s.gameOver")) === true);
+
+  // 10c. 不限时：计时不再推进，超时也不结算
+  await click("#toHome", "返回主菜单");
+  await sleep(250);
+  await click("#menuLocal", "玩家对战");
+  await sleep(200);
+  const pliesBefore3 = await state("s.plies");
+  await evaluate(`(() => {
+    const g = window.__danteng;
+    g.untimed = true;
+    const t = g.state.turn;
+    g.clocks.moveLeft = 0.2;
+    g.clocks.banks[t] = 0;
+    g.lastTs = performance.now();
+  })()`);
+  await sleep(900);
+  check("不限时后超时也不走子", (await state("s.plies")) === pliesBefore3);
+  check("不限时后游戏不会结束", (await state("s.gameOver")) === false);
 
   // 11. 人机：从主菜单进入“人机 · 普通”
   await click("#homeBtn", "菜单");
