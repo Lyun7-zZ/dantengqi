@@ -20,6 +20,10 @@ import {
 import {
   rollDice, resolveChoice, createGame, applyMove, tickGame, gameSnapshot,
 } from "./game.js";
+import {
+  createAsyncGame, submitAction, fillTimeout, resolveRoundIfReady,
+  tickGame as tickAsyncGame, snapshot as asyncSnapshot, toWireState,
+} from "./async-game.js";
 
 const root = dirname(fileURLToPath(import.meta.url));
 const DEFAULT_PUBLIC = join(root, "..", "dist");
@@ -144,6 +148,35 @@ export function startServer({
       if (room.phase !== "playing" || !room.game) continue;
       const dt = Math.min(0.5, (now - (room.lastTick || now)) / 1000);
       room.lastTick = now;
+
+      if (room.mode === "async") {
+        const ta = tickAsyncGame(room.game, dt);
+        if (!ta.timedOut) continue;
+        fillTimeout(room.game, 0);
+        fillTimeout(room.game, 1);
+        const round = resolveRoundIfReady(room.game);
+        if (!round.ok) continue;
+        recordHistory(room);
+        broadcastRoom(room, {
+          t: "round",
+          actions: round.actions,
+          events: round.events,
+          state: toWireState(round.state),
+          hash: round.hash,
+          reason: "timeout",
+        });
+        broadcastRoom(room, clockMsg(room));
+        if (round.state.winner !== null) {
+          finishRoom(room, {
+            t: "result",
+            winner: round.state.winner,
+            reason: round.state.winner === "draw" ? "draw" : "timeout",
+            plies: round.state.plies,
+          });
+        }
+        continue;
+      }
+
       const r = tickGame(room.game, dt);
       if (r.event) {
         recordHistory(room);
@@ -180,7 +213,7 @@ export function startServer({
     const g = room.game;
     return {
       t: "clock",
-      side: g.state.turn,
+      side: g.state.turn ?? -1,
       ply: g.state.plies,
       perMove: g.clocks.perMove,
       bank: g.clocks.bank,
@@ -201,6 +234,11 @@ export function startServer({
 
   function recordHistory(room) {
     if (!room.history) room.history = [];
+    if (room.mode === "async") {
+      room.history.push(asyncSnapshot(room.game));
+      if (room.history.length > 400) room.history.shift();
+      return;
+    }
     room.history.push({
       state: room.game.state,
       clocks: { banks: room.game.clocks.banks.slice(), moveLeft: room.game.clocks.moveLeft, inBank: room.game.clocks.inBank },
@@ -236,6 +274,28 @@ export function startServer({
   }
 
   function startPlay(room, { sides, firstSeat }) {
+    if (room.mode === "async") {
+      room.sides = sides;
+      room.firstSeat = firstSeat;
+      room.game = createAsyncGame({ firstSide: sides[firstSeat], perMove, bank });
+      room.phase = "playing";
+      room.lastTick = Date.now();
+      room.updatedAt = Date.now();
+      room.undoLeft = [3, 3];
+      room.pendingUndo = null;
+      room.pendingRematch = null;
+      room.history = [asyncSnapshot(room.game)];
+      room.result = null;
+      clearTimeout(room.disconnectTimer);
+      room.disconnectTimer = null;
+      const snap = asyncSnapshot(room.game);
+      snap.sides = sides;
+      snap.firstSeat = firstSeat;
+      broadcastRoom(room, snap);
+      broadcastRoom(room, clockMsg(room));
+      log(`房间 ${room.code} 异步开局`);
+      return;
+    }
     room.sides = sides;
     room.firstSeat = firstSeat;
     room.game = createGame({ firstSide: sides[firstSeat], perMove, bank });
@@ -315,6 +375,34 @@ export function startServer({
       ws.send(errorMessage(ERR.NOT_YOUR_TURN));
       return;
     }
+
+    if (room.mode === "async") {
+      const r = submitAction(room.game, side, msg.action);
+      if (!r.ok) { ws.send(errorMessage(r.error, r.reason || "")); return; }
+      broadcastRoom(room, { t: "submitted", seat: conn.seat });
+      if (!r.ready) return;
+      const round = resolveRoundIfReady(room.game);
+      if (!round.ok) { ws.send(errorMessage(round.error || "resolve-failed")); return; }
+      recordHistory(room);
+      broadcastRoom(room, {
+        t: "round",
+        actions: round.actions,
+        events: round.events,
+        state: toWireState(round.state),
+        hash: round.hash,
+      });
+      broadcastRoom(room, clockMsg(room));
+      if (round.state.winner !== null) {
+        finishRoom(room, {
+          t: "result",
+          winner: round.state.winner,
+          reason: round.state.winner === "draw" ? "draw" : "exit",
+          plies: round.state.plies,
+        });
+      }
+      return;
+    }
+
     const r = applyMove(room.game, side, msg.action);
     if (!r.ok) {
       ws.send(errorMessage(r.error, r.reason || ""));
@@ -521,7 +609,9 @@ export function startServer({
           sendJson(ws, r.room.result);
         }
         if (r.room.phase === "playing" && r.room.game) {
-          const snap = gameSnapshot(r.room.game);
+          const snap = r.room.mode === "async"
+            ? asyncSnapshot(r.room.game)
+            : gameSnapshot(r.room.game);
           snap.sides = r.room.sides;
           snap.firstSeat = r.room.firstSeat;
           sendJson(ws, snap);
@@ -541,6 +631,7 @@ export function startServer({
     if (msg.t === "create") {
       if (conn.room) { ws.send(errorMessage(ERR.BAD_MESSAGE, "already in room")); return; }
       const room = rooms.create(conn);
+      room.mode = msg.mode === "async" ? "async" : "turn";
       sendJson(ws, {
         t: "welcome", room: room.code, seat: conn.seat, token: conn.token,
         protocol: PROTOCOL_VERSION, rules: RULES_VERSION, host: true,

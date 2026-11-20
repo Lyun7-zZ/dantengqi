@@ -48,7 +48,8 @@ export async function serveStatic(req, res, root) {
     return;
   }
 
-  const url = req.url || "/";
+  // 去掉查询串：/?play=async 也要按根路径处理
+  const url = (req.url || "/").split("?")[0] || "/";
   if (url === "/health") {
     res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
     res.end(JSON.stringify({ ok: true }));

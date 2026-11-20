@@ -14,13 +14,10 @@ import {
 } from "./src/clock.js";
 import { GAME_CONFIG } from "./src/config.js";
 import { AI } from "./src/ai-async.js";
-import { Session } from "./src/net/session-async.js";
-import { createPeerHost, joinPeerRoom, reconnectPeerRoom } from "./src/net/peer.js";
-import { createManualOffer, answerManualOffer } from "./src/net/manual.js";
+import { WsClient, PROTOCOL_VERSION, RULES_VERSION } from "./src/net/ws-client.js";
 import {
   loadSlots, saveSlot, deleteSlot, defaultSlotName, slotFileName, MAX_SLOTS,
 } from "./src/storage.js";
-import { makeRoomCode, normalizeRoomCode, configHash } from "./src/net/protocol-async.js";
 
 const CELL_W = 10;          // 每列宽度（%）
 const CELL_H = 100 / ROWS;  // 每行高度（%）
@@ -56,6 +53,17 @@ const settingsSave = el("settingsSave");
 const settingsCancel = el("settingsCancel");
 const toHomeBtn = el("toHome");
 const resignBtn = el("resign");
+const boardWrap = el("boardWrap");
+const pauseBtn = el("pause");
+const pauseOverlay = el("pauseOverlay");
+const pauseDesc = el("pauseDesc");
+const pauseMainActions = el("pauseMainActions");
+const pauseAnswer = el("pauseAnswer");
+const pauseResumeBtn = el("pauseResume");
+const pauseSaveBtn = el("pauseSave");
+const pauseExitBtn = el("pauseExit");
+const pauseAcceptBtn = el("pauseAccept");
+const pauseDeclineBtn = el("pauseDecline");
 const dropOverlay = el("dropOverlay");
 const dropCount = el("dropCount");
 const dropEnd = el("dropEnd");
@@ -72,16 +80,6 @@ const roomInput = el("roomInput");
 const roomCodeEl = el("roomCode");
 const netStatusEl = el("netStatus");
 const netHintEl = el("netHint");
-const netManual = el("netManual");
-const manualHost = el("manualHost");
-const manualGuest = el("manualGuest");
-const manualOfferOut = el("manualOfferOut");
-const manualAnswerIn = el("manualAnswerIn");
-const manualOfferIn = el("manualOfferIn");
-const manualAnswerOut = el("manualAnswerOut");
-const manualHint = el("manualHint");
-const copyOffer = el("copyOffer");
-const copyAnswer = el("copyAnswer");
 const diceOverlay = el("diceOverlay");
 const diceEls = [el("dice0"), el("dice1")];
 const diceNameEls = [el("diceName0"), el("diceName1")];
@@ -127,7 +125,7 @@ const S = {
   undoOverlayOpen: false,
   toastTimer: null,
   lastTs: 0,
-  net: null,        // { session, role, code }
+  paused: false,    // 暂停中（封盘）
   mySeat: null,
   inputSeat: 0,
   locked: [null, null],
@@ -374,7 +372,7 @@ function paint() {
   if (storeBtn) storeBtn.disabled = S.gameOver || !!S.locked[seat] || st.bank[seat] !== 0;
   undoBtn.textContent = `悔棋 ${S.undoLeft[seat]}`;
   undoBtn.disabled = S.gameOver || !!S.locked[seat]
-    || (S.mode === "online" && (seat !== S.mySeat || !S.net))
+    || (S.mode === "online" && (seat !== S.mySeat || !NET.client))
     || S.undoLeft[seat] <= 0 || S.history.length < 2;
   resignBtn.hidden = !S.started || S.gameOver;
   paintClocks();
@@ -407,7 +405,7 @@ function paintClocks() {
   // 对方正在行动 / 电脑正在思考
   let hint = "";
   if (S.started && !S.gameOver) {
-    if (S.mode === "online" && S.net) {
+    if (S.mode === "online") {
       if (!S.locked[S.mySeat]) hint = "对方正在操作…";
     } else if (S.aiSeat !== null && !S.locked[S.aiSeat]) {
       hint = "电脑正在思考…";
@@ -588,18 +586,13 @@ function commit() {
   const action = S.preview.action;
 
   if (S.mode === "online") {
-    if (!S.net || seat !== S.mySeat) {
+    if (!NET.client || seat !== S.mySeat) {
       toast("还不能操作", true);
       return;
     }
     S.locked[seat] = action;
     S.preview = null;
-    const elapsed = Math.round(performance.now() - S.turnStartedAt);
-    const res = S.net.session.localAction(action, elapsed);
-    if (!res.ok) {
-      S.locked[seat] = null;
-      toast("非法操作：" + res.error, true);
-    }
+    NET.client.send({ t: "action", ply: S.state.plies, action });
     paint();
     return;
   }
@@ -981,7 +974,9 @@ storeBtn.addEventListener("click", () => {
 undoYes.addEventListener("click", () => {
   if (S.mode === "online") {
     undoOverlay.hidden = true;
-    S.net.session.answerUndo(true);
+    const op = S.prompt === "rematch" ? "rematch" : S.prompt === "pause" ? "pause" : "undo";
+    NET.client?.send({ t: op, op: "accept" });
+    S.prompt = null;
     return;
   }
   finishUndo(true);
@@ -989,7 +984,9 @@ undoYes.addEventListener("click", () => {
 undoNo.addEventListener("click", () => {
   if (S.mode === "online") {
     undoOverlay.hidden = true;
-    S.net.session.answerUndo(false);
+    const op = S.prompt === "rematch" ? "rematch" : S.prompt === "pause" ? "pause" : "undo";
+    NET.client?.send({ t: op, op: "decline" });
+    S.prompt = null;
     return;
   }
   finishUndo(false);
@@ -1012,25 +1009,6 @@ el("menuNet").addEventListener("click", () => { homeOverlay.hidden = true; openN
 el("netBack").addEventListener("click", () => { netOverlay.hidden = true; homeOverlay.hidden = false; });
 el("netCreate").addEventListener("click", createRoom);
 el("netJoinBtn").addEventListener("click", () => { netMain.hidden = true; netJoin.hidden = false; roomInput.focus(); });
-el("netManualBtn").addEventListener("click", showManualPanel);
-el("manualHostBtn").addEventListener("click", manualBecomeHost);
-el("manualGuestBtn").addEventListener("click", () => { manualGuest.hidden = false; manualHost.hidden = true; });
-el("manualFinish").addEventListener("click", manualFinishHost);
-el("manualMakeAnswer").addEventListener("click", manualMakeAnswer);
-el("manualBack").addEventListener("click", () => { netManual.hidden = true; netMain.hidden = false; });
-copyOffer.addEventListener("click", () => {
-  navigator.clipboard?.writeText(manualOfferOut.value).then(
-    () => toast("邀请码已复制"),
-    () => toast("复制失败，请手动选中复制", true),
-  );
-});
-copyAnswer.addEventListener("click", () => {
-  navigator.clipboard?.writeText(manualAnswerOut.value).then(
-    () => toast("应答码已复制"),
-    () => toast("复制失败，请手动选中复制", true),
-  );
-});
-el("joinBack").addEventListener("click", () => { netJoin.hidden = true; netMain.hidden = false; });
 el("joinGo").addEventListener("click", joinRoom);
 el("copyRoom").addEventListener("click", copyRoomLink);
 el("cancelRoom").addEventListener("click", () => { stopNet(); netOverlay.hidden = true; homeOverlay.hidden = false; });
@@ -1059,6 +1037,49 @@ restartBtn.addEventListener("click", () => {
   ensureAILock();
   S.lastTs = performance.now();
 });
+pauseBtn.addEventListener("click", () => {
+  if (!S.started || S.gameOver || S.paused) return;
+  if (S.mode === "online") {
+    NET.client?.send({ t: "pause", op: "request" });
+    toast("已请求暂停，等待对方同意");
+    return;
+  }
+  beginPause();
+});
+
+pauseResumeBtn.addEventListener("click", () => {
+  if (S.mode === "online") {
+    NET.client?.send({ t: "pause", op: "resume" });
+    pauseDesc.textContent = "已请求继续，等待对方同意…";
+    return;
+  }
+  endPause();
+});
+
+pauseSaveBtn.addEventListener("click", savePausedGame);
+
+pauseExitBtn.addEventListener("click", () => {
+  if (!window.confirm("退出后本局结束，确定？")) return;
+  if (S.mode === "online") {
+    NET.client?.send({ t: "resign" });
+    setTimeout(() => { stopNet(); goHome(); }, 300);
+    return;
+  }
+  goHome();
+});
+
+pauseAcceptBtn.addEventListener("click", () => {
+  NET.client?.send({ t: "pause", op: "resume-accept" });
+  pauseAnswer.hidden = true;
+});
+
+pauseDeclineBtn.addEventListener("click", () => {
+  NET.client?.send({ t: "pause", op: "resume-decline" });
+  pauseAnswer.hidden = true;
+  pauseMainActions.hidden = false;
+  pauseDesc.textContent = "已拒绝对方继续，对局保持暂停。";
+});
+
 let resignArmedAt = 0;
 resignBtn.addEventListener("click", () => {
   if (!S.started || S.gameOver) return;
@@ -1119,16 +1140,65 @@ setInterval(() => {
 }, 100);
 
 
-/* ---------------------------------------------------------------- 联机 */
+/* ---------------------------------------------------------------- 联机（服务器） */
 
-let netCode = "";
+const RECONNECT_KEY = "danteng.reconnect.async";
 
-const NET_STATUS = {
-  signaling: "正在连接信令服务器…",
-  waiting: "等待对手加入…",
-  dialing: "正在连接对手…",
-  connected: "已连接，正在握手…",
+const NET = {
+  client: null,
+  room: null,
+  seat: null,
+  token: null,
+  reconnecting: false,
 };
+
+function wsEndpoint() {
+  const q = new URLSearchParams(location.search).get("server");
+  if (q) return q;
+  if (!location.host) return "ws://127.0.0.1:6657/ws";
+  return (location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ws";
+}
+
+function loadReconnect() {
+  try { return JSON.parse(sessionStorage.getItem(RECONNECT_KEY) || "null"); } catch { return null; }
+}
+function saveReconnect(v) {
+  try { sessionStorage.setItem(RECONNECT_KEY, JSON.stringify(v)); } catch { /* ignore */ }
+}
+function clearReconnect() {
+  try { sessionStorage.removeItem(RECONNECT_KEY); } catch { /* ignore */ }
+}
+
+function setNetStatus(text) { netStatusEl.textContent = text; }
+
+async function ensureSocket() {
+  if (NET.client && NET.client.isOpen) return NET.client;
+  const saved = loadReconnect();
+  const client = new WsClient({
+    url: wsEndpoint(),
+    onMessage: handleServerMessage,
+    onOpen: () => {
+      client.send({
+        t: "hello",
+        version: PROTOCOL_VERSION,
+        rules: RULES_VERSION,
+        ...(saved ? { room: saved.room, token: saved.token } : {}),
+      });
+    },
+    onClose: () => {
+      if (!NET.room || NET.reconnecting) return;
+      NET.reconnecting = true;
+      setNetStatus("连接断开，正在重连…");
+      setTimeout(async () => {
+        NET.reconnecting = false;
+        try { await ensureSocket(); } catch { setNetStatus("重连失败，请重新创建房间"); }
+      }, 1200);
+    },
+  });
+  NET.client = client;
+  await client.connect();
+  return client;
+}
 
 function openNet() {
   netOverlay.hidden = false;
@@ -1139,180 +1209,171 @@ function openNet() {
 }
 
 function stopNet() {
-  if (S.net?.session) {
-    try { S.net.session.close("local"); } catch { /* ignore */ }
-  }
-  S.net = null;
+  if (NET.client) { try { NET.client.close(); } catch { /* ignore */ } }
+  NET.client = null;
+  NET.room = null;
+  NET.seat = null;
+  NET.token = null;
+  NET.reconnecting = false;
+  clearReconnect();
   S.mySeat = null;
   if (S.mode === "online") S.mode = "local";
 }
 
 async function createRoom() {
-  const code = makeRoomCode();
-  netCode = code;
   netMain.hidden = true;
   netJoin.hidden = true;
   netRoom.hidden = false;
-  roomCodeEl.textContent = code;
-  netStatusEl.textContent = NET_STATUS.signaling;
-  netHintEl.textContent = "把房间码发给对方，或复制链接";
-
+  roomCodeEl.textContent = "------";
+  setNetStatus("正在连接服务器…");
   try {
-    const transport = await createPeerHost(code, {
-      onStatus: (st) => { netStatusEl.textContent = NET_STATUS[st] ?? st; },
-    });
-    attachSession(transport, "host", code);
+    const c = await ensureSocket();
+    c.send({ t: "create", mode: "async" });
   } catch (e) {
-    netStatusEl.textContent = "创建失败：" + e.message;
-    toast(e.message, true);
+    setNetStatus("连不上服务器：" + e.message);
+    toast("连不上服务器", true);
   }
 }
 
 async function joinRoom() {
-  const code = normalizeRoomCode(roomInput.value);
-  if (code.length !== 6) {
-    toast("房间码是 6 位", true);
-    return;
-  }
-  netCode = code;
+  const code = String(roomInput.value || "").trim().toUpperCase().replace(/[^A-Z2-9]/g, "").slice(0, 6);
+  if (code.length !== 6) { toast("房间码是 6 位", true); return; }
   netMain.hidden = true;
   netJoin.hidden = true;
   netRoom.hidden = false;
   roomCodeEl.textContent = code;
-  netStatusEl.textContent = NET_STATUS.signaling;
-
+  setNetStatus("正在连接服务器…");
   try {
-    const transport = await joinPeerRoom(code, {
-      onStatus: (st) => { netStatusEl.textContent = NET_STATUS[st] ?? st; },
-    });
-    attachSession(transport, "guest", code);
+    const c = await ensureSocket();
+    c.send({ t: "join", room: code });
   } catch (e) {
-    netStatusEl.textContent = "连接失败：" + e.message;
-    toast(e.message, true);
+    setNetStatus("连不上服务器：" + e.message);
+    toast("连不上服务器", true);
   }
 }
 
-function attachSession(transport, role, code) {
-  const cfg = { perMove: S.settings.perMove, bank: S.settings.bank };
-  const session = new Session({
-    transport,
-    role,
-    config: { ...cfg, configHash: configHash(cfg) },
-    getState: () => S.state,
-    validate: (state, seat, action) => validateAction(state, seat, action),
-    resolve: (actions) => {
-      const res = resolveRound(S.state, actions);
-      if (!res.ok) return res;
-      finishRound(actions, res.state, res.events);
-      return res;
-    },
-    onEvent: handleNetEvent,
-  });
-  S.net = { session, role, code, hostTransport: role === "host" ? transport : null };
-  netStatusEl.textContent = role === "guest" ? "等待对方完成连接…" : "正在建立通道…";
-
-  const enterRoom = () => {
-    if (netRoom.hidden) {
-      netManual.hidden = true;
+function handleServerMessage(msg) {
+  switch (msg.t) {
+    case "welcome": {
+      if (!msg.room) { setNetStatus("已连接服务器"); return; }
+      NET.room = msg.room;
+      NET.seat = msg.seat;
+      NET.token = msg.token;
+      saveReconnect({ room: msg.room, token: msg.token });
+      roomCodeEl.textContent = msg.room;
+      netMain.hidden = true;
+      netJoin.hidden = true;
       netRoom.hidden = false;
-      roomCodeEl.textContent = code || "手动";
-    }
-  };
-  session.onTransportOpen = () => {
-    enterRoom();
-    netStatusEl.textContent = "通道已建立，正在握手…";
-  };
-  if (transport.state === "open") enterRoom();
-  clearTimeout(S.handshakeTimer);
-  S.handshakeTimer = setTimeout(() => {
-    if (S.net?.session !== session) return;
-    if (session.phase === "handshake" || session.phase === "idle") {
-      toast("握手超时：请确认对方已粘贴应答码并点击完成", true);
-      netStatusEl.textContent = "握手超时，请重试或改用房间码";
-    }
-  }, 25000);
-  session.setSnapshotProvider(() => ({
-    firstSeat: S.firstSeat,
-    plies: S.state.plies,
-    actions: S.history.slice(1).map((h) => h.actions).filter(Boolean),
-    clocks: { banks: S.clocks.banks.slice(), moveLeft: S.clocks.moveLeft },
-    undoLeft: S.undoLeft.slice(),
-  }));
-  session.start();
-}
-
-function handleNetEvent(evt) {
-  switch (evt.type) {
-    case "ready":
-      clearTimeout(S.handshakeTimer);
-      netStatusEl.textContent = "对手已就位，开始掷骰";
+      setNetStatus(msg.resumed ? "已恢复对局" : "等待对手加入…");
       return;
+    }
+    case "room": {
+      if (msg.phase === "closed") {
+        toast("房主已离开，房间关闭", true);
+        netOverlay.hidden = true;
+        stopNet();
+        goHome();
+        return;
+      }
+      if (msg.phase === "waiting") setNetStatus("等待对手加入…");
+      if (msg.phase === "ready") setNetStatus("对手已就位，准备掷骰");
+      if (msg.phase === "paused") toast("对方掉线，等待重连（90 秒）", true);
+      return;
+    }
     case "dice":
-      showOnlineDice(evt);
+      showServerDice(msg);
       return;
-    case "priority":
-      showOnlinePriority(evt);
+    case "state":
+      if (S.started && S.mode === "online") {
+        S.state = msg.state;
+        S.locked = [null, null];
+        S.preview = null;
+        if (msg.clocks) {
+          clockRestore(S.clocks, {
+            banks: msg.clocks.banks,
+            moveLeft: msg.clocks.moveLeft,
+            inBank: msg.clocks.inBank,
+          });
+        }
+        S.lastTs = performance.now();
+        paint();
+        return;
+      }
+      startOnlineGame(msg);
       return;
-    case "start":
-      startOnlineGame(evt.firstSeat);
+    case "round":
+      applyRound(msg);
       return;
-    case "resolved":
+    case "submitted":
+      setNetStatus(msg.seat === NET.seat ? "已提交，等待对方…" : "对方已提交，轮到你了");
       return;
-    case "undoReq":
-      undoDesc.textContent = "对方请求悔棋，是否同意？";
-      undoOverlay.hidden = false;
+    case "clock":
+      if (S.clocks) {
+        clockRestore(S.clocks, { banks: msg.banks, moveLeft: msg.moveLeft, inBank: msg.inBank });
+        paintClocks();
+      }
       return;
-    case "undoRes":
-      if (evt.accept) {
-        toast("对方同意悔棋");
-      } else {
-        clearTimeout(S.undoTimer);
+    case "pause": {
+      if (msg.op === "request") {
+        S.prompt = "pause";
+        undoDesc.textContent = "对方请求暂停，是否同意？";
+        undoOverlay.hidden = false;
+      } else if (msg.op === "paused") {
+        beginPause();
+      } else if (msg.op === "declined") {
+        toast("对方拒绝了暂停", true);
+      } else if (msg.op === "resume-request") {
+        if (msg.seat === NET.seat) {
+          pauseDesc.textContent = "已请求继续，等待对方同意…";
+        } else {
+          pauseAnswer.hidden = false;
+          pauseMainActions.hidden = true;
+          pauseDesc.textContent = "对方请求继续对局，是否同意？";
+        }
+      } else if (msg.op === "resumed") {
+        endPause();
+        toast("对局继续");
+      } else if (msg.op === "resume-declined") {
+        pauseDesc.textContent = "对方拒绝了继续，对局保持暂停。";
+        pauseMainActions.hidden = false;
+      }
+      return;
+    }
+    case "undo": {
+      if (msg.op === "request") {
+        S.prompt = "undo";
+        undoDesc.textContent = "对方请求悔棋，是否同意？";
+        undoOverlay.hidden = false;
+      } else if (msg.op === "done") {
+        toast("悔棋完成");
+      } else if (msg.op === "declined") {
         toast("对方拒绝了悔棋", true);
+      } else if (msg.op === "expired") {
+        toast("悔棋请求已超时", true);
       }
       return;
-    case "undoDo":
-      clearTimeout(S.undoTimer);
-      rollbackOnline();
-      return;
-    case "snapshot":
-      lastSnapshot = evt.snapshot;
-      return;
-    case "resuming":
-      netStatusEl.textContent = "正在恢复对局…";
-      return;
-    case "resumed":
-      onResumed();
-      return;
-    case "resign":
-      endOnlineGame(S.mySeat);
-      return;
-    case "rematchReq":
-      if (window.confirm("对方请求再来一局，是否同意？")) {
-        S.net.session.answerRematch(true);
-      } else {
-        S.net.session.answerRematch(false);
+    }
+    case "rematch": {
+      if (msg.op === "request") {
+        S.prompt = "rematch";
+        undoDesc.textContent = "对方请求再来一局，是否同意？";
+        undoOverlay.hidden = false;
+      } else if (msg.op === "accepted") {
+        toast("对方同意再来一局");
+      } else if (msg.op === "declined") {
+        toast("对方拒绝了再来一局", true);
       }
       return;
-    case "rematchRes":
-      if (!evt.accept) toast("对方拒绝了再来一局", true);
-      return;
-    case "rematch":
-      overlay.hidden = true;
-      return;
-    case "offline":
-      toast("对手连接断开，正在尝试重连…", true);
-      tryReconnect();
-      return;
-    case "timeout":
-      toast("对手无响应", true);
-      tryReconnect();
+    }
+    case "result":
+      endOnlineGame(msg);
       return;
     case "error":
-      if (String(evt.code).startsWith("handshake")) {
-        netStatusEl.textContent = "规则或参数不一致，请确认双方版本与设置相同";
-        toast("握手失败：" + evt.code, true);
-      } else {
-        toast("联机错误：" + (evt.code ?? "unknown"), true);
+      toast("服务器：" + msg.code + (msg.message ? " " + msg.message : ""), true);
+      // 提交失败时把锁定解开，允许重选
+      if (msg.code === "illegal-action" || msg.code === "already-submitted") {
+        S.locked = [null, null];
+        paint();
       }
       return;
     default:
@@ -1320,154 +1381,126 @@ function handleNetEvent(evt) {
   }
 }
 
-function showOnlineDice(evt) {
+function showServerDice(msg) {
   diceOverlay.hidden = false;
-  diceNameEls[0].textContent = "你";
-  diceNameEls[1].textContent = "对手";
-  diceEls[0].textContent = String(evt.mine);
-  diceEls[1].textContent = String(evt.theirs);
-  diceEls[0].classList.toggle("win", evt.iWin);
-  diceEls[1].classList.toggle("win", !evt.iWin);
-
-  if (evt.iAmChooser) {
-    diceDesc.textContent = "你的点数更大：选择先手，或选择执子方向";
-    renderChoices([
-      { label: "我要先手", priority: "first", primary: true, onClick: () => S.net.session.choosePriority("first") },
-      { label: "我要选边", priority: "side", onClick: () => S.net.session.choosePriority("side") },
-    ]);
-  } else {
-    diceDesc.textContent = "对手点数更大，等待对方选择…";
-    renderChoices([]);
+  homeOverlay.hidden = true;
+  if (Array.isArray(msg.pts)) {
+    const iAmZero = NET.seat === 0;
+    diceNameEls[0].textContent = iAmZero ? "你" : "对方";
+    diceNameEls[1].textContent = iAmZero ? "对方" : "你";
+    diceEls[0].textContent = String(msg.pts[0]);
+    diceEls[1].textContent = String(msg.pts[1]);
+    diceEls[msg.chooser].classList.add("win");
+    diceEls[1 - msg.chooser].classList.remove("win");
+  }
+  if (msg.stage === "priority") {
+    const mine = msg.chooser === NET.seat;
+    diceSub.textContent = mine ? "点数大，你先选" : "对方正在选择…";
+    renderChoices(mine
+      ? [
+        { label: "我要先手", primary: true, priority: "first", onClick: () => NET.client.send({ t: "choice", priority: "first" }) },
+        { label: "我要选边", priority: "side", onClick: () => NET.client.send({ t: "choice", priority: "side", side: 0 }) },
+      ]
+      : []);
+    return;
+  }
+  if (msg.stage === "side") {
+    const mine = msg.picker === NET.seat;
+    diceSub.textContent = mine ? "请选择你执哪一边" : "对方正在选择执边…";
+    renderChoices(mine
+      ? [
+        { label: "执左（A-12）", primary: true, side: 0, onClick: () => NET.client.send({ t: "choice", side: 0 }) },
+        { label: "执右（J-12）", side: 1, onClick: () => NET.client.send({ t: "choice", side: 1 }) },
+      ]
+      : []);
   }
 }
 
-function showOnlinePriority(evt) {
-  const session = S.net.session;
-  if (evt.sideActor === session.me) {
-    diceDesc.textContent = "请选择执子方向";
-    renderChoices([
-      { label: "执左（A-12）", side: 0, primary: true, onClick: () => session.chooseSide(0) },
-      { label: "执右（J-12）", side: 1, onClick: () => session.chooseSide(1) },
-    ]);
-  } else {
-    diceDesc.textContent = "等待对方选择执子方向…";
-    renderChoices([]);
-  }
-}
-
-
-function rollbackOnline() {
-  if (S.history.length < 2) return;
-  S.history.pop();
-  const snap = S.history[S.history.length - 1];
-  S.state = snap.state;
-  clockRestore(S.clocks, snap.clocks);
-  S.preview = null;
-  S.turnStartedAt = performance.now();
-  S.lastTs = performance.now();
-  paint();
-  toast("已撤销上一手");
-}
-
-function endLocalGame(winnerSeat) {
-  S.state.winner = winnerSeat;
-  S.gameOver = true;
-  S.aiThinking = false;
-  paint();
-  setTimeout(showResult, 320);
-}
-
-function endOnlineGame(winnerSeat) {
-  S.state.winner = winnerSeat;
-  S.gameOver = true;
-  S.aiThinking = false;
-  paint();
-  setTimeout(showResult, 320);
-}
-
-function startOnlineGame(firstSeat) {
-  diceOverlay.hidden = true;
-  renderChoices([]);
-  S.firstSeat = firstSeat;
-  S.mySeat = S.net.session.mySeat;
-  newGame();
+function startOnlineGame(snap) {
   S.mode = "online";
-  S.aiSeat = null;
-  S.mySeat = S.net.session.mySeat;
   S.started = true;
-  S.turnStartedAt = performance.now();
+  S.gameOver = false;
+  S.paused = false;
+  S.aiSeat = null;
+  S.state = snap.state;
+  S.clocks = createClock({ perMove: snap.clocks.perMove, bank: snap.clocks.bank });
+  clockRestore(S.clocks, { banks: snap.clocks.banks, moveLeft: snap.clocks.moveLeft, inBank: snap.clocks.inBank });
+  S.mySeat = snap.sides[NET.seat];
+  S.locked = [null, null];
+  S.inputSeat = S.mySeat;
+  S.history = [{ state: S.state, clocks: clockSnapshot(S.clocks) }];
+  S.preview = null;
   S.lastTs = performance.now();
+  diceOverlay.hidden = true;
   netOverlay.hidden = true;
   homeOverlay.hidden = true;
+  overlay.hidden = true;
+  boardWrap.hidden = false;
   paint();
-  toast(S.mySeat === firstSeat ? "你先手" : "对手先手");
+  toast("对局开始，双方同时行动");
 }
 
-
-let manualCtx = null;
-
-function showManualPanel() {
-  netMain.hidden = true;
-  netJoin.hidden = true;
-  netRoom.hidden = true;
-  netManual.hidden = false;
-  manualHost.hidden = true;
-  manualGuest.hidden = true;
-  manualCtx = null;
-}
-
-async function manualBecomeHost() {
-  manualHost.hidden = false;
-  manualGuest.hidden = true;
-  manualOfferOut.value = "正在生成邀请码…";
-  try {
-    const offer = await createManualOffer({
-      onStatus: (st) => { if (st === "gathering") manualOfferOut.value = "正在收集网络候选…"; },
-    });
-    manualCtx = offer;
-    manualOfferOut.value = offer.code;
-    manualOfferOut.select();
-    copyOffer.hidden = false;
-    manualHint.textContent = "把邀请码发给对方；对方发回应答码后，粘贴到下面并点「完成连接」";
-    toast("把邀请码发给对方");
-  } catch (e) {
-    manualOfferOut.value = "生成失败：" + e.message;
+function applyRound(msg) {
+  if (!S.state) return;
+  S.state = msg.state;
+  S.locked = [null, null];
+  S.preview = null;
+  S.inputSeat = S.mySeat;
+  S.history.push({ state: S.state, clocks: clockSnapshot(S.clocks), actions: msg.actions });
+  S.lastTs = performance.now();
+  if (msg.reason === "timeout") toast("超时，系统已代走");
+  if (S.state.winner !== null) {
+    S.gameOver = true;
+    paint();
+    setTimeout(showResult, 250);
+    return;
   }
+  paint();
 }
 
-async function manualFinishHost() {
-  if (!manualCtx) return toast("请先生成邀请码", true);
-  const answer = manualAnswerIn.value.trim();
-  if (!answer) return toast("请粘贴对方的应答码", true);
-  try {
-    await manualCtx.complete(answer);
-    attachSession(manualCtx.transport, "host", "手动");
-    manualHint.textContent = "应答码已提交，正在建立连接…";
-  } catch (e) {
-    toast("应答码无效：" + e.message, true);
-  }
+function endOnlineGame(msg) {
+  S.state = { ...S.state, winner: msg.winner };
+  S.gameOver = true;
+  paint();
+  setTimeout(showResult, 200);
 }
 
-async function manualMakeAnswer() {
-  const offer = manualOfferIn.value.trim();
-  if (!offer) return toast("请先粘贴对方的邀请码", true);
-  try {
-    const res = await answerManualOffer(offer);
-    manualCtx = res;
-    manualAnswerOut.hidden = false;
-    manualAnswerOut.value = res.code;
-    manualAnswerOut.select();
-    copyAnswer.hidden = false;
-    manualHint.textContent = "把下面的应答码发回给房主，等他点「完成连接」";
-    attachSession(res.transport, "guest", "手动");
-    toast("把应答码发回给房主");
-  } catch (e) {
-    toast("邀请码无效：" + e.message, true);
-  }
+/* ---------- 暂停 ---------- */
+
+function beginPause() {
+  S.paused = true;
+  S.preview = null;
+  boardWrap.hidden = true;
+  pauseOverlay.hidden = false;
+  pauseMainActions.hidden = false;
+  pauseAnswer.hidden = true;
+  pauseDesc.textContent = "棋盘已封存，双方都看不到；暂停时长不限。";
+  paint();
 }
 
+function endPause() {
+  S.paused = false;
+  boardWrap.hidden = false;
+  pauseOverlay.hidden = true;
+  pauseAnswer.hidden = true;
+  pauseMainActions.hidden = false;
+  S.lastTs = performance.now();
+  paint();
+}
 
-/* ---------------------------------------------------------------- 掉线与存档 */
+function savePausedGame() {
+  if (!S.state) return;
+  const res = saveSlot({ ...buildSlot(), name: defaultSlotName() });
+  if (!res.ok) { toast("存档位已满，请先删一个", true); return; }
+  toast("已暂存，可从「对局记录」继续");
+}
+
+function copyRoomLink() {
+  navigator.clipboard?.writeText(NET.room || "").then(
+    () => toast("房间码已复制"),
+    () => toast("复制失败，请手动输入", true),
+  );
+}
 
 let dropTimer = null;
 
@@ -1663,13 +1696,6 @@ function openSlots() {
   slotsOverlay.hidden = false;
 }
 
-function copyRoomLink() {
-  const url = `${location.origin}${location.pathname}?room=${netCode}`;
-  navigator.clipboard?.writeText(url).then(
-    () => toast("链接已复制"),
-    () => toast("复制失败，请手动复制房间码", true),
-  );
-}
 
 /* ---------------------------------------------------------------- 启动 */
 

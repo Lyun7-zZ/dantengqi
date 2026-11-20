@@ -57,12 +57,7 @@ const ASYNC = [
   "src/clock.js",
   "src/ai-random-async.js",
   "src/ai-async.js",
-  "src/net/protocol-async.js",
-  "src/net/code.js",
-  "src/net/transport.js",
-  "src/net/session-async.js",
-  "src/net/peer.js",
-  "src/net/manual.js",
+  "src/net/ws-client.js",
   "src/storage.js",
   "app-async.js",
 ];
