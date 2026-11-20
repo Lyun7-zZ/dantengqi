@@ -83,6 +83,10 @@ const diceEls = [el("dice0"), el("dice1")];
 const diceNameEls = [el("diceName0"), el("diceName1")];
 const diceDesc = el("diceDesc");
 const diceChoices = el("diceChoices");
+const startOpts = el("startOpts");
+const optUntimed = el("optUntimed");
+const optTimeoutAuto = el("optTimeoutAuto");
+const optAutoRow = el("optAutoRow");
 const undoOverlay = el("undoOverlay");
 const undoDesc = el("undoDesc");
 const undoYes = el("undoYes");
@@ -123,6 +127,8 @@ const S = {
   preview: null,   // { action, valid, label }
   gameOver: false,
   paused: false,
+  untimed: false,
+  timeoutAutoMove: true,
   history: [],     // [{ state, clocks }]
   undoLeft: [3, 3],
   pendingUndo: null,
@@ -397,6 +403,17 @@ function paintClocks() {
   if (!S.clocks || !S.state) return;
   const c = S.clocks;
   const turn = S.state.turn;
+  if (S.untimed) {
+    for (let p = 0; p < 2; p++) {
+      const box = clockEls[p];
+      clkEls[p].textContent = "∞";
+      bankEls[p].textContent = "不限时";
+      box.classList.toggle("active", p === turn && !S.gameOver);
+      box.classList.toggle("p1", p === 1);
+      box.classList.remove("warn", "inbank");
+    }
+    return;
+  }
   for (let p = 0; p < 2; p++) {
     const box = clockEls[p];
     // 大数字：轮到自己时是真实倒计时；否则显示该玩家上一步结束时的剩余
@@ -444,7 +461,7 @@ function paintClocks() {
 
 /* ---------------------------------------------------------------- AI 线程 */
 
-const WORKER_LEVELS = new Set(["hard", "master", "hell"]);
+const WORKER_LEVELS = new Set(["hard", "master", "grandmaster", "hell"]);
 let aiWorker = null; // null=未初始化，false=不可用
 let aiSeq = 0;
 const aiPending = new Map();
@@ -755,19 +772,31 @@ function maybeAI() {
       return;
     }
     advance(res.state, actionLabel(res.action ?? action, before));
-  }, S.mode === "master" || S.mode === "hell" ? 280 : GAME_CONFIG.aiDelay);
+  }, S.mode === "master" || S.mode === "grandmaster" || S.mode === "hell" ? 280 : GAME_CONFIG.aiDelay);
 }
 
-/** 超时：BFS 最短路代走（同长优先向上）。 */
+/** 超时：按开局选项决定由系统代走，或直接判负。 */
 function onTimeout() {
-  if (S.gameOver || !S.state) return;
-  const mv = autoMove(S.state);
-  if (!mv) return;
-  const res = applyAction(S.state, mv);
-  if (!res.ok) return;
+  if (S.gameOver || !S.state || S.untimed) return;
   S.preview = null;
-  toast("超时，系统代走");
-  advance(res.state, "超时代走");
+  if (S.timeoutAutoMove) {
+    const mv = autoMove(S.state);
+    if (!mv) return;
+    const res = applyAction(S.state, mv);
+    if (!res.ok) return;
+    toast("超时，系统代走");
+    advance(res.state, "超时代走");
+    return;
+  }
+  S.endReason = "timeout";
+  if (S.mode === "online" && S.net) {
+    // 超时方是本地玩家；先通知对手，再在本地结算为败。
+    S.net.session.resign();
+    endOnlineGame(1 - S.mySeat);
+    return;
+  }
+  endLocalGame(1 - S.state.turn);
+  toast("超时判负", true);
 }
 
 /** 悔棋：撤销最近一手，由对方在确认框中同意。 */
@@ -873,9 +902,13 @@ function showResult() {
       panelTitle.textContent = st.winner === 0 ? "左方获胜" : "右方获胜";
     }
     const loser = 1 - st.winner;
-    panelDesc.textContent = S.endReason === "resign"
-      ? `认输结束。共 ${st.plies} 手，封墙 ${st.wallsPlaced} 面。`
-      : `对手距终点还剩 ${distanceOf(st, loser)} 步。共 ${st.plies} 手，封墙 ${st.wallsPlaced} 面。`;
+    if (S.endReason === "timeout") {
+      panelDesc.textContent = `超时判负。共 ${st.plies} 手，封墙 ${st.wallsPlaced} 面。`;
+    } else if (S.endReason === "resign") {
+      panelDesc.textContent = `认输结束。共 ${st.plies} 手，封墙 ${st.wallsPlaced} 面。`;
+    } else {
+      panelDesc.textContent = `对手距终点还剩 ${distanceOf(st, loser)} 步。共 ${st.plies} 手，封墙 ${st.wallsPlaced} 面。`;
+    }
   }
   if (!localSplit) overlay.hidden = false;
 }
@@ -953,6 +986,13 @@ function newGame(announce = false) {
   if (announce) toast("已重新开始");
 }
 
+/** 不限时与超时代走的联动。 */
+function syncStartOptionUI() {
+  const untimed = !!optUntimed.checked;
+  optTimeoutAuto.disabled = untimed;
+  optAutoRow.classList.toggle("disabled", untimed);
+}
+
 /** 从主菜单开局。 */
 function startGame(mode) {
   resultFull.hidden = true;
@@ -962,14 +1002,27 @@ function startGame(mode) {
   S.mode = mode;
   S.aiPerson = mode === "local" ? null : 1;
 
+  // 每局开始默认：限时、超时代走开启；联机不提供本局选项。
+  S.untimed = false;
+  S.timeoutAutoMove = true;
+  optUntimed.checked = false;
+  optTimeoutAuto.checked = true;
+  optUntimed.disabled = false;
+  optUntimed.closest("label")?.classList.remove("disabled");
+  optAutoRow.classList.remove("disabled");
+  syncStartOptionUI();
+  startOpts.hidden = mode === "online";
+
   if (NO_DICE) {
     finishDice(0, 0, 0);
     return;
   }
 
+  // 先让玩家确认“不限时/超时代走”，再开始掷骰；否则电脑会自动选边，
+  // 选项还没看清就开局了。
   diceOverlay.hidden = false;
-  renderChoices([]);
-  rollDice();
+  diceDesc.textContent = "选择开局选项，然后开始掷骰";
+  renderChoices([{ label: "开始掷骰", primary: true, onClick: beginDice }]);
 }
 
 function personNames() {
@@ -988,6 +1041,16 @@ function renderChoices(items) {
     b.addEventListener("click", it.onClick);
     diceChoices.appendChild(b);
   }
+}
+
+function beginDice() {
+  if (diceOverlay.hidden) return;
+  optUntimed.disabled = true;
+  optTimeoutAuto.disabled = true;
+  optUntimed.closest("label")?.classList.add("disabled");
+  optAutoRow.classList.add("disabled");
+  renderChoices([]);
+  rollDice();
 }
 
 function rollDice() {
@@ -1073,6 +1136,10 @@ function chooseSide(side) {
  * firstPerson: 先手的人。
  */
 function finishDice(side, sidePicker, firstPerson) {
+  if (S.mode !== "online") {
+    S.untimed = !!optUntimed.checked;
+    S.timeoutAutoMove = !!optTimeoutAuto.checked;
+  }
   const seatOfPerson = [0, 0];
   seatOfPerson[sidePicker] = side;
   seatOfPerson[1 - sidePicker] = 1 - side;
@@ -1145,6 +1212,7 @@ function saveSettings() {
   toast("设置已保存，下一局生效");
 }
 
+optUntimed.addEventListener("change", syncStartOptionUI);
 confirmBtn.addEventListener("click", commit);
 cancelBtn.addEventListener("click", clearPreview);
 undoBtn.addEventListener("click", undo);
@@ -1312,6 +1380,7 @@ setInterval(() => {
   const dt = (now - S.lastTs) / 1000;
   S.lastTs = now;
   if (!S.state || !S.clocks || !S.started || S.gameOver || S.paused || overlaysOpen() || document.hidden) return;
+  if (S.untimed) return;
   if (S.mode === "online" && (S.state.turn !== S.mySeat || !S.net)) return;
   if (dt <= 0) return;
   const r = tickClock(S.clocks, S.state.turn, Math.min(dt, 0.5));

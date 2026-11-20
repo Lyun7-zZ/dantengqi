@@ -7,8 +7,22 @@ import { createMasterAI } from "./ai-master.js";
 
 const CONFIG = {
   hard: { timeMs: 350, maxDepth: 4, usePlan: false },
-  master: { timeMs: 1200, maxDepth: 6, usePlan: true },
-  hell: { timeMs: 28000, maxDepth: 20, usePlan: true },
+  master: {
+    timeMs: 1200, maxDepth: 6, usePlan: true,
+    netWalls: true, avoidRepeat: true, repeatPenalty: 160,
+  },
+  grandmaster: {
+    timeMs: 3000, maxDepth: 7, usePlan: true,
+    netWalls: true, avoidRepeat: true, repeatPenalty: 160,
+    planMoves: true, planFallback: true,
+    necessaryPathGuard: "soft", endgameDepth: 9,
+  },
+  hell: {
+    timeMs: 28000, maxDepth: 12, usePlan: true,
+    netWalls: true, avoidRepeat: true, repeatPenalty: 160,
+    planMoves: true, planFallback: true,
+    necessaryPathGuard: "soft", endgameDepth: 12,
+  },
 };
 
 let ai = null;

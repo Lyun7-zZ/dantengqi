@@ -78,7 +78,7 @@
           <b>玩家对战</b><span>同屏双人</span>
         </button>
         <button class="menuItem" id="menuAI">
-          <b>人机对战</b><span>简单 / 普通 / 困难 / 大师 / 地狱</span>
+          <b>人机对战</b><span>简单 / 普通 / 困难 / 大师 / 宗师 / 地狱</span>
         </button>
         <button class="menuItem" id="menuNet">
           <b>联机对战</b><span>房间码 · 点对点直连</span>
@@ -109,6 +109,9 @@
         </button>
         <button class="menuItem" data-level="hell">
           <b>地狱</b><span>尽量用满每一步的思考时间</span>
+        </button>
+        <button class="menuItem" data-level="grandmaster">
+          <b>宗师</b><span>计划会走 · 必经路保护 · 更深收官</span>
         </button>
         <button class="menuItem back" id="aiBack">
           <b>返回</b>
@@ -177,6 +180,16 @@
         </div>
       </div>
       <p id="diceDesc">准备掷骰…</p>
+      <div class="startOpts" id="startOpts">
+        <label class="startOpt">
+          <input type="checkbox" id="optUntimed" />
+          <span>不限时（本地/人机可离开再回来）</span>
+        </label>
+        <label class="startOpt" id="optAutoRow">
+          <input type="checkbox" id="optTimeoutAuto" checked />
+          <span>超时由系统代走（关闭则超时判负）</span>
+        </label>
+      </div>
       <div class="panelActions" id="diceChoices" hidden></div>
     </div>
   </div>
@@ -204,8 +217,9 @@
         <p>【后手】到达时，即使先手只差一手也能到达，也判后手胜利。</p>
         <p class="note">简单说：先手必须领先两手才算赢，后手领先一手就能赢。</p>
         <h3>计时</h3>
-        <p>每步 30 秒，用尽后从本人 300 秒时间库扣除；时间库耗尽后每步仍为 30 秒，
-          用尽即由系统代走（最短路，同长优先向上）。</p>
+        <p>每步 30 秒，用尽后从本人 300 秒时间库扣除。时间库耗尽后：开启“超时系统代走”
+          则由系统按最短路代走；关闭则超时判负。开局时可选择，默认开启。
+          人机/本地还可以选择“不限时”，离开再回来不会超时。</p>
         <h3>悔棋</h3>
         <p>每方 3 次，需对方同意，撤销最近一手并回滚计时与墙。</p>
       </div>

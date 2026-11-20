@@ -163,9 +163,8 @@ export function evaluate(state, p) {
   const margin = dopp - dm; // 我领先几手
   let score = margin * 100;
 
-  // 越线判定（规则 1.3）：先手领先 1 手是平局，后手领先 1 手直接取胜
-  const isFirst = p === state.firstPlayer;
-  if (margin === 1) score += isFirst ? -130 : 900;
+  // 平局容差：margin 1 → 到达即和棋；margin 0 → 我先到不了
+  if (margin === 1) score -= 130;
   else if (margin === 0) score -= 220;
 
   // 先手权：轮到谁走，值半手
@@ -356,7 +355,39 @@ export const AI = {
   easy: easyAI,
   normal: tacticalAI,
   hard: createMasterAI({ timeMs: 350, maxDepth: 4, usePlan: false }),
-  master: createMasterAI({ timeMs: 1200, maxDepth: 6, usePlan: true }),
-  // 地狱：尽量用满每步时限（默认 30 秒，这里留 2 秒余量）
-  hell: createMasterAI({ timeMs: 28000, maxDepth: 20, usePlan: true }),
+  master: createMasterAI({
+    timeMs: 1200,
+    maxDepth: 6,
+    usePlan: true,
+    netWalls: true,
+    avoidRepeat: true,
+    repeatPenalty: 160,
+  }),
+  // 宗师：以大师计划为底，加入计划走动/回退、必经路保护、
+  // 更深收官和更高预算；大师本体参数保持不变。
+  grandmaster: createMasterAI({
+    timeMs: 3000,
+    maxDepth: 7,
+    usePlan: true,
+    netWalls: true,
+    avoidRepeat: true,
+    repeatPenalty: 160,
+    planMoves: true,
+    planFallback: true,
+    necessaryPathGuard: "soft",
+    endgameDepth: 9,
+  }),
+  // 地狱：长预算版宗师，尽量用满每步时限（同步/Worker 计算，界面不卡）
+  hell: createMasterAI({
+    timeMs: 28000,
+    maxDepth: 12,
+    usePlan: true,
+    netWalls: true,
+    avoidRepeat: true,
+    repeatPenalty: 160,
+    planMoves: true,
+    planFallback: true,
+    necessaryPathGuard: "soft",
+    endgameDepth: 12,
+  }),
 };

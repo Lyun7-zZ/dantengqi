@@ -254,9 +254,10 @@ try {
   const c1 = Number(await evaluate(`document.getElementById('clk${cur}').textContent`));
   check("计时器在倒数", c1 < c0, `${c0} → ${c1}`);
 
-  // 10. 超时代走：把当前方本步与时间库清零，等待自动走子
+  // 10. 默认开启超时代走：把当前方本步与时间库清零，等待自动走子
   const pliesBefore = await state("s.plies");
   const turnBefore2 = await state("s.turn");
+  check("默认开启超时代走", (await state("g.timeoutAutoMove")) === true);
   await evaluate(`(() => {
     const g = window.__danteng;
     const t = g.state.turn;
@@ -267,6 +268,48 @@ try {
   await sleep(900);
   check("超时后系统自动走了一步", (await state("s.plies")) === pliesBefore + 1);
   check("超时后切换到对方回合", (await state("s.turn")) === 1 - turnBefore2);
+
+  // 10b. 关闭超时代走后，超时判负
+  await click("#homeBtn", "菜单");
+  await sleep(250);
+  await click("#menuLocal", "玩家对战");
+  await sleep(200);
+  const pliesBefore2 = await state("s.plies");
+  const turnBefore3 = await state("s.turn");
+  await evaluate(`(() => {
+    const g = window.__danteng;
+    g.timeoutAutoMove = false;
+    const t = g.state.turn;
+    g.clocks.moveLeft = 0.2;
+    g.clocks.banks[t] = 0;
+    g.lastTs = performance.now();
+  })()`);
+  await sleep(900);
+  check("关闭后超时不再自动走子", (await state("s.plies")) === pliesBefore2);
+  check("关闭后超时方判负", (await state("s.winner")) === 1 - turnBefore3);
+  check("关闭后超时游戏结束", (await state("g.gameOver")) === true);
+
+  // 10c. 不限时：计时不再推进，超时也不结算
+  if (await evaluate("!document.getElementById('resultFull').hidden")) {
+    await click("#rfHome", "返回主菜单");
+  } else {
+    await click("#toHome", "返回主菜单");
+  }
+  await sleep(250);
+  await click("#menuLocal", "玩家对战");
+  await sleep(200);
+  const pliesBefore3 = await state("s.plies");
+  await evaluate(`(() => {
+    const g = window.__danteng;
+    g.untimed = true;
+    const t = g.state.turn;
+    g.clocks.moveLeft = 0.2;
+    g.clocks.banks[t] = 0;
+    g.lastTs = performance.now();
+  })()`);
+  await sleep(900);
+  check("不限时后超时也不走子", (await state("s.plies")) === pliesBefore3);
+  check("不限时后游戏不会结束", (await state("g.gameOver")) === false);
 
   // 11. 人机：从主菜单进入“人机 · 普通”
   await click("#homeBtn", "菜单");
@@ -341,6 +384,10 @@ try {
   await click("#menuLocal", "玩家对战");
   check("开局进入掷骰界面", (await evaluate("!document.getElementById('diceOverlay').hidden")) === true);
 
+  // 新版开局先让玩家确认「超时代走 / 不限时」，点「开始掷骰」才掷
+  const startBtn = await evaluate("!!document.querySelector('#diceChoices .btn.primary')");
+  if (startBtn) await click("#diceChoices .btn.primary", "开始掷骰");
+
   let rolled = false;
   for (let i = 0; i < 60; i++) {
     await sleep(200);
@@ -368,6 +415,10 @@ try {
     if (ready) break;
   }
   await click("#menuLocal", "玩家对战");
+  {
+    const gate = await evaluate("!!document.querySelector('#diceChoices .btn.primary')");
+    if (gate) await click("#diceChoices .btn.primary", "开始掷骰");
+  }
   for (let i = 0; i < 60; i++) {
     await sleep(200);
     rolled = await evaluate("!!document.querySelector('#diceChoices [data-priority]')");
@@ -394,7 +445,11 @@ try {
   await evaluate("window.__danteng.state.winner = 'draw'; window.__ui.showResult(); true");
   await sleep(120);
   check("平局结算面板已显示", (await evaluate("!document.getElementById('overlay').hidden")) === true);
-  await click("#again", "再来一局");
+  if (await evaluate("!document.getElementById('resultFull').hidden")) {
+    await click("#rfAgain", "再来一局");
+  } else {
+    await click("#again", "再来一局");
+  }
   await sleep(200);
   check("再来一局后结算面板已关闭", (await evaluate("document.getElementById('overlay').hidden")) === true);
 
