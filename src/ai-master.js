@@ -228,6 +228,12 @@ function worstExitEval(state, me, meIsFirst) {
   return worst;
 }
 
+/** 走法唯一键（用于 killer / 置换）。 */
+function actionKeyOf(a) {
+  if (!a) return "";
+  return a.type === "move" ? "m:" + a.dir : "w:" + a.kind + ":" + a.c + ":" + a.r;
+}
+
 /** 走法生成：走子 + 对手最短路墙 + （根节点）全墙扫描的高收益墙 + 计划墙。 */
 function candidatesAI(state, opts = {}) {
   const me = state.turn;
@@ -333,22 +339,45 @@ function searchAI(state, depth, alpha, beta, ctx) {
 
   const cands = candidatesAI(state, ctx.candOpts ?? {});
   const scored = [];
+  const killers = ctx.killers || (ctx.killers = []);
+  const killerSet = killers[depth] || (killers[depth] = []);
   for (const a of cands) {
     const r = applyAction(state, a);
     if (!r.ok) continue;
-    scored.push([orderScore(r.state), a, r.state]);
+    let sc = orderScore(r.state);
+    if (killerSet.includes(actionKeyOf(a))) sc += 1000;
+    scored.push([sc, a, r.state]);
   }
   scored.sort((x, y) => y[0] - x[0]);
 
   let best = -Infinity;
-  for (const [, , st] of scored) {
-    const v = -searchAI(st, depth - 1, -beta, -alpha, ctx);
+  let first = true;
+  for (const [, a, st] of scored) {
+    let v;
+    if (first) {
+      v = -searchAI(st, depth - 1, -beta, -alpha, ctx);
+      first = false;
+    } else {
+      // PVS：先用零窗口试探，失败再全窗口重搜
+      v = -searchAI(st, depth - 1, -alpha - 1, -alpha, ctx);
+      if (v > alpha && v < beta && !ctx.abort) {
+        v = -searchAI(st, depth - 1, -beta, -alpha, ctx);
+      }
+    }
     if (ctx.abort) return 0;
     if (v > best) best = v;
     if (best > alpha) alpha = best;
-    if (alpha >= beta) break;
+    if (alpha >= beta) {
+      // 记录 killer（走子优先，墙也能记）
+      const k = actionKeyOf(a);
+      if (!killerSet.includes(k)) {
+        killerSet.unshift(k);
+        if (killerSet.length > 2) killerSet.pop();
+      }
+      break;
+    }
   }
-  return best === -Infinity ? evalAI(state) : best;
+  return best === -Infinity ? evalAI(state, ctx.evalOpts ?? {}) : best;
 }
 
 /** 迭代加深根搜索。 */
@@ -839,7 +868,7 @@ function createMasterAI({
         }
       }
     }
-    const behind = behindMode && marginFor(state, me) < 0;
+    const behind = behindMode && marginFor(state, me) <= -2;
     const dm = distanceOf(state, me);
     const dop = distanceOf(state, opp);
     const endgame = endgameDepth > 0 &&

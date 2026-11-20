@@ -12,7 +12,9 @@ import { createState, applyAction } from "../src/rules.js";
 
 const HELL_MS = Number(process.argv[2] || 2800);
 const GM_MS = Number(process.argv[3] || 300);
-const PER_SEAT = Number(process.argv[4] || 6);
+const TOTAL = Number(process.argv[4] || 12);
+const START = Number(process.argv[5] || 0);
+const COUNT = Number(process.argv[6] || TOTAL);
 
 function makeRng(seed) {
   let a = seed >>> 0;
@@ -29,7 +31,7 @@ const hell = createMasterAI({
   timeMs: HELL_MS, maxDepth: 12, usePlan: true,
   netWalls: true, avoidRepeat: true, repeatPenalty: 160,
   planMoves: true, planFallback: true, necessaryPathGuard: "soft", endgameDepth: 12,
-  adaptive: false, worstGap: true, behindMode: true,
+  adaptive: false,
 });
 
 const gm = createMasterAI({
@@ -73,23 +75,22 @@ function summarize(label, rows) {
   return { w, d, l, n: rows.length };
 }
 
-console.log(`地狱 ${HELL_MS}ms vs 宗师 ${GM_MS}ms，每座位 ${PER_SEAT} 局\n`);
+console.log(`地狱 ${HELL_MS}ms vs 宗师 ${GM_MS}ms，共 ${TOTAL} 局，本进程 ${START}..${START + COUNT - 1}\n`);
 const asFirst = [];
 const asSecond = [];
 
-for (let i = 0; i < PER_SEAT; i++) {
-  const seed = 2000 + i;
-  const r1 = play(true, seed);
-  asFirst.push(r1);
-  const r2 = play(false, seed + 700);
-  asSecond.push(r2);
-  const fmt = (r) =>
-    `${r.winner === null ? "未分" : r.winner === "draw" ? "平" : r.winner === r.hellSide ? "地狱胜" : "宗师胜"}(${r.plies}手)`;
-  console.log(`第 ${i + 1} 组：地狱先手 ${fmt(r1)} | 地狱后手 ${fmt(r2)}`);
+const t0 = Date.now();
+for (let i = START; i < START + COUNT; i++) {
+  const hellIsFirst = i % 2 === 0;
+  const seed = 3000 + i;
+  const r = play(hellIsFirst, seed);
+  if (hellIsFirst) asFirst.push(r); else asSecond.push(r);
+  const fmt = (x) =>
+    `${x.winner === null ? "未分" : x.winner === "draw" ? "平" : x.winner === x.hellSide ? "地狱胜" : "宗师胜"}(${x.plies}手, ${(x.avg / 1000).toFixed(1)}s/手)`;
+  console.log(`第 ${i + 1} 局（地狱${hellIsFirst ? "先手" : "后手"}）：${fmt(r)}  累计 ${((Date.now() - t0) / 60000).toFixed(0)} 分钟`);
 }
 
 console.log("");
-const f = summarize("地狱执先手", asFirst);
-const s = summarize("地狱执后手", asSecond);
-console.log(`\n对照目标：20 局负率 0%（当前代理每个座位 ${PER_SEAT} 局）`);
-console.log(`先手转化 ${f.w}/${f.n}，后手不败 ${s.w + s.d}/${s.n}，合计负 ${f.l + s.l}`);
+const f = asFirst.length ? summarize("地狱执先手", asFirst) : { w: 0, d: 0, l: 0, n: 0 };
+const s = asSecond.length ? summarize("地狱执后手", asSecond) : { w: 0, d: 0, l: 0, n: 0 };
+console.log(`\n本片：先手 ${f.w}胜${f.d}平${f.l}负，后手 ${s.w}胜${s.d}平${s.l}负，合计负 ${f.l + s.l}`);

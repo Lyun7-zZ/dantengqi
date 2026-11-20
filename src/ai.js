@@ -382,8 +382,6 @@ export const AI = {
     timeMs: 28000,
     maxDepth: 12,
     adaptive: false,
-    worstGap: true,
-    behindMode: true,
     usePlan: true,
     netWalls: true,
     avoidRepeat: true,
