@@ -27,7 +27,7 @@ node tools/build-single.mjs
 
 ```bash
 # 方式 A：git
-git clone <仓库地址> dantengqi && cd dantengqi && git checkout server
+git clone <仓库地址> dantengqi && cd dantengqi
 
 # 方式 B：本地打包上传
 tar czf dantengqi.tgz server src dist deploy
