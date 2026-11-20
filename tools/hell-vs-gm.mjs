@@ -8,7 +8,8 @@
  */
 
 import { createMasterAI } from "../src/ai-master.js";
-import { createState, applyAction } from "../src/rules.js";
+import { createState, applyAction, legalDirs, validateAction, wallPlaced } from "../src/rules.js";
+import { shortestPathWalls } from "../src/path.js";
 
 const HELL_MS = Number(process.argv[2] || 2800);
 const GM_MS = Number(process.argv[3] || 300);
@@ -40,6 +41,22 @@ const gm = createMasterAI({
   planMoves: true, planFallback: true, necessaryPathGuard: "soft", endgameDepth: 9,
 });
 
+/** 开局随机手：走子 + 双方最短路上的墙，随机挑一个。 */
+function randomOpeningAction(state, rng) {
+  const acts = [];
+  const me = state.turn;
+  const p = state.players[me];
+  for (const dir of legalDirs(state, p.c, p.r)) acts.push({ type: "move", dir });
+  for (const w of shortestPathWalls(state, state.players[0].c, state.players[0].r)) acts.push(w);
+  for (const w of shortestPathWalls(state, state.players[1].c, state.players[1].r)) acts.push(w);
+  for (let i = acts.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [acts[i], acts[j]] = [acts[j], acts[i]];
+  }
+  for (const a of acts) if (validateAction(state, a).ok) return a;
+  return null;
+}
+
 function play(hellIsFirst, seed) {
   hell.reset();
   gm.reset();
@@ -50,6 +67,16 @@ function play(hellIsFirst, seed) {
   let hellTime = 0;
   let hellMoves = 0;
   while (s.winner === null && ply < 240) {
+    // 前 6 手随机开局，保证每局不同
+    if (ply < 6) {
+      const a = randomOpeningAction(s, rng);
+      if (!a) break;
+      const r = applyAction(s, a);
+      if (!r.ok) break;
+      s = r.state;
+      ply++;
+      continue;
+    }
     const isHell = s.turn === hellSide;
     const t0 = Date.now();
     const a = isHell ? hell(s, rng) : gm(s, rng);
