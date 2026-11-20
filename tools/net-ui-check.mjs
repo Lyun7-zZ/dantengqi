@@ -173,6 +173,40 @@ try {
   ]);
   check("双方回合状态一致", hashes[0] === hashes[1], hashes.join(" / "));
 
+  // ---- 暂停：A 请求 → B 同意 → 双方封盘 ---- 
+  await A.evaluate("document.getElementById('pause').click(); true");
+  const pauseAsked = await waitFor(async () =>
+    !(await B.evaluate("document.getElementById('undoOverlay').hidden")));
+  check("对方收到暂停请求", !!pauseAsked);
+  await B.evaluate("document.getElementById('undoYes').click(); true");
+  const paused = await waitFor(async () => {
+    const pa = await A.evaluate("!document.getElementById('pauseOverlay').hidden && document.getElementById('boardWrap').hidden");
+    const pb = await B.evaluate("!document.getElementById('pauseOverlay').hidden && document.getElementById('boardWrap').hidden");
+    return pa && pb;
+  });
+  check("双方进入封盘状态", !!paused);
+
+  // 暂停页可以暂存对局
+  await A.evaluate("document.getElementById('pauseSave').click(); true");
+  const saved = await waitFor(async () => {
+    const raw = await A.evaluate("localStorage.getItem('danteng.slots.v1')");
+    return raw && raw.includes('"id"');
+  });
+  check("暂停页可暂存对局", !!saved);
+
+  // 继续对局：需要对方同意
+  await A.evaluate("document.getElementById('pauseResume').click(); true");
+  const resumeAsked = await waitFor(async () =>
+    !(await B.evaluate("document.getElementById('pauseAnswer').hidden")));
+  check("对方收到继续请求", !!resumeAsked);
+  await B.evaluate("document.getElementById('pauseAccept').click(); true");
+  const resumed = await waitFor(async () => {
+    const ra = await A.evaluate("document.getElementById('pauseOverlay').hidden && !document.getElementById('boardWrap').hidden");
+    const rb = await B.evaluate("document.getElementById('pauseOverlay').hidden && !document.getElementById('boardWrap').hidden");
+    return ra && rb;
+  });
+  check("双方恢复对局", !!resumed);
+
   // ---- 悔棋：没走的那方发起，走的那方同意 ----
   const other = mover === A ? B : A;
   await other.evaluate("document.getElementById('undo').click(); true");

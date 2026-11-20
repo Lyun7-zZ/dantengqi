@@ -101,6 +101,12 @@ export function startServer({
 
       const result = rooms.detach(conn);
       if (!result) return;
+      if (result.paused) {
+        broadcastRoom(result.room, {
+          t: "room", phase: "paused", room: result.room.code, seat: result.leftSeat,
+        });
+        return;
+      }
       if (result.playing) {
         startDisconnectWindow(result.room, result.leftSeat);
         broadcastRoom(result.room, {
@@ -426,6 +432,63 @@ export function startServer({
     }
   }
 
+  // ---------- 暂停 ----------
+
+  function handlePause(conn, msg) {
+    const room = conn.room;
+    const ws = conn.ws;
+    if (!room) return;
+    const seat = conn.seat;
+    const op = msg.op;
+
+    if (op === "request") {
+      if (room.phase !== "playing") { ws.send(errorMessage("not-playing")); return; }
+      if (room.pendingPause) { ws.send(errorMessage("pause-pending")); return; }
+      room.pendingPause = { seat };
+      broadcastRoom(room, { t: "pause", op: "request", seat });
+      return;
+    }
+
+    if (op === "accept" || op === "decline") {
+      const pending = room.pendingPause;
+      if (!pending) { ws.send(errorMessage("no-pause-request")); return; }
+      if (seat === pending.seat) { ws.send(errorMessage("self-answer")); return; }
+      room.pendingPause = null;
+      if (op === "decline") {
+        broadcastRoom(room, { t: "pause", op: "declined" });
+        return;
+      }
+      room.phase = "paused";
+      room.updatedAt = Date.now();
+      broadcastRoom(room, { t: "pause", op: "paused" });
+      return;
+    }
+
+    if (op === "resume") {
+      if (room.phase !== "paused") { ws.send(errorMessage("not-paused")); return; }
+      if (room.pendingResume) { ws.send(errorMessage("resume-pending")); return; }
+      room.pendingResume = { seat };
+      broadcastRoom(room, { t: "pause", op: "resume-request", seat });
+      return;
+    }
+
+    if (op === "resume-accept" || op === "resume-decline") {
+      const pending = room.pendingResume;
+      if (!pending) { ws.send(errorMessage("no-resume-request")); return; }
+      if (seat === pending.seat) { ws.send(errorMessage("self-answer")); return; }
+      room.pendingResume = null;
+      if (op === "resume-decline") {
+        broadcastRoom(room, { t: "pause", op: "resume-declined" });
+        return;
+      }
+      room.phase = "playing";
+      room.lastTick = Date.now();
+      room.updatedAt = Date.now();
+      broadcastRoom(room, { t: "pause", op: "resumed" });
+      return;
+    }
+  }
+
   // ---------- 消息分发 ----------
 
   function handleMessage(conn, msg) {
@@ -451,6 +514,9 @@ export function startServer({
         broadcastRoom(r.room, { t: "room", phase: r.room.phase, room: code });
         clearTimeout(r.room.disconnectTimer);
         r.room.disconnectTimer = null;
+        if (r.room.phase === "paused") {
+          sendJson(ws, { t: "pause", op: "paused" });
+        }
         if (r.room.phase === "finished" && r.room.result) {
           sendJson(ws, r.room.result);
         }
@@ -503,6 +569,7 @@ export function startServer({
     if (msg.t === "undo") { handleUndo(conn, msg); return; }
     if (msg.t === "resign") { handleResign(conn, msg); return; }
     if (msg.t === "rematch") { handleRematch(conn, msg); return; }
+    if (msg.t === "pause") { handlePause(conn, msg); return; }
     if (msg.t === "pong") { conn.alive = true; return; }
 
     // M4 接管：undo / resign / rematch

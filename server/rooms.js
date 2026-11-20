@@ -115,6 +115,10 @@ export class Rooms {
     if (room.phase === "playing") {
       return { room, closed: false, others, leftSeat: seat, playing: true };
     }
+    // 暂停中：时长无限，不判负、不关房
+    if (room.phase === "paused") {
+      return { room, closed: false, others, leftSeat: seat, paused: true };
+    }
 
     if (seat === room.hostSeat) {
       this.map.delete(room.code);
@@ -130,7 +134,9 @@ export class Rooms {
   sweep() {
     const now = this.now();
     for (const [code, room] of this.map) {
-      const ttl = room.phase === "finished" ? FINISHED_TTL_MS : WAITING_TTL_MS;
+      const ttl = room.phase === "finished"
+        ? FINISHED_TTL_MS
+        : room.phase === "paused" ? 12 * 60 * 60 * 1000 : WAITING_TTL_MS;
       if (now - room.updatedAt > ttl && room.phase !== "playing") {
         this.map.delete(code);
       }

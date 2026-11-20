@@ -35,7 +35,7 @@
     </div>
 
     <main class="stage">
-      <div class="boardWrap">
+      <div class="boardWrap" id="boardWrap">
         <div class="colLabels" id="colLabels"></div>
         <div class="board" id="board">
           <div class="cells" id="cells"></div>
@@ -50,6 +50,7 @@
     <footer class="actionbar">
       <div class="status" id="status">点击格子移动，或点击格线放墙</div>
       <div class="actionButtons">
+        <button class="btn ghost" id="pause" hidden>暂停</button>
         <button class="btn ghost" id="resign" hidden>认输</button>
         <button class="btn ghost" id="store" hidden>存点</button>
         <button class="btn ghost" id="undo">悔棋 3</button>
@@ -295,6 +296,24 @@
     <div class="rfActions">
       <button class="btn primary" id="rfAgain">再来一局</button>
       <button class="btn ghost" id="rfHome">返回主菜单</button>
+    </div>
+  </div>
+
+  <!-- 暂停 -->
+  <div class="overlay" id="pauseOverlay" hidden>
+    <div class="panel">
+      <div class="panelIcon">⏸️</div>
+      <h2>对局已暂停</h2>
+      <p class="sub" id="pauseDesc">棋盘已封存，双方都看不到；暂停时长不限。</p>
+      <div class="panelActions" id="pauseMainActions">
+        <button class="btn primary" id="pauseResume">继续对局</button>
+        <button class="btn ghost" id="pauseSave">暂存对局</button>
+        <button class="btn ghost" id="pauseExit">退出</button>
+      </div>
+      <div class="panelActions" id="pauseAnswer" hidden>
+        <button class="btn ghost" id="pauseDecline">拒绝</button>
+        <button class="btn primary" id="pauseAccept">同意继续</button>
+      </div>
     </div>
   </div>
 

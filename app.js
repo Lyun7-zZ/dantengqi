@@ -51,6 +51,17 @@ const settingsSave = el("settingsSave");
 const settingsCancel = el("settingsCancel");
 const toHomeBtn = el("toHome");
 const resignBtn = el("resign");
+const boardWrap = el("boardWrap");
+const pauseBtn = el("pause");
+const pauseOverlay = el("pauseOverlay");
+const pauseDesc = el("pauseDesc");
+const pauseMainActions = el("pauseMainActions");
+const pauseAnswer = el("pauseAnswer");
+const pauseResumeBtn = el("pauseResume");
+const pauseSaveBtn = el("pauseSave");
+const pauseExitBtn = el("pauseExit");
+const pauseAcceptBtn = el("pauseAccept");
+const pauseDeclineBtn = el("pauseDecline");
 const dropOverlay = el("dropOverlay");
 const dropCount = el("dropCount");
 const dropEnd = el("dropEnd");
@@ -111,6 +122,7 @@ const S = {
   aiThinking: false,
   preview: null,   // { action, valid, label }
   gameOver: false,
+  paused: false,
   history: [],     // [{ state, clocks }]
   undoLeft: [3, 3],
   pendingUndo: null,
@@ -377,6 +389,7 @@ function paint() {
 
   resignBtn.hidden = !S.started || S.gameOver;
   restartBtn.hidden = S.mode === "online";
+  pauseBtn.hidden = !S.started || S.gameOver || S.paused;
   paintClocks();
 }
 
@@ -481,6 +494,44 @@ function resetAIWorker() {
 }
 
 /* ---------------------------------------------------------------- 交互 */
+
+/** 进入暂停：封盘、遮罩、冻结计时。 */
+function beginPause() {
+  S.paused = true;
+  S.aiThinking = false;
+  S.preview = null;
+  boardWrap.hidden = true;
+  pauseOverlay.hidden = false;
+  pauseMainActions.hidden = false;
+  pauseAnswer.hidden = true;
+  pauseDesc.textContent = "棋盘已封存，双方都看不到；暂停时长不限。";
+  paint();
+}
+
+/** 结束暂停：重新显示棋盘。 */
+function endPause() {
+  S.paused = false;
+  boardWrap.hidden = false;
+  pauseOverlay.hidden = true;
+  pauseAnswer.hidden = true;
+  pauseMainActions.hidden = false;
+  S.lastTs = performance.now();
+  paint();
+}
+
+/** 暂停页「暂存对局」：写入本地存档。 */
+function savePausedGame() {
+  if (!S.state) return;
+  const res = saveSlot({
+    ...buildSlot(),
+    name: defaultSlotName(),
+  });
+  if (!res.ok) {
+    toast(`存档位已满（${MAX_SLOTS} 个），请先在「对局记录」里删一个`, true);
+    return;
+  }
+  toast("已暂存，可从「对局记录」继续");
+}
 
 function setPreview(action, label) {
   const check = validateAction(S.state, action);
@@ -664,7 +715,7 @@ function actionLabel(action, before) {
 
 /** 人机模式：轮到电脑时自动走一步。 */
 function maybeAI() {
-  if (S.aiSeat === null || S.gameOver || !S.started) return;
+  if (S.aiSeat === null || S.gameOver || S.paused || !S.started) return;
   if (S.state.turn !== S.aiSeat || S.aiThinking) return;
 
   S.aiThinking = true;
@@ -890,6 +941,7 @@ function newGame(announce = false) {
   S.preview = null;
   S.gameOver = false;
   S.aiThinking = false;
+  S.paused = false;
   S.endReason = null;
   S.pendingUndo = null;
   S.undoOverlayOpen = false;
@@ -1055,6 +1107,9 @@ function goHome() {
   S.preview = null;
   overlay.hidden = true;
   undoOverlay.hidden = true;
+  pauseOverlay.hidden = true;
+  boardWrap.hidden = false;
+  S.paused = false;
   rulesOverlay.hidden = true;
   settingsOverlay.hidden = true;
   diceOverlay.hidden = true;
@@ -1096,7 +1151,7 @@ undoBtn.addEventListener("click", undo);
 undoYes.addEventListener("click", () => {
   if (S.mode === "online") {
     undoOverlay.hidden = true;
-    const op = S.prompt === "rematch" ? "rematch" : "undo";
+    const op = S.prompt === "rematch" ? "rematch" : S.prompt === "pause" ? "pause" : "undo";
     NET.client?.send({ t: op, op: "accept" });
     S.prompt = null;
     return;
@@ -1106,7 +1161,7 @@ undoYes.addEventListener("click", () => {
 undoNo.addEventListener("click", () => {
   if (S.mode === "online") {
     undoOverlay.hidden = true;
-    const op = S.prompt === "rematch" ? "rematch" : "undo";
+    const op = S.prompt === "rematch" ? "rematch" : S.prompt === "pause" ? "pause" : "undo";
     NET.client?.send({ t: op, op: "decline" });
     S.prompt = null;
     return;
@@ -1163,6 +1218,49 @@ restartBtn.addEventListener("click", () => {
   if (S.state && S.state.plies > 0 && !window.confirm("当前对局还没结束，确定重新开始？")) return;
   startGame(S.mode);
 });
+pauseBtn.addEventListener("click", () => {
+  if (!S.started || S.gameOver || S.paused) return;
+  if (S.mode === "online") {
+    NET.client?.send({ t: "pause", op: "request" });
+    toast("已请求暂停，等待对方同意");
+    return;
+  }
+  beginPause();
+});
+
+pauseResumeBtn.addEventListener("click", () => {
+  if (S.mode === "online") {
+    NET.client?.send({ t: "pause", op: "resume" });
+    pauseDesc.textContent = "已请求继续，等待对方同意…";
+    return;
+  }
+  endPause();
+});
+
+pauseSaveBtn.addEventListener("click", savePausedGame);
+
+pauseExitBtn.addEventListener("click", () => {
+  if (!window.confirm("退出后本局结束，确定？")) return;
+  if (S.mode === "online") {
+    NET.client?.send({ t: "resign" });
+    setTimeout(() => { stopNet(); goHome(); }, 300);
+    return;
+  }
+  goHome();
+});
+
+pauseAcceptBtn.addEventListener("click", () => {
+  NET.client?.send({ t: "pause", op: "resume-accept" });
+  pauseAnswer.hidden = true;
+});
+
+pauseDeclineBtn.addEventListener("click", () => {
+  NET.client?.send({ t: "pause", op: "resume-decline" });
+  pauseAnswer.hidden = true;
+  pauseMainActions.hidden = false;
+  pauseDesc.textContent = "已拒绝对方继续，对局保持暂停。";
+});
+
 let resignArmedAt = 0;
 resignBtn.addEventListener("click", () => {
   if (!S.started || S.gameOver) return;
@@ -1213,7 +1311,7 @@ setInterval(() => {
   const now = performance.now();
   const dt = (now - S.lastTs) / 1000;
   S.lastTs = now;
-  if (!S.state || !S.clocks || !S.started || S.gameOver || overlaysOpen() || document.hidden) return;
+  if (!S.state || !S.clocks || !S.started || S.gameOver || S.paused || overlaysOpen() || document.hidden) return;
   if (S.mode === "online" && (S.state.turn !== S.mySeat || !S.net)) return;
   if (dt <= 0) return;
   const r = tickClock(S.clocks, S.state.turn, Math.min(dt, 0.5));
@@ -1417,6 +1515,32 @@ function handleServerMessage(msg) {
         toast("对方同意再来一局");
       } else if (msg.op === "declined") {
         toast("对方拒绝了再来一局", true);
+      }
+      return;
+    }
+    case "pause": {
+      if (msg.op === "request") {
+        S.prompt = "pause";
+        undoDesc.textContent = "对方请求暂停，是否同意？";
+        undoOverlay.hidden = false;
+      } else if (msg.op === "paused") {
+        beginPause();
+      } else if (msg.op === "declined") {
+        toast("对方拒绝了暂停", true);
+      } else if (msg.op === "resume-request") {
+        if (msg.seat === NET.seat) {
+          pauseDesc.textContent = "已请求继续，等待对方同意…";
+        } else {
+          pauseAnswer.hidden = false;
+          pauseMainActions.hidden = true;
+          pauseDesc.textContent = "对方请求继续对局，是否同意？";
+        }
+      } else if (msg.op === "resumed") {
+        endPause();
+        toast("对局继续");
+      } else if (msg.op === "resume-declined") {
+        pauseDesc.textContent = "对方拒绝了继续，对局保持暂停。";
+        pauseMainActions.hidden = false;
       }
       return;
     }
@@ -1631,6 +1755,12 @@ function renderSlots() {
     const actions = document.createElement("div");
     actions.className = "slotActions";
 
+    const resume = document.createElement("button");
+    resume.className = "btn primary";
+    resume.textContent = "继续";
+    resume.addEventListener("click", () => resumeSlot(slot));
+    actions.appendChild(resume);
+
     const exp = document.createElement("button");
     exp.className = "btn ghost";
     exp.textContent = "导出";
@@ -1650,6 +1780,41 @@ function renderSlots() {
     row.appendChild(actions);
     slotList.appendChild(row);
   }
+}
+
+/** 从存档继续对局（同屏双人恢复）。 */
+function resumeSlot(slot) {
+  if (!slot || !slot.state) { toast("这个存档没有可用局面", true); return; }
+  stopNet();
+  S.mode = "local";
+  S.aiSeat = null;
+  S.started = true;
+  S.gameOver = false;
+  S.paused = false;
+  S.state = slot.state;
+  const cfg = slot.config || {};
+  S.clocks = createClock({
+    perMove: cfg.perMove != null ? cfg.perMove : S.settings.perMove,
+    bank: cfg.bank != null ? cfg.bank : S.settings.bank,
+  });
+  if (slot.clocks) {
+    clockRestore(S.clocks, {
+      banks: slot.clocks.banks || S.clocks.banks,
+      moveLeft: slot.clocks.moveLeft != null ? slot.clocks.moveLeft : S.clocks.perMove,
+      inBank: slot.clocks.inBank || false,
+    });
+  }
+  S.history = [{ state: S.state, clocks: clockSnapshot(S.clocks) }];
+  S.undoLeft = [S.settings.undoLimit, S.settings.undoLimit];
+  S.preview = null;
+  S.lastTs = performance.now();
+  slotsOverlay.hidden = true;
+  homeOverlay.hidden = true;
+  overlay.hidden = true;
+  pauseOverlay.hidden = true;
+  boardWrap.hidden = false;
+  paint();
+  toast("已从存档继续");
 }
 
 function exportSlot(slot) {
