@@ -113,6 +113,11 @@ try {
   });
   check("双方进入掷骰界面", !!bothDice);
 
+  const diceView = await A.evaluate("JSON.stringify({d0:document.getElementById('dice0').textContent, d1:document.getElementById('dice1').textContent, n0:document.getElementById('diceName0').textContent, n1:document.getElementById('diceName1').textContent, desc:document.getElementById('diceDesc').textContent})");
+  const dv = JSON.parse(diceView);
+  check("骰子显示点数", /^[1-6]$/.test(dv.d0) && /^[1-6]$/.test(dv.d1), diceView);
+  check("骰子标注归属", ["你", "对方"].includes(dv.n0) && ["你", "对方"].includes(dv.n1) && dv.n0 !== dv.n1, diceView);
+
   // 大点者点「我要先手」
   const chooserIsA = await waitFor(async () => {
     const aHas = await A.evaluate("!!document.querySelector('#diceChoices [data-priority=\"first\"]')");

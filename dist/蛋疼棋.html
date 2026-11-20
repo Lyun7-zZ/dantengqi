@@ -3240,6 +3240,7 @@ function paint() {
     || S.undoLeft[st.turn] <= 0 || S.history.length < 2;
 
   resignBtn.hidden = !S.started || S.gameOver;
+  restartBtn.hidden = S.mode === "online";
   paintClocks();
 }
 
@@ -4008,6 +4009,12 @@ el("dropEnd").addEventListener("click", () => { closeDrop(); endOnlineGame({ win
 el("menuSettings").addEventListener("click", openSettings);
 rulesBtn.addEventListener("click", openRules);
 el("homeBtn").addEventListener("click", () => {
+  if (S.mode === "online" && S.started && !S.gameOver) {
+    if (!window.confirm("联机对局中离开将判负，确定？")) return;
+    NET.client?.send({ t: "resign" });
+    setTimeout(() => { stopNet(); goHome(); }, 300);
+    return;
+  }
   if (S.state && S.state.plies > 0 && !S.gameOver && !window.confirm("返回主菜单将放弃当前对局，确定？")) return;
   goHome();
 });
@@ -4289,9 +4296,28 @@ function handleServerMessage(msg) {
 }
 
 function showServerDice(msg) {
-  const st = S.settings;
   diceOverlay.hidden = false;
   homeOverlay.hidden = true;
+
+  // 点数与归属：pts 按连接座位排列（0 / 1），对到「你 / 对方」
+  if (Array.isArray(msg.pts)) {
+    const iAmZero = NET.seat === 0;
+    diceNameEls[0].textContent = iAmZero ? "你" : "对方";
+    diceNameEls[1].textContent = iAmZero ? "对方" : "你";
+    diceEls[0].textContent = String(msg.pts[0]);
+    diceEls[1].textContent = String(msg.pts[1]);
+    diceEls[msg.chooser].classList.add("win");
+    diceEls[1 - msg.chooser].classList.remove("win");
+    const minePts = iAmZero ? msg.pts[0] : msg.pts[1];
+    const oppPts = iAmZero ? msg.pts[1] : msg.pts[0];
+    S.diceChooser = msg.chooser;
+    if (msg.stage === "priority") {
+      diceDesc.textContent = msg.chooser === NET.seat
+        ? `你 ${minePts} 点，对方 ${oppPts} 点 —— 你先选`
+        : `你 ${minePts} 点，对方 ${oppPts} 点 —— 对方先选`;
+    }
+  }
+
   if (msg.stage === "priority") {
     diceSub.textContent = "点数大者二选一：先手或选边，另一项归对方";
     const mine = msg.chooser === NET.seat;
