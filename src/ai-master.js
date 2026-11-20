@@ -112,7 +112,7 @@ function nearExits(state, p) {
  *     因为残局里“能封我几条路”比“我还差几步”更能决定胜负；
  *   - 显式惩罚对手站在终点线（下一步就能出）的局面。
  */
-function evalAI(state) {
+function evalAI(state, opts = {}) {
   if (state.winner !== null) {
     if (state.winner === "draw") return 0;
     return state.winner === state.turn ? AI_WIN : -AI_WIN;
@@ -128,6 +128,12 @@ function evalAI(state) {
     return AI_WIN / 2;
   }
   if (exits === 0) return 0;
+
+  // 地狱残局：出口少时用「对手能逼我接受的最差出口」来评估
+  if (opts.worstGap && exits <= (opts.worstGapExits ?? 4)) {
+    const wg = worstExitEval(state, me, firstOnly ? state.firstPlayer === me : true);
+    if (wg !== null) return wg;
+  }
 
   const m = dop - dm;
   // 规则 1.3（drawMode=firstOnly）：先手领先 1 手只是平局，后手领先 1 手却是直接取胜
@@ -155,6 +161,73 @@ function evalAI(state) {
   return -5400 + 14 * m + 26 * openPenalty + 5 * ways + 6 * near + doorstep;
 }
 
+/**
+ * 从某个顶部出口反向 BFS：返回每个格子到该出口的步数（含越线那一步）。
+ * 只在出口较少时调用（地狱的残局评估）。
+ */
+function distToExit(state, exitCol) {
+  const dist = new Int16Array(AI2_SIZE).fill(-1);
+  const q = new Int16Array(AI2_SIZE * 2);
+  let head = 0;
+  let tail = 0;
+  const k0 = exitCol;
+  dist[k0] = 1;
+  q[tail++] = exitCol;
+  q[tail++] = 0;
+  while (head < tail) {
+    const c = q[head++];
+    const r = q[head++];
+    const d = dist[r * COLS + c];
+    const relax = (nc, nr) => {
+      const k = nr * COLS + nc;
+      if (dist[k] !== -1) return;
+      dist[k] = d + 1;
+      q[tail++] = nc;
+      q[tail++] = nr;
+    };
+    if (r > 0 && state.hWall[c * H_COUNT + (r - 1)] === 0) relax(c, r - 1);
+    if (r < ROWS - 1 && state.hWall[c * H_COUNT + r] === 0) relax(c, r + 1);
+    if (c > 0 && state.vWall[(c - 1) * ROWS + r] === 0) relax(c - 1, r);
+    if (c < COLS - 1 && state.vWall[c * ROWS + r] === 0) relax(c + 1, r);
+  }
+  return dist;
+}
+
+/** 每个开放出口的 gap：对手步数 - 我步数（站在 me 角度）。 */
+function exitGapList(state, me) {
+  const out = [];
+  const mp = state.players[me];
+  const op = state.players[1 - me];
+  for (let c = 0; c < COLS; c++) {
+    if (state.topWall[c] !== 0) continue;
+    const dist = distToExit(state, c);
+    const dm = dist[mp.r * COLS + mp.c];
+    const dop = dist[op.r * COLS + op.c];
+    if (dm < 0 || dop < 0) continue;
+    out.push({ c, dm, dop, gap: dop - dm });
+  }
+  return out;
+}
+
+/**
+ * 残局评估：对手会挑对自己最有利的出口，所以取最差 gap。
+ * 返回 null 表示不适用。
+ */
+function worstExitEval(state, me, meIsFirst) {
+  const gaps = exitGapList(state, me);
+  if (!gaps.length) return null;
+  let worst = Infinity;
+  for (const g of gaps) {
+    let v;
+    if (g.gap >= 2) v = AI_WIN / 2 - 30 * g.dm;
+    else if (g.gap === 1) v = meIsFirst ? 0 : AI_WIN / 2 - 30 * g.dm;
+    else if (g.gap === 0) v = 0;
+    else v = -AI_WIN / 2 + 30 * g.dm;
+    if (v < worst) worst = v;
+  }
+  return worst;
+}
+
 /** 走法生成：走子 + 对手最短路墙 + （根节点）全墙扫描的高收益墙 + 计划墙。 */
 function candidatesAI(state, opts = {}) {
   const me = state.turn;
@@ -173,6 +246,7 @@ function candidatesAI(state, opts = {}) {
 
   // 只保留真正让对手更慢的墙；不制造“双方一起被拖慢”的无效墙。
   const netWalls = !!opts.netWalls;
+  const behindWalls = !!opts.behindWalls;
   const topWallMinPlies = Number(opts.topWallMinPlies ?? 0);
   const dm0 = netWalls ? distanceToGoal(state, mp.c, mp.r) : 0;
   const dop0 = netWalls ? distanceToGoal(state, op.c, op.r) : 0;
@@ -193,7 +267,8 @@ function candidatesAI(state, opts = {}) {
       const g = wallGain(a);
       if (!g) return;
       const diff = g.gainOpp - g.gainMe;
-      if (top ? diff < 0 : diff <= 0) return;
+      const minDiff = behindWalls ? 0 : top ? 0 : 1;
+      if (diff < minDiff) return;
     }
     add(a);
   };
@@ -230,6 +305,15 @@ function candidatesAI(state, opts = {}) {
       else add(w);
     }
   }
+  if (opts.merge) {
+    // 合流候选：双方最短路都会经过的墙位（共同卡口）
+    const keyOf = (w) => `${w.kind}:${w.c}:${w.r}`;
+    const mineSet = new Set(shortestPathWalls(state, mp.c, mp.r).map(keyOf));
+    for (const w of shortestPathWalls(state, op.c, op.r)) {
+      if (!mineSet.has(keyOf(w))) continue;
+      addWall(w);
+    }
+  }
   if (opts.planWall) addWall(opts.planWall);
   return out;
 }
@@ -245,7 +329,7 @@ function searchAI(state, depth, alpha, beta, ctx) {
     ctx.abort = true;
     return 0;
   }
-  if (state.winner !== null || depth === 0) return evalAI(state);
+  if (state.winner !== null || depth === 0) return evalAI(state, ctx.evalOpts ?? {});
 
   const cands = candidatesAI(state, ctx.candOpts ?? {});
   const scored = [];
@@ -293,16 +377,29 @@ function rootSearch(state, rng, timeMs, maxDepth, opts = {}) {
   if (!ordered.length) return autoMove(state);
   ordered.sort((x, y) => y.score - x.score);
 
+  const startedAt = aiNow();
   const ctx = {
-    deadline: aiNow() + Math.max(20, timeMs),
+    deadline: startedAt + Math.max(20, timeMs),
     nodes: 0,
     abort: false,
     candOpts: opts.candOpts ?? {},
   };
+  const adaptive = opts.adaptive || null;
+  const diag = opts.diag || null;
+  if (diag) {
+    diag.depths = 0;
+    diag.actionChanges = 0;
+    diag.stop = "max-depth";
+    diag.score = 0;
+  }
+  const actionKey = (a) => (a ? (a.type === "move" ? "m:" + a.dir : "w:" + a.kind + ":" + a.c + ":" + a.r) : null);
   const repeatSet = opts.repeatSet;
   const repeatPenalty = Number(opts.repeatPenalty ?? 0);
   let best = ordered[0].a;
   let bestScore = -Infinity;
+  let stable = 0;
+  let prevAction = null;
+  let prevScore = null;
 
   for (let depth = 1; depth <= maxDepth; depth++) {
     let alpha = -Infinity;
@@ -323,14 +420,55 @@ function rootSearch(state, rng, timeMs, maxDepth, opts = {}) {
       }
       if (v > alpha) alpha = v;
     }
-    if (ctx.abort) break;
+    if (ctx.abort) {
+      if (diag) diag.stop = "abort";
+      break;
+    }
     if (localBest) {
       best = localBest;
       bestScore = localScore;
       ordered.sort((x, y) => (x.a === best ? -1 : y.a === best ? 1 : y.score - x.score));
     }
-    if (bestScore >= AI_WIN * 0.9) break;
-    if (aiNow() >= ctx.deadline) break;
+    if (diag) {
+      diag.depths = depth;
+      if (prevAction !== null && actionKey(localBest) !== prevAction) diag.actionChanges++;
+    }
+    if (bestScore >= AI_WIN * 0.9) {
+      if (diag) diag.stop = "win-found";
+      break;
+    }
+
+    if (adaptive) {
+      // 稳定性：最佳动作与分数连续两层不变，才允许提前停
+      const same =
+        localBest !== null &&
+        prevAction !== null &&
+        actionKey(localBest) === prevAction;
+      stable = same ? stable + 1 : 0;
+      prevAction = actionKey(localBest);
+      prevScore = localScore;
+      const elapsed = aiNow() - startedAt;
+      if (stable >= 1 && depth >= adaptive.minDepth && elapsed >= adaptive.soft1) {
+        if (diag) diag.stop = "stable-soft1";
+        break;
+      }
+      if (stable >= 1 && elapsed >= adaptive.soft2) {
+        if (diag) diag.stop = "stable-soft2";
+        break;
+      }
+      if (elapsed >= Math.max(20, timeMs)) {
+        if (diag) diag.stop = "hard-cap";
+        break;
+      }
+    } else if (aiNow() >= ctx.deadline) {
+      if (diag) diag.stop = "hard-cap";
+      break;
+    }
+  }
+  if (diag) {
+    diag.elapsed = Math.round(aiNow() - startedAt);
+    diag.nodes = ctx.nodes;
+    diag.score = Math.round(bestScore);
   }
   return best;
 }
@@ -594,6 +732,14 @@ function createMasterAI({
   topWallKind = "t",
   startPlan = false,
   endgameDepth = 0,
+  worstGap = false,
+  worstGapExits = 4,
+  behindMode = false,
+  adaptive = false,
+  adaptiveSoft1 = 2000,
+  adaptiveSoft2 = 8000,
+  adaptiveMinDepth = 4,
+  adaptiveEps = 40,
 } = {}) {
   let plan = null;
   let plansUsed = 0;
@@ -678,6 +824,22 @@ function createMasterAI({
     }
 
     stats.searches++;
+    // 根节点：若最差出口明显吃亏，把「封掉它」加入候选
+    let rootPlanWall = null;
+    if (worstGap) {
+      const gaps = exitGapList(state, me);
+      if (gaps.length) {
+        let worst = gaps[0];
+        for (const g of gaps) if (g.gap < worst.gap) worst = g;
+        if (worst.gap < 0) {
+          const w = { type: "wall", kind: "top", c: worst.c, r: 0 };
+          if (!wallPlaced(state, w.kind, w.c, w.r) && validateAction(state, w).ok) {
+            rootPlanWall = w;
+          }
+        }
+      }
+    }
+    const behind = behindMode && marginFor(state, me) < 0;
     const dm = distanceOf(state, me);
     const dop = distanceOf(state, opp);
     const endgame = endgameDepth > 0 &&
@@ -685,13 +847,30 @@ function createMasterAI({
       Number.isFinite(dm) && Number.isFinite(dop) &&
       Math.max(dm, dop) <= 5;
     const depth = endgame ? Math.max(maxDepth, endgameDepth) : maxDepth;
+    const diag = {};
     const action = rootSearch(state, rng, timeMs, depth, {
-      candOpts: { netWalls, topWallMinPlies, topWallKind },
+      diag,
+      candOpts: {
+        netWalls, topWallMinPlies, topWallKind,
+        planWall: rootPlanWall,
+        behindWalls: behind,
+        merge: behind,
+      },
+      evalOpts: worstGap ? { worstGap: true, worstGapExits } : {},
       startWallBias,
       startWallPlies,
       repeatSet,
       repeatPenalty: avoidRepeat ? repeatPenalty : 0,
+      adaptive: adaptive
+        ? {
+          soft1: adaptiveSoft1,
+          soft2: adaptiveSoft2,
+          minDepth: adaptiveMinDepth,
+          eps: adaptiveEps,
+        }
+        : null,
     });
+    stats.last = diag;
     if (necessaryPathGuard && action.type === "wall" && opponentOnNecessaryPath(state, me)) {
       const should = necessaryPathGuard === "hard" || planWallNetBad(state, me, action);
       if (should) {

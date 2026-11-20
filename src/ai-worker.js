@@ -19,6 +19,7 @@ const CONFIG = {
   },
   hell: {
     timeMs: 28000, maxDepth: 12, usePlan: true,
+    worstGap: true, behindMode: true,
     netWalls: true, avoidRepeat: true, repeatPenalty: 160,
     planMoves: true, planFallback: true,
     necessaryPathGuard: "soft", endgameDepth: 12,
