@@ -390,5 +390,6 @@ export const AI = {
     necessaryPathGuard: "soft",
     endgameDepth: 12,
     routeWalls: 3,
+    smartExit: true,
   }),
 };

@@ -34,6 +34,7 @@ const hell = createMasterAI({
   planMoves: true, planFallback: true, necessaryPathGuard: "soft", endgameDepth: 12,
   adaptive: false,
   routeWalls: 3,
+  smartExit: true,
 });
 
 const gm = createMasterAI({

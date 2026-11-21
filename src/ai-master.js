@@ -298,7 +298,7 @@ function searchAI(state, depth, alpha, beta, ctx) {
 /** 迭代加深根搜索。 */
 function rootSearch(state, rng, timeMs, maxDepth, opts = {}) {
   const ex = exitAction(state);
-  if (ex && ex.winner === state.turn) return ex.action;
+  if (ex && (opts.smartExit ? ex.winner === state.turn : true)) return ex.action;
 
   const me = state.turn;
   const cands = candidatesAI(state, { scanAll: 6, ...(opts.candOpts ?? {}) });
@@ -656,6 +656,7 @@ function createMasterAI({
   startPlan = false,
   endgameDepth = 0,
   routeWalls = 0,
+  smartExit = false,
 } = {}) {
   let plan = null;
   let plansUsed = 0;
@@ -678,12 +679,19 @@ function createMasterAI({
       dOpp: distanceOf(state, opp),
       exits: countOpenExits(state),
     };
+    if (!smartExit) {
+      // 旧行为：能越线就立刻越线（可能是平局）
+      if (exit) {
+        stats.lastLog = { ...logBase, source: "exit", action: exit.action };
+        return exit.action;
+      }
+    }
     if (exit && exit.winner === me) {
       stats.lastLog = { ...logBase, source: "exit-win", action: exit.action };
       return exit.action;
     }
     // 越线只能平：先记下来，搜索若找不到更好的（或会输）就回来取平
-    const safeDraw = exit && exit.winner === "draw" ? exit.action : null;
+    const safeDraw = smartExit && exit && exit.winner === "draw" ? exit.action : null;
 
     if (avoidRepeat) {
       history.push(`${mePos.r * COLS + mePos.c}:${state.wallsPlaced}`);
@@ -771,6 +779,7 @@ function createMasterAI({
       repeatSet,
       repeatPenalty: avoidRepeat ? repeatPenalty : 0,
       routeWalls,
+      smartExit,
     });
     // 能越线但只是平：若搜索结果更差，退回安全平局
     if (safeDraw && (diag.score ?? 0) < 0) {
