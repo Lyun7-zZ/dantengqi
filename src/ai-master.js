@@ -598,6 +598,16 @@ function planWallNetBad(state, me, w) {
 }
 
 /** 构建一个带计划层的 AI。 */
+/** 调试：返回当前局面的生成候选（供审计工具使用）。 */
+export function debugCandidates(state, opts = {}) {
+  return candidatesAI(state, { scanAll: 6, ...opts });
+}
+
+/** 调试：某方到终点最短路条数（截断）。 */
+export function debugPathCount(state, p, cap = 24) {
+  return pathCount(state, p, cap);
+}
+
 function createMasterAI({
   timeMs = 1200,
   maxDepth = 6,
