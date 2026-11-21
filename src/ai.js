@@ -389,5 +389,6 @@ export const AI = {
     planFallback: true,
     necessaryPathGuard: "soft",
     endgameDepth: 12,
+    routeWalls: 3,
   }),
 };

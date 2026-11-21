@@ -18,7 +18,7 @@ const CONFIG = {
     necessaryPathGuard: "soft", endgameDepth: 9,
   },
   hell: {
-    timeMs: 28000, maxDepth: 12, usePlan: true,
+    timeMs: 28000, maxDepth: 12, usePlan: true, routeWalls: 3,
     netWalls: true, avoidRepeat: true, repeatPenalty: 160,
     planMoves: true, planFallback: true,
     necessaryPathGuard: "soft", endgameDepth: 12,

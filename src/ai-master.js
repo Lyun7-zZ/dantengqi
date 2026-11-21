@@ -246,6 +246,27 @@ function orderScore(state) {
   return distanceOf(state, state.turn) - distanceOf(state, 1 - state.turn);
 }
 
+/**
+ * 路由墙候选：在不增加即时距离的墙里，挑「砍掉对手最短路条数最多」的前 N 面。
+ * 只在根节点调用，避免搜索内部的高昂开销。
+ */
+function routeCutCandidates(state, n) {
+  const opp = 1 - state.turn;
+  const base = pathCount(state, opp, 24);
+  const out = [];
+  for (const w of allWallSlots()) {
+    if (wallPlaced(state, w.kind, w.c, w.r)) continue;
+    const a = { type: "wall", kind: w.kind, c: w.c, r: w.r };
+    if (!validateAction(state, a).ok) continue;
+    const r = applyAction(state, a);
+    if (!r.ok) continue;
+    const cut = base - pathCount(r.state, opp, 24);
+    if (cut > 0) out.push([cut, a]);
+  }
+  out.sort((x, y) => y[0] - x[0]);
+  return out.slice(0, n).map((x) => x[1]);
+}
+
 function searchAI(state, depth, alpha, beta, ctx) {
   ctx.nodes++;
   if ((ctx.nodes & 255) === 0 && aiNow() >= ctx.deadline) {
@@ -281,6 +302,15 @@ function rootSearch(state, rng, timeMs, maxDepth, opts = {}) {
 
   const me = state.turn;
   const cands = candidatesAI(state, { scanAll: 6, ...(opts.candOpts ?? {}) });
+  if (opts.routeWalls > 0) {
+    const seen = new Set(cands.map((a) => (a.type === "move" ? "m:" + a.dir : "w:" + a.kind + ":" + a.c + ":" + a.r)));
+    for (const w of routeCutCandidates(state, opts.routeWalls)) {
+      const k = "w:" + w.kind + ":" + w.c + ":" + w.r;
+      if (seen.has(k)) continue;
+      seen.add(k);
+      cands.push(w);
+    }
+  }
   const ordered = [];
   const startWallBias = Number(opts.startWallBias ?? 0);
   const startWallPlies = Number(opts.startWallPlies ?? 0);
@@ -625,6 +655,7 @@ function createMasterAI({
   topWallKind = "t",
   startPlan = false,
   endgameDepth = 0,
+  routeWalls = 0,
 } = {}) {
   let plan = null;
   let plansUsed = 0;
@@ -739,6 +770,7 @@ function createMasterAI({
       startWallPlies,
       repeatSet,
       repeatPenalty: avoidRepeat ? repeatPenalty : 0,
+      routeWalls,
     });
     // 能越线但只是平：若搜索结果更差，退回安全平局
     if (safeDraw && (diag.score ?? 0) < 0) {
