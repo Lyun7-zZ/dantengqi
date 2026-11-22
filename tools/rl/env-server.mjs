@@ -11,7 +11,7 @@
  */
 
 import { createInterface } from "node:readline";
-import { createState, applyAction, validateAction } from "../../src/rules.js";
+import { createState, applyAction, validateAction, distanceOf } from "../../src/rules.js";
 import { decode } from "./actions.mjs";
 
 function toState(s) {
@@ -40,11 +40,13 @@ function serializeState(s) {
     turn: s.turn,
     firstPlayer: s.firstPlayer,
     wallsPlaced: s.wallsPlaced,
-    wallLimit: s.wallLimit,
+    plies: s.plies,
+    wallLimit: s.wallLimit.map((v) => (Number.isFinite(v) ? v : 9999)),
     wallsUsed: s.wallsUsed,
     tolerance: s.tolerance,
     drawMode: s.drawMode,
     winner: s.winner,
+    dist: [distanceOf(s, 0), distanceOf(s, 1)],
   };
 }
 
@@ -73,6 +75,10 @@ rl.on("line", (line) => {
   const respond = (obj) => process.stdout.write(JSON.stringify({ id: msg.id, ...obj }) + "\n");
   try {
     if (msg.op === "ping") return respond({ ok: true });
+    if (msg.op === "reset") {
+      const s = createState(msg.firstPlayer ?? 0, { drawMode: "firstOnly" });
+      return respond({ ok: true, state: serializeState(s) });
+    }
     const state = toState(msg.state);
     if (msg.op === "mask") {
       const { mask, count } = maskFor(state);
