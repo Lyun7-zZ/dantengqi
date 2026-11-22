@@ -15,11 +15,11 @@ import numpy as np
 
 FEATURES = [
     "ply", "isFirst", "dMe", "dOpp", "margin", "exits",
-    "nearMe", "nearOpp", "pathsMe", "pathsOpp", "movesMe", "movesOpp",
-    "colDiff", "rowDiff", "wallsPlaced", "wallDensity",
+    "pathsMe", "pathsOpp", "movesMe", "movesOpp",
+    "colDiff", "rowDiff", "wallsPlaced",
     "atRow0Me", "atRow0Opp",
-    "exitCount", "gapWorst", "gapBest", "gapMean",
-    "pathLenMe", "pathLenOpp", "overlap", "overlapRatio",
+    "gapWorst", "gapBest",
+    "overlap", "overlapRatio",
     "bestWallNet", "bestWallCut",
 ]
 
