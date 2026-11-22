@@ -12,7 +12,9 @@ import numpy as np
 FEATURES = [
     "dMe", "dOpp", "margin", "exits", "pathsMe", "pathsOpp",
     "movesMe", "movesOpp", "wallsPlaced",
-    "gainMe", "gainOpp", "net", "cut", "isMove",
+    "gainMe", "gainOpp", "net", "cut",
+    "gapWorst", "gapBest", "gapMean", "dGapWorst", "dGapBest",
+    "overlapRatio", "dOverlap", "isMove", "isTop", "isWall",
 ]
 
 
@@ -27,6 +29,8 @@ def load(path):
     return positions
 
 
+GAP = 20
+
 def build(positions):
     pairs = []          # (gid, diff_features)
     labels = []
@@ -38,7 +42,7 @@ def build(positions):
                     if i == j:
                         continue
                     gap = items[i]["score"] - items[j]["score"]
-                    if gap < 20:
+                    if gap < GAP:
                         continue
                     fi = np.array([items[i]["f"][k] for k in FEATURES], dtype=float)
                     fj = np.array([items[j]["f"][k] for k in FEATURES], dtype=float)
@@ -96,7 +100,9 @@ def baseline_topk(positions, key, k):
 
 
 def main():
+    global GAP
     path = sys.argv[1] if len(sys.argv) > 1 else "_extract/labels.jsonl"
+    GAP = int(sys.argv[2]) if len(sys.argv) > 2 else 20
     positions = load(path)
     gids = sorted(positions)
     val_gids = set(gids[::5])
@@ -126,7 +132,9 @@ def main():
         acc = float("nan")
 
     print(f"局面 {len(positions)}（训练 {len(train_pos)}，验证 {len(val_pos)}）")
-    print(f"成对样本 {len(X)}；验证成对准确率 {acc:.3f}")
+    ptr = 1 / (1 + np.exp(-(Xn @ w + b)))
+    acc_tr = float(((ptr > 0.5) == (y > 0.5)).mean())
+    print(f"成对样本 {len(X)}；训练成对准确率 {acc_tr:.3f}，验证 {acc:.3f}（gap≥{GAP}）")
     for k in (1, 3, 5):
         r, n = topk_recall(val_pos, w, b, mean, std, k)
         print(f"Top-{k} 召回：{r:.3f}（{n} 个局面）")
