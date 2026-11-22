@@ -341,11 +341,14 @@ function rootSearch(state, rng, timeMs, maxDepth, opts = {}) {
   const diag = opts.diag || null;
   let best = ordered[0].a;
   let bestScore = -Infinity;
+  let lastScores = null;
+  let lastDepth = 0;
 
   for (let depth = 1; depth <= maxDepth; depth++) {
     let alpha = -Infinity;
     let localBest = null;
     let localScore = -Infinity;
+    const levelScores = [];
     for (const item of ordered) {
       let v = -searchAI(item.st, depth - 1, -Infinity, -alpha, ctx);
       if (ctx.abort) break;
@@ -355,6 +358,7 @@ function rootSearch(state, rng, timeMs, maxDepth, opts = {}) {
         const key = `${np.r * COLS + np.c}:${item.st.wallsPlaced}`;
         if (repeatSet.has(key)) v -= repeatPenalty;
       }
+      levelScores.push({ action: item.a, score: v });
       if (v > localScore) {
         localScore = v;
         localBest = item.a;
@@ -365,6 +369,8 @@ function rootSearch(state, rng, timeMs, maxDepth, opts = {}) {
     if (localBest) {
       best = localBest;
       bestScore = localScore;
+      lastScores = levelScores;
+      lastDepth = depth;
       ordered.sort((x, y) => (x.a === best ? -1 : y.a === best ? 1 : y.score - x.score));
     }
     if (diag) {
@@ -383,6 +389,9 @@ function rootSearch(state, rng, timeMs, maxDepth, opts = {}) {
     }
   }
   if (diag && !diag.stop) diag.stop = "max-depth";
+  if (opts.collectScores) {
+    return { action: best, scores: lastScores || [], depth: lastDepth };
+  }
   return best;
 }
 
@@ -636,6 +645,56 @@ export function debugCandidates(state, opts = {}) {
 /** 调试：某方到终点最短路条数（截断）。 */
 export function debugPathCount(state, p, cap = 24) {
   return pathCount(state, p, cap);
+}
+
+/**
+ * 调试：固定深度搜索，返回根节点每个候选的完整分数（教师标注用）。
+ * 与正式搜索不同，这里每个候选都用全窗口搜索，分数可比。
+ */
+export function debugRootScores(state, opts = {}) {
+  if (state.winner !== null) return [];
+  const depth = Number(opts.depth ?? 8);
+  const candOpts = { ...(opts.candOpts ?? {}) };
+  const cands = candidatesAI(state, { scanAll: 6, ...candOpts });
+  if (opts.routeWalls > 0) {
+    const seen = new Set(cands.map((a) => (a.type === "move" ? "m:" + a.dir : "w:" + a.kind + ":" + a.c + ":" + a.r)));
+    for (const w of routeCutCandidates(state, opts.routeWalls)) {
+      const k = "w:" + w.kind + ":" + w.c + ":" + w.r;
+      if (seen.has(k)) continue;
+      seen.add(k);
+      cands.push(w);
+    }
+  }
+  const ctx = { deadline: aiNow() + 300000, nodes: 0, abort: false, candOpts };
+  const out = [];
+  const t0 = aiNow();
+  for (const a of cands) {
+    const r = applyAction(state, a);
+    if (!r.ok) continue;
+    const score = -searchAI(r.state, depth - 1, -Infinity, Infinity, ctx);
+    out.push({ action: a, score: Math.round(score) });
+  }
+  out.sort((x, y) => y.score - x.score);
+  return { depth, nodes: ctx.nodes, elapsed: Math.round(aiNow() - t0), items: out };
+}
+
+/**
+ * 限时教师：正常搜索（含 alpha-beta 与候选生成），返回根候选在最后完成层的分数。
+ * 成本与正式搜索相同，适合批量标注。
+ */
+export function debugRootScoresTimed(state, opts = {}) {
+  if (state.winner !== null) return { depth: 0, items: [] };
+  const candOpts = { netWalls: true, ...(opts.candOpts ?? {}) };
+  const res = rootSearch(state, Math.random, opts.timeMs ?? 3000, opts.maxDepth ?? 12, {
+    candOpts,
+    routeWalls: opts.routeWalls ?? 3,
+    collectScores: true,
+  });
+  if (!res || !res.scores) return { depth: 0, items: [] };
+  const items = res.scores
+    .map((x) => ({ action: x.action, score: Math.round(x.score) }))
+    .sort((a, b) => b.score - a.score);
+  return { depth: res.depth, items };
 }
 
 function createMasterAI({
