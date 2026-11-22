@@ -35,6 +35,9 @@ const hell = createMasterAI({
   adaptive: false,
   routeWalls: 3,
   smartExit: true,
+  tt: true,
+  pvs: true,
+  killers: true,
 });
 
 const gm = createMasterAI({

@@ -267,6 +267,26 @@ function routeCutCandidates(state, n) {
   return out.slice(0, n).map((x) => x[1]);
 }
 
+/**
+ * 局面哈希：两个 32 位混合成一个 53 位安全整数键。
+ * 覆盖棋子位置、所有墙、走子方；规则不依赖历史，所以不需要额外信息。
+ */
+function stateKey(state) {
+  let a = 0x811c9dc5;
+  let b = 0x9e3779b9;
+  const mix = (v) => {
+    a = Math.imul(a ^ (v & 0xff), 0x01000193);
+    b = Math.imul(b ^ (v & 0xff), 0x85ebca6b);
+  };
+  for (const p of state.players) { mix(p.c); mix(p.r); }
+  for (const v of state.vWall) mix(v);
+  for (const v of state.hWall) mix(v);
+  for (const v of state.topWall) mix(v);
+  mix(state.turn);
+  mix(state.wallsPlaced ?? 0);
+  return (a >>> 0) * 0x200000 + (b >>> 11);
+}
+
 function searchAI(state, depth, alpha, beta, ctx) {
   ctx.nodes++;
   if ((ctx.nodes & 255) === 0 && aiNow() >= ctx.deadline) {
@@ -335,6 +355,9 @@ function rootSearch(state, rng, timeMs, maxDepth, opts = {}) {
     nodes: 0,
     abort: false,
     candOpts: opts.candOpts ?? {},
+    tt: opts.tt || null,
+    pvs: !!opts.pvs,
+    killersOn: !!opts.killers,
   };
   const repeatSet = opts.repeatSet;
   const repeatPenalty = Number(opts.repeatPenalty ?? 0);
@@ -657,6 +680,9 @@ function createMasterAI({
   endgameDepth = 0,
   routeWalls = 0,
   smartExit = false,
+  tt = false,
+  pvs = false,
+  killers = false,
 } = {}) {
   let plan = null;
   let plansUsed = 0;
@@ -666,6 +692,7 @@ function createMasterAI({
   if (necessaryPathGuard) stats.necessaryMoves = 0;
 
   function choose(state, rng) {
+    const ttTable = tt ? new Map() : null;
     const me = state.turn;
     const opp = 1 - me;
     const mePos = state.players[me];
@@ -780,6 +807,9 @@ function createMasterAI({
       repeatPenalty: avoidRepeat ? repeatPenalty : 0,
       routeWalls,
       smartExit,
+      tt: tt ? ttTable : null,
+      pvs,
+      killers,
     });
     // 能越线但只是平：若搜索结果更差，退回安全平局
     if (safeDraw && (diag.score ?? 0) < 0) {

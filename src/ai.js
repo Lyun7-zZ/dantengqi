@@ -391,5 +391,8 @@ export const AI = {
     endgameDepth: 12,
     routeWalls: 3,
     smartExit: true,
+    tt: true,
+    pvs: true,
+    killers: true,
   }),
 };
