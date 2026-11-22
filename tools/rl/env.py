@@ -41,12 +41,14 @@ class DantengEnv(gym.Env):
     metadata = {"render_modes": []}
 
     def __init__(self, *, node: str = "node", server: str | None = None,
-                 max_plies: int = 240, opponent: str = "random", seed: int | None = None):
+                 max_plies: int = 240, opponent: str = "random", seed: int | None = None,
+                 start_mode: str = "normal"):
         super().__init__()
         root = Path(__file__).resolve().parents[2]
         self.server_path = str(server or root / "tools" / "rl" / "env-server.mjs")
         self.max_plies = max_plies
         self.opponent = opponent
+        self.start_mode = start_mode
         self.rng = random.Random(seed)
         self.proc = subprocess.Popen(
             [node, self.server_path],
@@ -141,6 +143,9 @@ class DantengEnv(gym.Env):
     def _opponent_action(self):
         mask = self._mask()
         legal = np.flatnonzero(mask)
+        moves = [int(i) for i in legal if int(i) < 4]
+        if self.opponent == "move_bias" and moves and self.rng.random() < 0.8:
+            return int(self.rng.choice(moves))
         if self.opponent == "path":
             # 优先走子，选离出口最近的方向；否则随机放墙
             st = self.state
@@ -181,6 +186,13 @@ class DantengEnv(gym.Env):
         res = self._call("reset", firstPlayer=0)
         self.state = res["state"]
         self.episode_steps = 0
+        if self.start_mode == "short":
+            # 短残局起点：双方靠近出口，容易产生自然终局
+            for i in range(2):
+                self.state["players"][i] = {"c": self.rng.randrange(10), "r": 2 + i}
+            self.state["turn"] = self.learner
+            self.state["winner"] = None
+            self.state["plies"] = 0
         # 学习方后手：对手先在 reset 内走一手
         if self.state["turn"] != self.learner:
             self._apply(self._opponent_action())
