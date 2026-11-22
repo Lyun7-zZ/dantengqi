@@ -23,6 +23,11 @@ function toState(s) {
   st.turn = s.turn;
   st.firstPlayer = s.firstPlayer ?? 0;
   st.wallsPlaced = s.wallsPlaced ?? 0;
+  st.wallLimit = Array.isArray(s.wallLimit) ? s.wallLimit.map((v) => (Number.isFinite(v) ? v : 9999)) : [9999, 9999];
+  st.wallsUsed = Array.isArray(s.wallsUsed) ? [s.wallsUsed[0], s.wallsUsed[1]] : [0, 0];
+  st.tolerance = s.tolerance ?? 1;
+  st.drawMode = s.drawMode ?? "firstOnly";
+  st.winner = s.winner ?? null;
   return st;
 }
 
@@ -35,6 +40,10 @@ function serializeState(s) {
     turn: s.turn,
     firstPlayer: s.firstPlayer,
     wallsPlaced: s.wallsPlaced,
+    wallLimit: s.wallLimit,
+    wallsUsed: s.wallsUsed,
+    tolerance: s.tolerance,
+    drawMode: s.drawMode,
     winner: s.winner,
   };
 }
