@@ -85,6 +85,9 @@ const diceEls = [el("dice0"), el("dice1")];
 const diceNameEls = [el("diceName0"), el("diceName1")];
 const diceDesc = el("diceDesc");
 const diceChoices = el("diceChoices");
+const diceTitle = el("diceTitle");
+const diceSub = el("diceSub");
+let diceGen = 0;
 const undoOverlay = el("undoOverlay");
 const undoDesc = el("undoDesc");
 const undoYes = el("undoYes");
@@ -361,11 +364,12 @@ function paint() {
   }
 
   metaEl.textContent = `第 ${st.plies + 1} 回合 · 墙 ${st.wallsPlaced} · 存点 ${st.bank[0]}/${st.bank[1]}`;
+  const who = S.aiSeat != null ? "你" : (seat === 0 ? "左方（青）" : "右方（橙）");
   statusEl.textContent = S.locked[seat]
-    ? "已选定，等待对方"
+    ? (S.aiSeat != null ? "正在和电脑一起结算" : "已选定，等待对方")
     : (S.preview
       ? (S.preview.valid ? `确认${S.preview.label}？` : "这一步不合法")
-      : `${seat === 0 ? "左方（青）" : "右方（橙）"}：走一格；有存点时可再点一格。也可放墙或存点`);
+      : `${who}：走一格；有存点时可再点一格。也可放墙或存点`);
 
   confirmBtn.disabled = !S.preview || !S.preview.valid || S.gameOver || !!S.locked[seat];
   cancelBtn.disabled = !S.preview;
@@ -781,12 +785,18 @@ function newGame(announce = false) {
 
 /** 从主菜单开局。 */
 function startGame(mode) {
+  diceGen++;
   S.pendingMode = mode;
   S.mode = mode;
   S.aiPerson = mode === "local" ? null : 1;
 
   if (NO_DICE) {
     finishDice(0, 0, 0);
+    return;
+  }
+
+  if (S.aiPerson !== null) {
+    openAiSide();
     return;
   }
 
@@ -814,6 +824,9 @@ function renderChoices(items) {
 }
 
 function rollDice() {
+  const gen = diceGen;
+  if (diceTitle) diceTitle.textContent = "掷骰选边";
+  if (diceSub) diceSub.textContent = "点数大者二选一：先手或选边，另一项归对方";
   const names = personNames();
   diceNameEls[0].textContent = names[0];
   diceNameEls[1].textContent = names[1];
@@ -829,6 +842,7 @@ function rollDice() {
 
   setTimeout(() => {
     clearInterval(timer);
+    if (gen !== diceGen) return;
     const a = 1 + Math.floor(Math.random() * 6);
     const b = 1 + Math.floor(Math.random() * 6);
     diceEls[0].textContent = String(a);
@@ -837,7 +851,7 @@ function rollDice() {
 
     if (a === b) {
       diceDesc.textContent = `都是 ${a} 点，重掷`;
-      setTimeout(rollDice, 650);
+      setTimeout(() => { if (gen === diceGen) rollDice(); }, 650);
       return;
     }
 
@@ -846,6 +860,40 @@ function rollDice() {
     diceEls[S.diceChooser].classList.add("win");
     showPriority();
   }, GAME_CONFIG.diceDelay);
+}
+
+/** 异步人机没有先后手：人选题边，电脑坐另一边。 */
+function openAiSide() {
+  diceGen++;
+  diceOverlay.hidden = false;
+  if (diceTitle) diceTitle.textContent = "选择执子方向";
+  if (diceSub) diceSub.textContent = "异步人机没有先后手。你选一边，电脑坐另一边，然后同时行动。";
+  diceNameEls[0].textContent = "左";
+  diceNameEls[1].textContent = "右";
+  diceEls[0].textContent = "A";
+  diceEls[1].textContent = "J";
+  for (const d of diceEls) d.classList.remove("rolling", "win");
+  diceDesc.textContent = "执左从 A-12 出发，执右从 J-12 出发。";
+  renderChoices([
+    { label: "执左（A-12）", side: 0, primary: true, onClick: () => finishAiSide(0) },
+    { label: "执右（J-12）", side: 1, onClick: () => finishAiSide(1) },
+  ]);
+}
+
+function finishAiSide(humanSide) {
+  S.aiSeat = 1 - humanSide;
+  S.firstSeat = humanSide;
+  diceOverlay.hidden = true;
+  renderChoices([]);
+  homeOverlay.hidden = true;
+  homeMain.hidden = false;
+  homeAI.hidden = true;
+  newGame();
+  S.started = true;
+  S.lastTs = performance.now();
+  ensureAILock();
+  paint();
+  toast(`你执${humanSide === 0 ? "左" : "右"}，和电脑同时行动`);
 }
 
 /** 点数大者：先手 或 选边，二选一。 */
@@ -859,8 +907,12 @@ function showPriority() {
   ]);
 
   if (S.aiPerson === chooser) {
+    const gen = diceGen;
     diceDesc.textContent += "（电脑选择中…）";
-    setTimeout(() => choosePriority(Math.random() < 0.6 ? "first" : "side"), 700);
+    setTimeout(() => {
+      if (gen !== diceGen) return;
+      choosePriority(Math.random() < 0.6 ? "first" : "side");
+    }, 700);
   }
 }
 
@@ -882,8 +934,12 @@ function choosePriority(kind) {
   ]);
 
   if (S.aiPerson === S.diceSideActor) {
+    const gen = diceGen;
     diceDesc.textContent += "（电脑选择中…）";
-    setTimeout(() => chooseSide(Math.random() < 0.5 ? 0 : 1), 700);
+    setTimeout(() => {
+      if (gen !== diceGen) return;
+      chooseSide(Math.random() < 0.5 ? 0 : 1);
+    }, 700);
   }
 }
 
@@ -915,12 +971,13 @@ function finishDice(side, sidePicker, firstPerson) {
   ensureAILock();
   paint();
   const firstWho = S.aiSeat === null
-    ? (firstSeat === 0 ? "左方" : "右方")
-    : (firstSeat === S.aiSeat ? "电脑" : "你");
+    ? (S.firstSeat === 0 ? "左方" : "右方")
+    : (S.firstSeat === S.aiSeat ? "电脑" : "你");
   toast(`${firstWho}选边完成，双方同时行动`);
 }
 
 function goHome() {
+  diceGen++;
   closeDrop();
   clearTimeout(S.handshakeTimer);
   stopNet();

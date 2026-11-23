@@ -166,7 +166,7 @@
   <!-- 掷骰选边 -->
   <div class="overlay" id="diceOverlay" hidden>
     <div class="panel">
-      <h2>掷骰选边</h2>
+      <h2 id="diceTitle">掷骰选边</h2>
       <p class="sub" id="diceSub">点数大者二选一：先手或选边，另一项归对方</p>
       <div class="diceRow">
         <div class="diceWrap">
@@ -224,6 +224,8 @@
         <p>每方 3 次，需对方同意，撤销最近一手并回滚计时与墙。</p>
       </div>
       <div class="docBody" id="rulesAsync" hidden>
+        <h3>人机</h3>
+        <p>没有先后手。你选执左或执右，电脑坐另一边。每回合你和电脑同时行动，一起结算。</p>
         <h3>棋盘</h3>
         <p>10 列（A–J）× 12 行（1–12）。下方为起点线，上方为终点线。</p>
         <h3>行动</h3>
