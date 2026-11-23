@@ -301,6 +301,7 @@ function rootSearch(state, rng, timeMs, maxDepth, opts = {}) {
   if (ex && (opts.smartExit ? ex.winner === state.turn : true)) return ex.action;
 
   const me = state.turn;
+  const tCand0 = aiNow();
   const cands = candidatesAI(state, { scanAll: 6, ...(opts.candOpts ?? {}) });
   if (opts.routeWalls > 0) {
     const seen = new Set(cands.map((a) => (a.type === "move" ? "m:" + a.dir : "w:" + a.kind + ":" + a.c + ":" + a.r)));
@@ -311,6 +312,8 @@ function rootSearch(state, rng, timeMs, maxDepth, opts = {}) {
       cands.push(w);
     }
   }
+  const tCand = aiNow() - tCand0;
+  const tOrder0 = aiNow();
   const ordered = [];
   const startWallBias = Number(opts.startWallBias ?? 0);
   const startWallPlies = Number(opts.startWallPlies ?? 0);
@@ -329,9 +332,10 @@ function rootSearch(state, rng, timeMs, maxDepth, opts = {}) {
   }
   if (!ordered.length) return autoMove(state);
   ordered.sort((x, y) => y.score - x.score);
+  const tOrder = aiNow() - tOrder0;
 
   const ctx = {
-    deadline: aiNow() + Math.max(20, timeMs),
+    deadline: Math.min(aiNow() + Math.max(20, timeMs), (opts.globalDeadline ?? Infinity) - 50),
     nodes: 0,
     abort: false,
     candOpts: opts.candOpts ?? {},
@@ -339,6 +343,10 @@ function rootSearch(state, rng, timeMs, maxDepth, opts = {}) {
   const repeatSet = opts.repeatSet;
   const repeatPenalty = Number(opts.repeatPenalty ?? 0);
   const diag = opts.diag || null;
+  if (diag) {
+    diag.tCandidate = tCand;
+    diag.tOrder = tOrder;
+  }
   let best = ordered[0].a;
   let bestScore = -Infinity;
 
@@ -669,6 +677,8 @@ function createMasterAI({
     const me = state.turn;
     const opp = 1 - me;
     const mePos = state.players[me];
+    const tStart = aiNow();
+    const globalDeadline = tStart + Math.max(50, timeMs);
 
     const exit = exitAction(state);
     const logBase = {
@@ -718,7 +728,8 @@ function createMasterAI({
           } else {
             if (step.type === "wall") stats.planWalls++;
             else stats.planMoves++;
-            stats.lastLog = { ...logBase, source: "plan", action: step };
+            stats.lastLog = { ...logBase, source: "plan", action: step,
+              tPlan: aiNow() - tStart, tSearch: 0, tTotal: aiNow() - tStart, depthLast: 0, abort: "plan" };
             return step;
           }
         }
@@ -743,7 +754,8 @@ function createMasterAI({
       }
     }
 
-    if (usePlan && plansUsed < 2) {
+    const planReserve = timeMs >= 1000 ? 500 : 0;
+    if (usePlan && plansUsed < 2 && aiNow() < globalDeadline - planReserve) {
       const p = makePlanAI(state, { planMoves, planWallNet, planFallback, necessaryPathGuard, startPlan });
       if (p) {
         plan = p;
@@ -755,14 +767,24 @@ function createMasterAI({
         if (step && !(step.type === "wall" && netWalls && planWallNetBad(state, me, step))) {
           if (step.type === "wall") stats.planWalls++;
           else stats.planMoves++;
-          stats.lastLog = { ...logBase, source: "plan-new", action: step };
+          stats.lastLog = { ...logBase, source: "plan-new", action: step,
+            tPlan: aiNow() - tStart, tSearch: 0, tTotal: aiNow() - tStart, depthLast: 0, abort: "plan" };
           return step;
         }
         plan = null;
       }
     }
 
+    const searchReserve = timeMs >= 1000 ? 100 : 0;
+    if (aiNow() >= globalDeadline - searchReserve) {
+      const fallback = autoMove(state) ?? bestProgressMove(state, me) ?? legalActions(state)[0];
+      stats.lastLog = { ...logBase, source: "deadline-fallback", action: fallback,
+        tPlan: aiNow() - tStart, tSearch: 0, tTotal: aiNow() - tStart, depthLast: 0, abort: "deadline" };
+      return fallback;
+    }
+
     stats.searches++;
+    const tSearch0 = aiNow();
     const dm = distanceOf(state, me);
     const dop = distanceOf(state, opp);
     const endgame = endgameDepth > 0 &&
@@ -780,6 +802,7 @@ function createMasterAI({
       repeatPenalty: avoidRepeat ? repeatPenalty : 0,
       routeWalls,
       smartExit,
+      globalDeadline,
     });
     // 能越线但只是平：若搜索结果更差，退回安全平局
     if (safeDraw && (diag.score ?? 0) < 0) {
@@ -807,6 +830,12 @@ function createMasterAI({
       score: diag.score,
       nodes: diag.nodes,
       stop: diag.stop,
+      tCandidate: diag.tCandidate ?? 0,
+      tOrder: diag.tOrder ?? 0,
+      tSearch: aiNow() - tSearch0,
+      tTotal: aiNow() - tStart,
+      depthLast: diag.depths ?? 0,
+      abort: diag.stop,
     };
     return action;
   }

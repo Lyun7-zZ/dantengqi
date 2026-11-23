@@ -1,0 +1,2 @@
+{"id":0,"actions":[{"type":"move","dir":"right"},{"type":"move","dir":"up"},{"type":"move","dir":"right"},{"type":"move","dir":"down"},{"type":"move","dir":"left"},{"type":"move","dir":"left"}]}
+{"id":1,"actions":[{"type":"move","dir":"up"},{"type":"move","dir":"left"},{"type":"move","dir":"right"},{"type":"move","dir":"up"},{"type":"move","dir":"right"},{"type":"move","dir":"right"}]}
