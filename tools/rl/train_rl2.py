@@ -127,9 +127,16 @@ class TrainLog(BaseCallback):
             "losses": self.loss,
             "terminal_rate": round(self.term / max(self.games, 1), 3),
             "nonzero_rate": round(self.nonzero / max(self.games, 1), 3),
+            "entropy_loss": self._f("train/entropy_loss"),
+            "approx_kl": self._f("train/approx_kl"),
+            "value_loss": self._f("train/value_loss"),
         }
         with self.log_path.open("a", encoding="utf-8") as f:
             f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+
+    def _f(self, key):
+        v = self.logger.name_to_value.get(key)
+        return None if v is None else float(v)
 
     def _save_snapshot(self, label: str):
         path = OUT / f"{self.tag}-{label}.zip"
@@ -146,6 +153,7 @@ def main():
     ap.add_argument("--tag", default="rl2")
     ap.add_argument("--curriculum", choices=["A", "B"], default="A")
     ap.add_argument("--resume", default="")
+    ap.add_argument("--ent-coef", type=float, default=0.0)
     ap.add_argument("--seed", type=int, default=42)
     args = ap.parse_args()
     cps = [float(x) for x in args.checkpoints.split(",")]
@@ -154,7 +162,8 @@ def main():
     vec = build_vec(args.seed, args.curriculum)
     if args.resume:
         model = MaskablePPO.load(args.resume, env=vec, device="cpu")
-        print(f"resumed from {args.resume}", flush=True)
+        model.ent_coef = args.ent_coef
+        print(f"resumed from {args.resume} ent_coef={model.ent_coef}", flush=True)
     else:
         model = MaskablePPO(
         "MultiInputPolicy",
@@ -167,6 +176,7 @@ def main():
         gamma=0.995,
         gae_lambda=0.95,
         clip_range=0.2,
+        ent_coef=args.ent_coef,
         n_epochs=5,
         policy_kwargs=dict(
             features_extractor_class=CNNExtractor,
