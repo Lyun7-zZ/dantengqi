@@ -23,6 +23,7 @@ function toState(s) {
   st.turn = s.turn;
   st.firstPlayer = s.firstPlayer ?? 0;
   st.wallsPlaced = s.wallsPlaced ?? 0;
+  st.plies = s.plies ?? 0;
   st.wallLimit = Array.isArray(s.wallLimit) ? s.wallLimit.map((v) => (Number.isFinite(v) ? v : 9999)) : [9999, 9999];
   st.wallsUsed = Array.isArray(s.wallsUsed) ? [s.wallsUsed[0], s.wallsUsed[1]] : [0, 0];
   st.tolerance = s.tolerance ?? 1;
