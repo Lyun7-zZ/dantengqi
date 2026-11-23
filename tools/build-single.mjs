@@ -43,6 +43,8 @@ const TURN = [
   "src/clock.js",
   "src/ai-random.js",
   "src/ai-master.js",
+  "src/ai-rl-weights.js",
+  "src/ai-rl.js",
   "src/ai.js",
   "src/net/ws-client.js",
   "src/storage.js",

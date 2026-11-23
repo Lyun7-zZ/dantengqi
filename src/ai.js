@@ -7,6 +7,7 @@ import { applyAction, legalActions, legalDirs, distanceOf, stepTarget, validateA
 import { shortestPathWalls } from "./path.js";
 import { createMasterAI } from "./ai-master.js";
 import { makeRng, randomAI } from "./ai-random.js";
+import { rlAI } from "./ai-rl.js";
 export { makeRng, randomAI };
 
 /** 可复现的伪随机数（mulberry32）。 */
@@ -378,6 +379,8 @@ export const AI = {
     endgameDepth: 9,
   }),
   // 地狱：长预算版宗师，尽量用满每步时限（同步/Worker 计算，界面不卡）
+  // 实验：直接运行强化学习策略（RL2.1 训练结果，仅作实验展示，棋力很弱）
+  experiment: rlAI,
   hell: createMasterAI({
     timeMs: 28000,
     maxDepth: 12,

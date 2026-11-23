@@ -1,0 +1,54 @@
+{
+ "path": {
+  "0": {
+   "W": 7,
+   "D": 31,
+   "L": 2,
+   "T": 0,
+   "move": 469,
+   "wall": 54,
+   "top": 20,
+   "first_wall": 0,
+   "games": 40,
+   "mean_plies": 28.2
+  },
+  "1": {
+   "W": 0,
+   "D": 29,
+   "L": 11,
+   "T": 0,
+   "move": 385,
+   "wall": 65,
+   "top": 1,
+   "first_wall": 5,
+   "games": 40,
+   "mean_plies": 25.6
+  }
+ },
+ "waller": {
+  "0": {
+   "W": 0,
+   "D": 0,
+   "L": 40,
+   "T": 0,
+   "move": 384,
+   "wall": 238,
+   "top": 6,
+   "first_wall": 0,
+   "games": 40,
+   "mean_plies": 33.4
+  },
+  "1": {
+   "W": 0,
+   "D": 0,
+   "L": 40,
+   "T": 0,
+   "move": 403,
+   "wall": 182,
+   "top": 0,
+   "first_wall": 3,
+   "games": 40,
+   "mean_plies": 32.2
+  }
+ }
+}

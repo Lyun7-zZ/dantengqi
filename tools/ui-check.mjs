@@ -455,6 +455,7 @@ try {
 
   ws.close();
 } catch (e) {
+  console.error("UI-CHECK-ERROR", e && (e.stack || e.message || e));
   check("执行过程", false, e.message);
 } finally {
   proc.kill();
