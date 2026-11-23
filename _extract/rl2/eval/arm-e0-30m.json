@@ -1,0 +1,28 @@
+{
+ "path": {
+  "0": {
+   "W": 6,
+   "D": 32,
+   "L": 2,
+   "T": 0,
+   "move": 480,
+   "wall": 1,
+   "top": 1,
+   "first_wall": 0,
+   "games": 40,
+   "mean_plies": 25.1
+  },
+  "1": {
+   "W": 1,
+   "D": 29,
+   "L": 10,
+   "T": 0,
+   "move": 433,
+   "wall": 9,
+   "top": 1,
+   "first_wall": 1,
+   "games": 40,
+   "mean_plies": 25.1
+  }
+ }
+}

@@ -1,0 +1,17 @@
+{
+ "model": "../../_extract/rl2/rl21-e0-final.zip",
+ "random": {
+  "n": 200,
+  "wall_mass": 0.0152,
+  "entropy": 0.114,
+  "move_ratio": 1.0,
+  "top_ratio": 0.0
+ },
+ "danger": {
+  "n": 50,
+  "wall_mass": 0.2966,
+  "entropy": 1.544,
+  "move_ratio": 0.92,
+  "top_ratio": 0.0
+ }
+}

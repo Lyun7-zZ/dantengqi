@@ -1,0 +1,42 @@
+{
+ "1h": {
+  "n": 78,
+  "wall_mass": 0.0104,
+  "p_teacher_best_wall": 0.0001,
+  "mean_rank_best_wall": 91.63,
+  "greedy_wall_rate": 0.0,
+  "greedy_matches_teacher": 0.0
+ },
+ "c0": {
+  "n": 78,
+  "wall_mass": 0.0362,
+  "p_teacher_best_wall": 0.0,
+  "mean_rank_best_wall": 99.09,
+  "greedy_wall_rate": 0.0,
+  "greedy_matches_teacher": 0.0
+ },
+ "e0-30": {
+  "n": 78,
+  "wall_mass": 0.3619,
+  "p_teacher_best_wall": 0.0023,
+  "mean_rank_best_wall": 86.45,
+  "greedy_wall_rate": 0.064,
+  "greedy_matches_teacher": 0.0
+ },
+ "e0-60": {
+  "n": 78,
+  "wall_mass": 0.2386,
+  "p_teacher_best_wall": 0.0015,
+  "mean_rank_best_wall": 82.21,
+  "greedy_wall_rate": 0.051,
+  "greedy_matches_teacher": 0.0
+ },
+ "12h": {
+  "n": 78,
+  "wall_mass": 0.0093,
+  "p_teacher_best_wall": 0.0,
+  "mean_rank_best_wall": 89.05,
+  "greedy_wall_rate": 0.0,
+  "greedy_matches_teacher": 0.0
+ }
+}
