@@ -32,7 +32,14 @@ def make_env(seed: int, start_mode: str, opponent: str):
 
 
 def build_vec(seed: int = 0, curriculum: str = "A"):
-    if curriculum == "B":
+    if curriculum == "E1":
+        configs = [
+            ("normal", "waller"),
+            ("normal", "waller"),
+            ("normal", "path"),
+            ("short_varied", "move_bias"),
+        ]
+    elif curriculum == "B":
         configs = [
             ("normal", "path"),
             ("normal", "path"),
@@ -151,7 +158,7 @@ def main():
     ap.add_argument("--minutes", type=float, default=720)
     ap.add_argument("--checkpoints", default="0,60,180,360,720")
     ap.add_argument("--tag", default="rl2")
-    ap.add_argument("--curriculum", choices=["A", "B"], default="A")
+    ap.add_argument("--curriculum", choices=["A", "B", "E1"], default="A")
     ap.add_argument("--resume", default="")
     ap.add_argument("--ent-coef", type=float, default=0.0)
     ap.add_argument("--seed", type=int, default=42)

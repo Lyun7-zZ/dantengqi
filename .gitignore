@@ -21,3 +21,7 @@ desktop.ini
 
 # 分发用压缩包
 *.zip
+
+# Python 缓存
+__pycache__/
+*.pyc

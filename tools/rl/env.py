@@ -155,6 +155,53 @@ class DantengEnv(gym.Env):
             return int(action)
         if self.opponent == "move_bias" and moves and self.rng.random() < 0.8:
             return int(self.rng.choice(moves))
+        if self.opponent == "waller":
+            # 会封墙的脚本：抽样合法墙，选最能拉长对手距离的一面；否则走子
+            target = 1 - self.state["turn"]
+            base = self.state["dist"][target]
+            my_d = self.state["dist"][self.state["turn"]]
+            walls = [int(i) for i in legal if int(i) >= 4]
+            self.rng.shuffle(walls)
+            # 优先考虑对手出口附近与正前方的墙
+            op = self.state["players"][target]
+            targeted = []
+            for dc in (-1, 0, 1):
+                c = op["c"] + dc
+                if 0 <= c < 10:
+                    targeted.append(222 + c)          # 封口
+                    hr = max(0, op["r"] - 1)
+                    targeted.append(112 + c * 11 + hr)  # 前方横墙
+            for dc in (-1, 0):
+                c = op["c"] + dc
+                if 0 <= c < 9:
+                    targeted.append(4 + c * 12 + op["r"])
+            legal_set = set(int(i) for i in legal)
+            cand = [i for i in targeted if i in legal_set]
+            cand += [i for i in walls if i not in cand][:max(0, 16 - len(cand))]
+            best, best_gain = None, 0
+            for i in cand[:16]:
+                r = self._call("step", state=self.state, index=i)
+                if not r.get("ok"):
+                    continue
+                gain = r["state"]["dist"][target] - base
+                if gain > best_gain:
+                    best, best_gain = i, gain
+            prob = 0.9 if base <= 3 else (0.6 if base < my_d else 0.3)
+            if best is not None and best_gain > 0 and self.rng.random() < prob:
+                return best
+            # 退化为朝出口走
+            st = self.state
+            side = st["turn"]
+            bm, bd = None, 10 ** 9
+            for i in legal:
+                if int(i) >= 4:
+                    continue
+                r = self._call("step", state=st, index=int(i))
+                dd = r["state"]["dist"][side]
+                if dd < bd:
+                    bm, bd = int(i), dd
+            if bm is not None:
+                return bm
         if self.opponent == "path":
             # 优先走子，选离出口最近的方向；否则随机放墙
             st = self.state
