@@ -1,7 +1,7 @@
 {
- "label": "SMOKE",
+ "label": "A0-s3",
  "hell": {
-  "timeMs": 800,
+  "timeMs": 28000,
   "maxDepth": 12,
   "usePlan": true,
   "netWalls": true,
@@ -15,7 +15,7 @@
   "smartExit": true
  },
  "gm": {
-  "timeMs": 300,
+  "timeMs": 3000,
   "maxDepth": 7,
   "usePlan": true,
   "netWalls": true,
@@ -26,7 +26,7 @@
   "necessaryPathGuard": "soft",
   "endgameDepth": 9
  },
- "hellHash": "5ef89d26",
- "openings": 2,
+ "hellHash": "9b33f828",
+ "openings": 10,
  "plyCap": 240
 }
