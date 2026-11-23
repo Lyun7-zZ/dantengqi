@@ -31,13 +31,21 @@ def make_env(seed: int, start_mode: str, opponent: str):
     return thunk
 
 
-def build_vec(seed: int = 0):
-    configs = [
-        ("short", "move_bias"),
-        ("short", "move_bias"),
-        ("short", "move_bias"),
-        ("normal", "random"),
-    ]
+def build_vec(seed: int = 0, curriculum: str = "A"):
+    if curriculum == "B":
+        configs = [
+            ("normal", "path"),
+            ("normal", "path"),
+            ("normal", "move_bias"),
+            ("short_varied", "move_bias"),
+        ]
+    else:
+        configs = [
+            ("short", "move_bias"),
+            ("short", "move_bias"),
+            ("short", "move_bias"),
+            ("normal", "random"),
+        ]
     fns = [make_env(seed + i, mode, opp) for i, (mode, opp) in enumerate(configs)]
     return VecMonitor(SubprocVecEnv(fns))
 
@@ -136,13 +144,19 @@ def main():
     ap.add_argument("--minutes", type=float, default=720)
     ap.add_argument("--checkpoints", default="0,60,180,360,720")
     ap.add_argument("--tag", default="rl2")
+    ap.add_argument("--curriculum", choices=["A", "B"], default="A")
+    ap.add_argument("--resume", default="")
     ap.add_argument("--seed", type=int, default=42)
     args = ap.parse_args()
     cps = [float(x) for x in args.checkpoints.split(",")]
     cps = [c for c in cps if c <= args.minutes]
 
-    vec = build_vec(args.seed)
-    model = MaskablePPO(
+    vec = build_vec(args.seed, args.curriculum)
+    if args.resume:
+        model = MaskablePPO.load(args.resume, env=vec, device="cpu")
+        print(f"resumed from {args.resume}", flush=True)
+    else:
+        model = MaskablePPO(
         "MultiInputPolicy",
         vec,
         verbose=0,
@@ -161,7 +175,7 @@ def main():
         ),
         device="cpu",
         tensorboard_log=None,
-    )
+        )
     cb = TrainLog(cps, args.minutes, args.tag)
     model.learn(total_timesteps=10**9, callback=cb, progress_bar=False)
     cb._save_snapshot("final")

@@ -42,13 +42,17 @@ class DantengEnv(gym.Env):
 
     def __init__(self, *, node: str = "node", server: str | None = None,
                  max_plies: int = 240, opponent: str = "random", seed: int | None = None,
-                 start_mode: str = "normal"):
+                 start_mode: str = "normal", learner_side: int | None = None,
+                 opponent_model=None, opening_plies: int = 0):
         super().__init__()
         root = Path(__file__).resolve().parents[2]
         self.server_path = str(server or root / "tools" / "rl" / "env-server.mjs")
         self.max_plies = max_plies
         self.opponent = opponent
         self.start_mode = start_mode
+        self.learner_side = learner_side
+        self.opponent_model = opponent_model
+        self.opening_plies = opening_plies
         self.rng = random.Random(seed)
         self.proc = subprocess.Popen(
             [node, self.server_path],
@@ -90,11 +94,12 @@ class DantengEnv(gym.Env):
             pass
 
     # ---------- 观测 ----------
-    def _obs(self):
+    def _obs(self, side=None):
+        side = self.learner if side is None else side
         st = self.state
         board = np.zeros((CHANNELS, ROWS, COLS), dtype=np.float32)
-        me = st["players"][self.learner]
-        opp = st["players"][1 - self.learner]
+        me = st["players"][side]
+        opp = st["players"][1 - side]
         board[0, me["r"], me["c"]] = 1.0
         board[1, opp["r"], opp["c"]] = 1.0
         for c in range(COLS):
@@ -109,24 +114,24 @@ class DantengEnv(gym.Env):
                 if st["hWall"][c * 11 + r]:
                     board[4, r, c] = 1.0
         d0, d1 = st["dist"]
-        dm = d0 if self.learner == 0 else d1
-        do = d1 if self.learner == 0 else d0
+        dm = d0 if side == 0 else d1
+        do = d1 if side == 0 else d0
         board[5] = min(dm / 30.0, 1.0)
         board[6] = min(do / 30.0, 1.0)
-        board[7] = 1.0 if st["turn"] == self.learner else 0.0
-        wl = st["wallLimit"][self.learner]
+        board[7] = 1.0 if st["turn"] == side else 0.0
+        wl = st["wallLimit"][side]
         wl = 30.0 if (wl is None or not np.isfinite(wl)) else float(wl)
-        left = max(0, wl - st["wallsUsed"][self.learner])
+        left = max(0, wl - st["wallsUsed"][side])
         board[8] = min(left / 30.0, 1.0)
-        wl2 = st["wallLimit"][1 - self.learner]
+        wl2 = st["wallLimit"][1 - side]
         wl2 = 30.0 if (wl2 is None or not np.isfinite(wl2)) else float(wl2)
-        left2 = max(0, wl2 - st["wallsUsed"][1 - self.learner])
+        left2 = max(0, wl2 - st["wallsUsed"][1 - side])
         board[9] = min(left2 / 30.0, 1.0)
 
         margin = (do - dm) / 30.0
         scalars = np.array([
             margin,
-            1.0 if self.learner == 0 else 0.0,
+            1.0 if side == 0 else 0.0,
             min(st["plies"] / self.max_plies, 1.0),
             0.0,
         ], dtype=np.float32)
@@ -144,6 +149,10 @@ class DantengEnv(gym.Env):
         mask = self._mask()
         legal = np.flatnonzero(mask)
         moves = [int(i) for i in legal if int(i) < 4]
+        if self.opponent == "model" and self.opponent_model is not None:
+            obs = self._obs(1 - self.learner)
+            action, _ = self.opponent_model.predict(obs, action_masks=mask, deterministic=True)
+            return int(action)
         if self.opponent == "move_bias" and moves and self.rng.random() < 0.8:
             return int(self.rng.choice(moves))
         if self.opponent == "path":
@@ -182,7 +191,7 @@ class DantengEnv(gym.Env):
         super().reset(seed=seed)
         if seed is not None:
             self.rng.seed(seed)
-        self.learner = self.rng.randint(0, 1)
+        self.learner = self.learner_side if self.learner_side is not None else self.rng.randint(0, 1)
         res = self._call("reset", firstPlayer=0)
         self.state = res["state"]
         self.episode_steps = 0
@@ -193,8 +202,34 @@ class DantengEnv(gym.Env):
             self.state["turn"] = self.learner
             self.state["winner"] = None
             self.state["plies"] = 0
+        elif self.start_mode == "short_varied":
+            # 短残局：优势/劣势与座位随机
+            cells = set()
+            for i in range(2):
+                while True:
+                    c, r = self.rng.randrange(10), self.rng.randrange(1, 6)
+                    if (c, r) not in cells:
+                        cells.add((c, r))
+                        break
+                self.state["players"][i] = {"c": c, "r": r}
+            self.state["turn"] = self.learner
+            self.state["winner"] = None
+            self.state["plies"] = 0
+        # 随机开局：推进若干手，增加评估局面多样性
+        for _ in range(self.opening_plies):
+            if self.state["winner"] is not None:
+                break
+            o = self._opponent_action() if self.state["turn"] != self.learner else None
+            if o is not None:
+                self._apply(o)
+                continue
+            m = self._mask()
+            legal = np.flatnonzero(m)
+            if not len(legal):
+                break
+            self._apply(int(self.rng.choice(legal)))
         # 学习方后手：对手先在 reset 内走一手
-        if self.state["turn"] != self.learner:
+        if self.state["winner"] is None and self.state["turn"] != self.learner:
             self._apply(self._opponent_action())
         return self._obs(), {}
 
