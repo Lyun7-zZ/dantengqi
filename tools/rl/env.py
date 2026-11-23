@@ -219,10 +219,6 @@ class DantengEnv(gym.Env):
         for _ in range(self.opening_plies):
             if self.state["winner"] is not None:
                 break
-            o = self._opponent_action() if self.state["turn"] != self.learner else None
-            if o is not None:
-                self._apply(o)
-                continue
             m = self._mask()
             legal = np.flatnonzero(m)
             if not len(legal):
