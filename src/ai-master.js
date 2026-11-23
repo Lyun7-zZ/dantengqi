@@ -303,6 +303,7 @@ function rootSearch(state, rng, timeMs, maxDepth, opts = {}) {
   const me = state.turn;
   const tCand0 = aiNow();
   const cands = candidatesAI(state, { scanAll: 6, ...(opts.candOpts ?? {}) });
+  let routeCutAdded = 0;
   if (opts.routeWalls > 0) {
     const seen = new Set(cands.map((a) => (a.type === "move" ? "m:" + a.dir : "w:" + a.kind + ":" + a.c + ":" + a.r)));
     for (const w of routeCutCandidates(state, opts.routeWalls)) {
@@ -310,6 +311,7 @@ function rootSearch(state, rng, timeMs, maxDepth, opts = {}) {
       if (seen.has(k)) continue;
       seen.add(k);
       cands.push(w);
+      routeCutAdded++;
     }
   }
   const tCand = aiNow() - tCand0;
@@ -346,6 +348,9 @@ function rootSearch(state, rng, timeMs, maxDepth, opts = {}) {
   if (diag) {
     diag.tCandidate = tCand;
     diag.tOrder = tOrder;
+    diag.candidateCount = cands.length;
+    diag.routeCutAdded = routeCutAdded;
+    diag.searchedCount = ordered.length;
   }
   let best = ordered[0].a;
   let bestScore = -Infinity;
@@ -836,6 +841,10 @@ function createMasterAI({
       tTotal: aiNow() - tStart,
       depthLast: diag.depths ?? 0,
       abort: diag.stop,
+      candidateCount: diag.candidateCount ?? 0,
+      routeCutAdded: diag.routeCutAdded ?? 0,
+      searchedCount: diag.searchedCount ?? 0,
+      selectedSource: "search",
     };
     return action;
   }

@@ -6,6 +6,8 @@
  */
 
 import { mkdirSync, writeFileSync } from "node:fs";
+import { execSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { createMasterAI } from "../../src/ai-master.js";
 import { createState, applyAction, validateAction } from "../../src/rules.js";
 import { createHellConfig, configHash } from "../../src/hell-config.js";
@@ -14,6 +16,16 @@ import { makeOpenings, makeRng, replayOpening, mapOutcome, summarize, PLY_CAP } 
 function arg(name, def) {
   const i = process.argv.indexOf("--" + name);
   return i >= 0 ? process.argv[i + 1] : def;
+}
+
+function sha256(text) {
+  return createHash("sha256").update(text).digest("hex");
+}
+
+function pct(xs, p) {
+  if (!xs.length) return 0;
+  const a = [...xs].sort((x, y) => x - y);
+  return Math.round(a[Math.min(a.length - 1, Math.floor(a.length * p))]);
 }
 
 const count = Number(arg("count", 10));
@@ -26,6 +38,9 @@ const shards = Number(arg("shards", 1));
 const outDir = "_extract/p0";
 mkdirSync(outDir, { recursive: true });
 
+const sourceCommit = (() => { try { return execSync("git rev-parse HEAD", { encoding: "utf8" }).trim(); } catch { return "unknown"; } })();
+const dirty = (() => { try { return execSync("git status --porcelain", { encoding: "utf8" }).trim().length > 0; } catch { return true; } })();
+
 const hellCfg = createHellConfig({ timeMs: hellMs, routeWalls });
 const gmCfg = {
   timeMs: gmMs, maxDepth: 7, usePlan: true, netWalls: true,
@@ -35,9 +50,12 @@ const gmCfg = {
 
 const allOpenings = makeOpenings(count);
 const openings = allOpenings.filter((o) => o.id % shards === shard);
-writeFileSync(`${outDir}/openings.jsonl`, openings.map((o) => JSON.stringify(o)).join("\n") + "\n");
-writeFileSync(`${outDir}/01_config_snapshot.json`, JSON.stringify({
-  label, hell: hellCfg, gm: gmCfg, hellHash: configHash(hellCfg), openings: count, plyCap: PLY_CAP,
+const openingsText = allOpenings.map((o) => JSON.stringify(o)).join("\n") + "\n";
+const openingsHash = sha256(openingsText);
+writeFileSync(`${outDir}/openings.jsonl`, openingsText);
+writeFileSync(`${outDir}/01_config_snapshot_${label}.json`, JSON.stringify({
+  label, shard, shards, hell: hellCfg, gm: gmCfg, hellHash: configHash(hellCfg),
+  openingsHash, openings: count, plyCap: PLY_CAP, sourceCommit, dirty,
 }, null, 1));
 
 const hell = createMasterAI(hellCfg);
@@ -51,17 +69,24 @@ for (const op of openings) {
     const seed = 70000 + op.id * 2 + hellSeat;
     const rng = makeRng(seed);
     let s = replayOpening(op.actions);
-    let tHell = 0;
-    let hellMoves = 0;
+    const actions = [];
+    const hellTimes = [];
+    const cand = { candidateCount: 0, routeCutAdded: 0, searchedCount: 0 };
+    const sources = {};
     let plies = 0;
     while (s.winner === null && plies < PLY_CAP) {
       const isHell = s.turn === hellSeat;
       const ai = isHell ? hell : gm;
       const a = ai(s, rng);
       if (!a || !validateAction(s, a).ok) throw new Error(`illegal action at opening ${op.id}`);
+      actions.push(a);
       if (isHell) {
-        hellMoves++;
-        tHell += Number(ai.stats?.lastLog?.tTotal ?? 0);
+        const log = ai.stats?.lastLog ?? {};
+        hellTimes.push(Number(log.tTotal ?? 0));
+        cand.candidateCount += Number(log.candidateCount ?? 0);
+        cand.routeCutAdded += Number(log.routeCutAdded ?? 0);
+        cand.searchedCount += Number(log.searchedCount ?? 0);
+        sources[log.source ?? "unknown"] = (sources[log.source ?? "unknown"] ?? 0) + 1;
       }
       const r = applyAction(s, a);
       if (!r.ok) throw new Error("apply failed: " + r.error);
@@ -69,22 +94,36 @@ for (const op of openings) {
       plies++;
     }
     const outcome = mapOutcome(s.winner, hellSeat, plies);
+    const hellMoves = hellTimes.length;
+    const total = hellTimes.reduce((x, y) => x + y, 0);
     records.push({
       matchId: `${label}-${op.id}-${hellSeat}`,
       label,
       openingId: op.id,
       seat: hellSeat,
       seed,
-      commit: process.env.GIT_COMMIT ?? "worktree",
+      sourceCommit,
+      dirty,
       configHash: configHash(hellCfg),
+      openingsHash,
       hellMs,
       gmMs,
       routeWalls,
       ...outcome,
       plies,
       hellMoves,
-      tHellTotal: Math.round(tHell),
-      tHellAvg: hellMoves ? Math.round(tHell / hellMoves) : 0,
+      actions,
+      tHellTotal: Math.round(total),
+      tHellAvg: hellMoves ? Math.round(total / hellMoves) : 0,
+      tHellP50: pct(hellTimes, 0.5),
+      tHellP90: pct(hellTimes, 0.9),
+      tHellP99: pct(hellTimes, 0.99),
+      tHellMax: hellTimes.length ? Math.round(Math.max(...hellTimes)) : 0,
+      timeoutCount: hellTimes.filter((x) => x > hellMs).length,
+      candidateCount: cand.candidateCount,
+      routeCutAdded: cand.routeCutAdded,
+      searchedCount: cand.searchedCount,
+      selectedSources: sources,
     });
   }
 }
