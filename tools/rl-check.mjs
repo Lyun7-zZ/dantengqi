@@ -53,9 +53,12 @@ const evalJs = async (expr) => {
 };
 console.log("title", await evalJs("document.title"));
 console.log("levels", await evalJs("[...document.querySelectorAll('[data-level]')].map(e=>e.dataset.level).join(',')"));
+await evalJs("document.getElementById('menuAI').click()");
+await sleep(300);
 await evalJs("document.querySelector('[data-level=\"experiment\"]').click()");
 await sleep(1500);
-console.log("mode", await evalJs("window.__S?.mode ?? document.body.dataset.mode ?? 'unknown'"));
+console.log("mode", await evalJs("window.__danteng?.state?.mode ?? 'unknown'"));
+console.log("started", await evalJs("window.__danteng?.started ?? false"));
 console.log("errors", JSON.stringify(errors.slice(0, 5), null, 1));
 proc.kill();
 process.exit(errors.length ? 1 : 0);
