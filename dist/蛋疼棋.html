@@ -667,12 +667,26 @@ html[data-play="async"] .slot.reject .bar {
   inset: 0;
   background: rgba(6, 10, 13, 0.8);
   display: flex;
-  align-items: center;
+  align-items: safe center;
   justify-content: center;
   z-index: 30;
+  overflow: auto;
+  padding: 28px 16px;
 }
 
 .overlay[hidden] { display: none; }
+
+#homeOverlay,
+#netOverlay,
+#diceOverlay,
+#rulesOverlay,
+#settingsOverlay,
+#saveOverlay,
+#slotsOverlay {
+  background:
+    radial-gradient(1200px 600px at 50% -10%, #1b2831 0%, transparent 60%),
+    var(--bg);
+}
 
 .panel {
   width: min(420px, 86vw);
@@ -740,7 +754,87 @@ html[data-play="async"] .slot.reject .bar {
 }
 
 /* ---------- 主菜单 ---------- */
-.panel.home { width: min(430px, 88vw); }
+.panel.home { width: min(720px, 94vw); }
+.panel.home .menu { max-width: 420px; margin-inline: auto; }
+.startItem {
+  align-items: center;
+  text-align: center;
+  padding: 18px 14px;
+  border-color: #e8c56b;
+  background: #243028;
+}
+.startItem b { font-size: 18px; letter-spacing: 0.08em; }
+
+.pickRow {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin: 6px 0 14px;
+}
+.pickCard {
+  flex: 1 1 0;
+  max-width: 210px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: #121b22;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+}
+.pickArt { display: block; height: 84px; }
+.art-turn { background: linear-gradient(160deg, #1f8a6a, #12362c 72%); }
+.art-async { background: linear-gradient(160deg, #b56a26, #3a2416 72%); }
+.art-local { background: linear-gradient(90deg, #1f8a6a 0 50%, #b56a26 50% 100%); }
+.art-ai { background: linear-gradient(160deg, #2c5164, #142028); }
+.art-net { background: linear-gradient(160deg, #3d4f6a, #1a2230); }
+.art-diff { height: 8px; background: var(--p0); }
+.pickBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+  padding: 10px 12px 12px;
+}
+.pickBody b { font-size: 15px; }
+.pickBody span { font-size: 12px; color: var(--muted); }
+.pickRow:has(.is-selected) .pickCard:not(.is-selected) { opacity: 0.42; }
+.pickCard.is-selected {
+  border-color: #e8c56b;
+  transform: translateY(-6px);
+  opacity: 1;
+}
+.pickCard:hover:not(.is-selected) { border-color: #3d5564; }
+.pickLevels {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.pickLevels .pickCard { max-width: none; }
+.pickDetail {
+  margin: 0 0 12px;
+  min-height: 2.8em;
+  text-align: center;
+}
+.pickBar {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+.pickBar .btn.primary { min-width: 128px; }
+@media (max-width: 560px) {
+  .pickRow:not(.pickLevels) { justify-content: flex-start; overflow-x: auto; }
+  .pickRow:not(.pickLevels) .pickCard { flex: 0 0 156px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pickCard.is-selected { transform: none; }
+}
 
 .menu {
   display: grid;
@@ -1242,60 +1336,81 @@ html[data-play="async"] .slot.reject .bar {
   <!-- 主菜单 -->
   <div class="overlay" id="homeOverlay">
     <div class="panel home">
-      <div class="panelIcon">🎲</div>
-      <h2>蛋疼棋</h2>
+      <h2 id="homeTitle">蛋疼棋</h2>
       <p class="sub" id="homeSub">10 × 12 棋盘 · 越过终点线者胜</p>
-      <div class="modeSwitch" id="modeSwitch">
-        <button class="btn ghost" id="modeTurn" type="button">回合制</button>
-        <button class="btn ghost" id="modeAsync" type="button">异步</button>
-      </div>
 
-      <div class="menu" id="homeMain">
-        <button class="menuItem" id="menuLocal">
-          <b>玩家对战</b><span>同屏双人</span>
+      <div class="menu" id="homeRoot">
+        <button class="menuItem startItem" id="menuStart" type="button">
+          <b>开始游戏</b><span>下一步选择回合制或异步</span>
         </button>
-        <button class="menuItem" id="menuAI">
-          <b>人机对战</b><span>简单 / 普通 / 困难 / 大师 / 宗师 / 地狱</span>
+        <button class="menuItem" id="menuRules" type="button">
+          <b>规则</b><span>棋盘、行动、胜负与计时</span>
         </button>
-        <button class="menuItem" id="menuNet">
-          <b>联机对战</b><span>房间码 · 点对点直连</span>
-        </button>
-      </div>
-
-      <div class="menu" id="homeAI" hidden>
-        <button class="menuItem" data-level="easy">
-          <b>简单</b><span>偶尔随手，适合第一次玩</span>
-        </button>
-        <button class="menuItem" data-level="normal">
-          <b>普通</b><span>每一步都走最短路</span>
-        </button>
-        <button class="menuItem" data-level="hard">
-          <b>困难</b><span id="blurbHard">会预判你的应手</span>
-        </button>
-        <button class="menuItem" data-level="master">
-          <b>大师</b><span id="blurbMaster">六层搜索 + 锁路计划</span>
-        </button>
-        <button class="menuItem" data-level="grandmaster">
-          <b>宗师</b><span>计划会走 · 必经路保护 · 更深收官</span>
-        </button>
-        <button class="menuItem" data-level="hell">
-          <b>地狱</b><span>尽量用满每一步的思考时间</span>
-        </button>
-        <button class="menuItem back" id="aiBack">
-          <b>返回</b>
-        </button>
-      </div>
-
-      <div class="menu menuCommon" id="homeCommon">
-        <button class="menuItem" id="menuRules">
-          <b>游戏规则</b><span>棋盘、行动、胜负与计时</span>
-        </button>
-        <button class="menuItem" id="menuSlots">
-          <b>对局记录</b><span>掉线封存的棋局，可导出</span>
-        </button>
-        <button class="menuItem" id="menuSettings">
+        <button class="menuItem" id="menuSettings" type="button">
           <b>设置</b><span>计时与悔棋次数</span>
         </button>
+        <button class="menuItem" id="menuSlots" type="button">
+          <b>对局记录</b><span>掉线封存的棋局，可导出</span>
+        </button>
+      </div>
+
+      <div class="pickRow" id="pickModes" hidden>
+        <button class="pickCard" id="modeTurn" type="button">
+          <span class="pickArt art-turn"></span>
+          <span class="pickBody"><b>回合制</b><span>轮流行动</span></span>
+        </button>
+        <button class="pickCard" id="modeAsync" type="button">
+          <span class="pickArt art-async"></span>
+          <span class="pickBody"><b>异步</b><span>同时行动</span></span>
+        </button>
+      </div>
+
+      <div class="pickRow" id="homeMain" hidden>
+        <button class="pickCard" id="menuLocal" type="button">
+          <span class="pickArt art-local"></span>
+          <span class="pickBody"><b>玩家对战</b><span>同屏双人</span></span>
+        </button>
+        <button class="pickCard" id="menuAI" type="button">
+          <span class="pickArt art-ai"></span>
+          <span class="pickBody"><b>人机对战</b><span>选择难度</span></span>
+        </button>
+        <button class="pickCard" id="menuNet" type="button">
+          <span class="pickArt art-net"></span>
+          <span class="pickBody"><b>联机对战</b><span>房间码</span></span>
+        </button>
+      </div>
+
+      <div class="pickRow pickLevels" id="homeAI" hidden>
+        <button class="pickCard" data-level="easy" type="button">
+          <span class="pickArt art-diff"></span>
+          <span class="pickBody"><b>简单</b><span>偶尔随手，适合第一次玩</span></span>
+        </button>
+        <button class="pickCard" data-level="normal" type="button">
+          <span class="pickArt art-diff"></span>
+          <span class="pickBody"><b>普通</b><span>每一步都走最短路</span></span>
+        </button>
+        <button class="pickCard" data-level="hard" type="button">
+          <span class="pickArt art-diff"></span>
+          <span class="pickBody"><b>困难</b><span id="blurbHard">会预判你的应手</span></span>
+        </button>
+        <button class="pickCard" data-level="master" type="button">
+          <span class="pickArt art-diff"></span>
+          <span class="pickBody"><b>大师</b><span id="blurbMaster">六层搜索 + 锁路计划</span></span>
+        </button>
+        <button class="pickCard" data-level="grandmaster" type="button">
+          <span class="pickArt art-diff"></span>
+          <span class="pickBody"><b>宗师</b><span>计划会走 · 必经路保护 · 更深收官</span></span>
+        </button>
+        <button class="pickCard" data-level="hell" type="button">
+          <span class="pickArt art-diff"></span>
+          <span class="pickBody"><b>地狱</b><span>尽量用满每一步的思考时间</span></span>
+        </button>
+      </div>
+
+      <p class="pickDetail" id="pickDetail" hidden></p>
+      <div class="pickBar" id="pickBar" hidden>
+        <button class="btn ghost" id="pickBack" type="button">返回</button>
+        <button class="btn primary" id="pickConfirm" type="button" disabled>确认</button>
       </div>
 
       <p class="fine" id="homeFine">每步 30 秒 · 时间库 300 秒 · 悔棋 3 次</p>
@@ -3535,7 +3650,6 @@ const overlay = el("overlay");
 const homeOverlay = el("homeOverlay");
 const homeMain = el("homeMain");
 const homeAI = el("homeAI");
-const homeCommon = el("homeCommon");
 const homeFine = el("homeFine");
 const rulesOverlay = el("rulesOverlay");
 const rulesBtn = el("rulesBtn");
@@ -4679,9 +4793,7 @@ function goHome() {
   settingsOverlay.hidden = true;
   diceOverlay.hidden = true;
   homeOverlay.hidden = false;
-  homeMain.hidden = false;
-  homeAI.hidden = true;
-  homeCommon.hidden = false;
+  window.__dantengShowHome?.();
   paintHomeFine();
   paint();
 }
@@ -4736,26 +4848,15 @@ undoNo.addEventListener("click", () => {
   finishUndo(false);
 });
 
-el("menuLocal").addEventListener("click", () => startGame("local"));
-el("menuAI").addEventListener("click", () => {
-  homeMain.hidden = true;
-  homeAI.hidden = false;
-  homeCommon.hidden = true;
-});
-el("aiBack").addEventListener("click", () => {
-  homeAI.hidden = true;
-  homeMain.hidden = false;
-  homeCommon.hidden = false;
-});
-homeAI.addEventListener("click", (e) => {
-  const btn = e.target.closest("[data-level]");
-  if (btn) startGame(btn.dataset.level);
-});
-el("menuNet").addEventListener("click", () => {
-  if (window.__dantengHandoff?.("turn", "net")) return;
-  homeOverlay.hidden = true;
-  openNet();
-});
+window.__dantengLoaded = "turn";
+window.__dantengStart = (action) => {
+  if (action === "net") {
+    homeOverlay.hidden = true;
+    openNet();
+    return;
+  }
+  startGame(action);
+};
 el("netBack").addEventListener("click", () => { netOverlay.hidden = true; homeOverlay.hidden = false; });
 el("netCreate").addEventListener("click", createRoom);
 el("netJoinBtn").addEventListener("click", () => { netMain.hidden = true; netJoin.hidden = false; roomInput.focus(); });
@@ -6469,7 +6570,6 @@ const overlay = el("overlay");
 const homeOverlay = el("homeOverlay");
 const homeMain = el("homeMain");
 const homeAI = el("homeAI");
-const homeCommon = el("homeCommon");
 const homeFine = el("homeFine");
 const rulesOverlay = el("rulesOverlay");
 const rulesBtn = el("rulesBtn");
@@ -7630,9 +7730,7 @@ function goHome() {
   settingsOverlay.hidden = true;
   diceOverlay.hidden = true;
   homeOverlay.hidden = false;
-  homeMain.hidden = false;
-  homeAI.hidden = true;
-  homeCommon.hidden = false;
+  window.__dantengShowHome?.();
   paintHomeFine();
   paint();
 }
@@ -7691,26 +7789,15 @@ undoNo.addEventListener("click", () => {
   finishUndo(false);
 });
 
-el("menuLocal").addEventListener("click", () => startGame("local"));
-el("menuAI").addEventListener("click", () => {
-  homeMain.hidden = true;
-  homeAI.hidden = false;
-  homeCommon.hidden = true;
-});
-el("aiBack").addEventListener("click", () => {
-  homeAI.hidden = true;
-  homeMain.hidden = false;
-  homeCommon.hidden = false;
-});
-homeAI.addEventListener("click", (e) => {
-  const btn = e.target.closest("[data-level]");
-  if (btn) startGame(btn.dataset.level);
-});
-el("menuNet").addEventListener("click", () => {
-  if (window.__dantengHandoff?.("async", "net")) return;
-  homeOverlay.hidden = true;
-  openNet();
-});
+window.__dantengLoaded = "async";
+window.__dantengStart = (action) => {
+  if (action === "net") {
+    homeOverlay.hidden = true;
+    openNet();
+    return;
+  }
+  startGame(action);
+};
 el("netBack").addEventListener("click", () => { netOverlay.hidden = true; homeOverlay.hidden = false; });
 el("netCreate").addEventListener("click", createRoom);
 el("netJoinBtn").addEventListener("click", () => { netMain.hidden = true; netJoin.hidden = false; roomInput.focus(); });
@@ -8516,18 +8603,31 @@ let play = urlPlay === "async" || urlPlay === "turn"
 const COPY = {
   turn: {
     sub: "回合制 · 轮流行动，大师会深搜",
-    ai: "简单 / 普通 / 困难 / 大师 / 宗师 / 地狱",
-    net: "房间码 · 点对点直连",
+    local: "同屏双人",
+    ai: "下一步选难度",
+    net: "房间码",
     hard: "会预判你的应手",
     master: "六层搜索 + 锁路计划",
   },
   async: {
     sub: "异步 · 双方同时行动",
-    ai: "简单 / 普通 / 困难 / 大师",
-    net: "房间码 · 房主执左",
+    local: "一起结算",
+    ai: "选边对战",
+    net: "房主执左",
     hard: "会猜你这一步怎么走",
     master: "连你可能放的墙一起算",
   },
+};
+
+const DETAIL = {
+  turn: "轮流走。开局掷骰，决定先手或选边。墙对双方都挡。",
+  async: "同时行动。没有先后手。墙只挡对方。",
+  "turn:local": "同一块屏幕，两人轮流走。",
+  "turn:ai": "你和电脑轮流走，下一步选难度。",
+  "turn:net": "用房间码连到朋友，掷骰决定先手。",
+  "async:local": "左方先定这一步，右方再定，然后一起结算。",
+  "async:ai": "你选执左或执右，电脑坐另一边。",
+  "async:net": "房主执左，加入的人执右，两边一起计时。",
 };
 
 const turnBtn = document.getElementById("modeTurn");
@@ -8536,16 +8636,16 @@ const asyncBtn = document.getElementById("modeAsync");
 function applyMode(next) {
   play = next;
   const copy = COPY[next];
-  turnBtn.classList.toggle("active", next === "turn");
-  asyncBtn.classList.toggle("active", next === "async");
   document.getElementById("rulesTurn").hidden = next !== "turn";
   document.getElementById("rulesAsync").hidden = next !== "async";
-  document.getElementById("homeSub").textContent = copy.sub;
+  document.documentElement.dataset.play = next;
   document.getElementById("blurbHard").textContent = copy.hard;
   document.getElementById("blurbMaster").textContent = copy.master;
-  const aiSpan = document.querySelector("#menuAI span");
+  const localSpan = document.querySelector("#menuLocal .pickBody span");
+  if (localSpan) localSpan.textContent = copy.local;
+  const aiSpan = document.querySelector("#menuAI .pickBody span");
   if (aiSpan) aiSpan.textContent = copy.ai;
-  const netSpan = document.querySelector("#menuNet span");
+  const netSpan = document.querySelector("#menuNet .pickBody span");
   if (netSpan) netSpan.textContent = copy.net;
   for (const level of ["grandmaster", "hell", "experiment"]) {
     const btn = document.querySelector(`#homeAI [data-level="${level}"]`);
@@ -8562,9 +8662,6 @@ function choose(next) {
   applyMode(next);
 }
 
-turnBtn.addEventListener("click", () => choose("turn"));
-asyncBtn.addEventListener("click", () => choose("async"));
-
 if (new URLSearchParams(location.search).get("play") !== play) {
   const url = new URL(location.href);
   url.searchParams.set("play", play);
@@ -8572,16 +8669,152 @@ if (new URLSearchParams(location.search).get("play") !== play) {
 }
 applyMode(play);
 
-// 菜单上换了玩法之后，真正开局再进对应的那一套代码。
-window.__dantengHandoff = function (loaded, action) {
-  if (play === loaded) return false;
+const homeRoot = document.getElementById("homeRoot");
+const homeMain = document.getElementById("homeMain");
+const homeAI = document.getElementById("homeAI");
+const homeTitle = document.getElementById("homeTitle");
+const homeSub = document.getElementById("homeSub");
+const pickModes = document.getElementById("pickModes");
+const pickDetail = document.getElementById("pickDetail");
+const pickBar = document.getElementById("pickBar");
+const pickBack = document.getElementById("pickBack");
+const pickConfirm = document.getElementById("pickConfirm");
+const homeFine = document.getElementById("homeFine");
+
+let step = "home";
+let pickedMode = play;
+let pickedQueue = null;
+let pickedLevel = null;
+
+function showHome() {
+  step = "home";
+  pickedQueue = null;
+  pickedLevel = null;
+  paintPicker();
+}
+
+function paintPicker() {
+  homeRoot.hidden = step !== "home";
+  pickModes.hidden = step !== "mode";
+  homeMain.hidden = step !== "queue";
+  homeAI.hidden = step !== "level";
+  pickBar.hidden = step === "home";
+  pickDetail.hidden = step === "home";
+  homeFine.hidden = step !== "home";
+  turnBtn.classList.toggle("is-selected", pickedMode === "turn");
+  asyncBtn.classList.toggle("is-selected", pickedMode === "async");
+  document.getElementById("menuLocal").classList.toggle("is-selected", pickedQueue === "local");
+  document.getElementById("menuAI").classList.toggle("is-selected", pickedQueue === "ai");
+  document.getElementById("menuNet").classList.toggle("is-selected", pickedQueue === "net");
+  for (const btn of homeAI.querySelectorAll("[data-level]")) {
+    btn.classList.toggle("is-selected", pickedLevel === btn.dataset.level && !btn.hidden);
+  }
+
+  if (step === "home") {
+    homeTitle.textContent = "蛋疼棋";
+    homeSub.textContent = "10 × 12 棋盘 · 越过终点线者胜";
+    return;
+  }
+  if (step === "mode") {
+    homeTitle.textContent = "选择游戏模式";
+    homeSub.textContent = "选中一张卡片，再点确认";
+    pickDetail.textContent = DETAIL[pickedMode] || "先选回合制或异步";
+    pickConfirm.disabled = !pickedMode;
+    pickConfirm.textContent = "确认";
+    return;
+  }
+  if (step === "queue") {
+    homeTitle.textContent = "选择对战方式";
+    homeSub.textContent = COPY[play].sub;
+    pickDetail.textContent = pickedQueue ? DETAIL[`${play}:${pickedQueue}`] : "选一种开局方式";
+    pickConfirm.disabled = !pickedQueue;
+    pickConfirm.textContent = pickedQueue === "ai" ? "下一步" : "开始";
+    return;
+  }
+  const levelBtn = pickedLevel ? homeAI.querySelector(`[data-level="${pickedLevel}"]`) : null;
+  const levelOk = levelBtn && !levelBtn.hidden;
+  homeTitle.textContent = "选择难度";
+  homeSub.textContent = play === "async" ? "异步人机，没有先后手" : "回合制人机";
+  pickDetail.textContent = levelOk
+    ? (levelBtn.querySelector(".pickBody span")?.textContent || "")
+    : "选一个难度";
+  pickConfirm.disabled = !levelOk;
+  pickConfirm.textContent = "开始";
+}
+
+function confirmPick() {
+  if (step === "mode") {
+    if (!pickedMode) return;
+    choose(pickedMode);
+    pickedQueue = null;
+    pickedLevel = null;
+    step = "queue";
+    paintPicker();
+    return;
+  }
+  if (step === "queue") {
+    if (!pickedQueue) return;
+    if (pickedQueue === "ai") {
+      pickedLevel = null;
+      step = "level";
+      paintPicker();
+      return;
+    }
+    begin(pickedQueue);
+    return;
+  }
+  if (pickedLevel) begin(pickedLevel);
+}
+
+function backPick() {
+  if (step === "level") step = "queue";
+  else if (step === "queue") step = "mode";
+  else step = "home";
+  paintPicker();
+}
+
+/** 开局入口只在确认后进入。玩法已经对上就直接开，否则进对应模块再开。 */
+function begin(action) {
+  if (window.__dantengLoaded === play && typeof window.__dantengStart === "function") {
+    window.__dantengStart(action);
+    return;
+  }
   sessionStorage.setItem("danteng.play", play);
   sessionStorage.setItem("danteng.autostart", action);
   const url = new URL(location.href);
   url.searchParams.set("play", play);
   location.assign(url.href);
+}
+
+window.__dantengHandoff = function (loaded, action) {
+  if (play === loaded) return false;
+  begin(action);
   return true;
 };
+
+window.__dantengShowHome = showHome;
+window.__dantengShowCoreMenu = showHome;
+
+document.getElementById("menuStart").addEventListener("click", () => {
+  step = "mode";
+  paintPicker();
+});
+turnBtn.addEventListener("click", () => { pickedMode = "turn"; paintPicker(); });
+asyncBtn.addEventListener("click", () => { pickedMode = "async"; paintPicker(); });
+document.getElementById("menuLocal").addEventListener("click", () => { pickedQueue = "local"; paintPicker(); });
+document.getElementById("menuAI").addEventListener("click", () => { pickedQueue = "ai"; paintPicker(); });
+document.getElementById("menuNet").addEventListener("click", () => { pickedQueue = "net"; paintPicker(); });
+homeAI.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-level]");
+  if (!btn || btn.hidden) return;
+  pickedLevel = btn.dataset.level;
+  paintPicker();
+});
+pickBack.addEventListener("click", backPick);
+pickConfirm.addEventListener("click", confirmPick);
+
+applyMode(play);
+showHome();
 
 if (play === "async") __dantengAsync(); else __dantengTurn();
 

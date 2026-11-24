@@ -44,7 +44,6 @@ const overlay = el("overlay");
 const homeOverlay = el("homeOverlay");
 const homeMain = el("homeMain");
 const homeAI = el("homeAI");
-const homeCommon = el("homeCommon");
 const homeFine = el("homeFine");
 const rulesOverlay = el("rulesOverlay");
 const rulesBtn = el("rulesBtn");
@@ -1205,9 +1204,7 @@ function goHome() {
   settingsOverlay.hidden = true;
   diceOverlay.hidden = true;
   homeOverlay.hidden = false;
-  homeMain.hidden = false;
-  homeAI.hidden = true;
-  homeCommon.hidden = false;
+  window.__dantengShowHome?.();
   paintHomeFine();
   paint();
 }
@@ -1266,26 +1263,15 @@ undoNo.addEventListener("click", () => {
   finishUndo(false);
 });
 
-el("menuLocal").addEventListener("click", () => startGame("local"));
-el("menuAI").addEventListener("click", () => {
-  homeMain.hidden = true;
-  homeAI.hidden = false;
-  homeCommon.hidden = true;
-});
-el("aiBack").addEventListener("click", () => {
-  homeAI.hidden = true;
-  homeMain.hidden = false;
-  homeCommon.hidden = false;
-});
-homeAI.addEventListener("click", (e) => {
-  const btn = e.target.closest("[data-level]");
-  if (btn) startGame(btn.dataset.level);
-});
-el("menuNet").addEventListener("click", () => {
-  if (window.__dantengHandoff?.("async", "net")) return;
-  homeOverlay.hidden = true;
-  openNet();
-});
+window.__dantengLoaded = "async";
+window.__dantengStart = (action) => {
+  if (action === "net") {
+    homeOverlay.hidden = true;
+    openNet();
+    return;
+  }
+  startGame(action);
+};
 el("netBack").addEventListener("click", () => { netOverlay.hidden = true; homeOverlay.hidden = false; });
 el("netCreate").addEventListener("click", createRoom);
 el("netJoinBtn").addEventListener("click", () => { netMain.hidden = true; netJoin.hidden = false; roomInput.focus(); });

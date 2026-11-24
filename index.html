@@ -65,60 +65,81 @@
   <!-- 主菜单 -->
   <div class="overlay" id="homeOverlay">
     <div class="panel home">
-      <div class="panelIcon">🎲</div>
-      <h2>蛋疼棋</h2>
+      <h2 id="homeTitle">蛋疼棋</h2>
       <p class="sub" id="homeSub">10 × 12 棋盘 · 越过终点线者胜</p>
-      <div class="modeSwitch" id="modeSwitch">
-        <button class="btn ghost" id="modeTurn" type="button">回合制</button>
-        <button class="btn ghost" id="modeAsync" type="button">异步</button>
-      </div>
 
-      <div class="menu" id="homeMain">
-        <button class="menuItem" id="menuLocal">
-          <b>玩家对战</b><span>同屏双人</span>
+      <div class="menu" id="homeRoot">
+        <button class="menuItem startItem" id="menuStart" type="button">
+          <b>开始游戏</b><span>下一步选择回合制或异步</span>
         </button>
-        <button class="menuItem" id="menuAI">
-          <b>人机对战</b><span>简单 / 普通 / 困难 / 大师 / 宗师 / 地狱</span>
+        <button class="menuItem" id="menuRules" type="button">
+          <b>规则</b><span>棋盘、行动、胜负与计时</span>
         </button>
-        <button class="menuItem" id="menuNet">
-          <b>联机对战</b><span>房间码 · 点对点直连</span>
-        </button>
-      </div>
-
-      <div class="menu" id="homeAI" hidden>
-        <button class="menuItem" data-level="easy">
-          <b>简单</b><span>偶尔随手，适合第一次玩</span>
-        </button>
-        <button class="menuItem" data-level="normal">
-          <b>普通</b><span>每一步都走最短路</span>
-        </button>
-        <button class="menuItem" data-level="hard">
-          <b>困难</b><span id="blurbHard">会预判你的应手</span>
-        </button>
-        <button class="menuItem" data-level="master">
-          <b>大师</b><span id="blurbMaster">六层搜索 + 锁路计划</span>
-        </button>
-        <button class="menuItem" data-level="grandmaster">
-          <b>宗师</b><span>计划会走 · 必经路保护 · 更深收官</span>
-        </button>
-        <button class="menuItem" data-level="hell">
-          <b>地狱</b><span>尽量用满每一步的思考时间</span>
-        </button>
-        <button class="menuItem back" id="aiBack">
-          <b>返回</b>
-        </button>
-      </div>
-
-      <div class="menu menuCommon" id="homeCommon">
-        <button class="menuItem" id="menuRules">
-          <b>游戏规则</b><span>棋盘、行动、胜负与计时</span>
-        </button>
-        <button class="menuItem" id="menuSlots">
-          <b>对局记录</b><span>掉线封存的棋局，可导出</span>
-        </button>
-        <button class="menuItem" id="menuSettings">
+        <button class="menuItem" id="menuSettings" type="button">
           <b>设置</b><span>计时与悔棋次数</span>
         </button>
+        <button class="menuItem" id="menuSlots" type="button">
+          <b>对局记录</b><span>掉线封存的棋局，可导出</span>
+        </button>
+      </div>
+
+      <div class="pickRow" id="pickModes" hidden>
+        <button class="pickCard" id="modeTurn" type="button">
+          <span class="pickArt art-turn"></span>
+          <span class="pickBody"><b>回合制</b><span>轮流行动</span></span>
+        </button>
+        <button class="pickCard" id="modeAsync" type="button">
+          <span class="pickArt art-async"></span>
+          <span class="pickBody"><b>异步</b><span>同时行动</span></span>
+        </button>
+      </div>
+
+      <div class="pickRow" id="homeMain" hidden>
+        <button class="pickCard" id="menuLocal" type="button">
+          <span class="pickArt art-local"></span>
+          <span class="pickBody"><b>玩家对战</b><span>同屏双人</span></span>
+        </button>
+        <button class="pickCard" id="menuAI" type="button">
+          <span class="pickArt art-ai"></span>
+          <span class="pickBody"><b>人机对战</b><span>选择难度</span></span>
+        </button>
+        <button class="pickCard" id="menuNet" type="button">
+          <span class="pickArt art-net"></span>
+          <span class="pickBody"><b>联机对战</b><span>房间码</span></span>
+        </button>
+      </div>
+
+      <div class="pickRow pickLevels" id="homeAI" hidden>
+        <button class="pickCard" data-level="easy" type="button">
+          <span class="pickArt art-diff"></span>
+          <span class="pickBody"><b>简单</b><span>偶尔随手，适合第一次玩</span></span>
+        </button>
+        <button class="pickCard" data-level="normal" type="button">
+          <span class="pickArt art-diff"></span>
+          <span class="pickBody"><b>普通</b><span>每一步都走最短路</span></span>
+        </button>
+        <button class="pickCard" data-level="hard" type="button">
+          <span class="pickArt art-diff"></span>
+          <span class="pickBody"><b>困难</b><span id="blurbHard">会预判你的应手</span></span>
+        </button>
+        <button class="pickCard" data-level="master" type="button">
+          <span class="pickArt art-diff"></span>
+          <span class="pickBody"><b>大师</b><span id="blurbMaster">六层搜索 + 锁路计划</span></span>
+        </button>
+        <button class="pickCard" data-level="grandmaster" type="button">
+          <span class="pickArt art-diff"></span>
+          <span class="pickBody"><b>宗师</b><span>计划会走 · 必经路保护 · 更深收官</span></span>
+        </button>
+        <button class="pickCard" data-level="hell" type="button">
+          <span class="pickArt art-diff"></span>
+          <span class="pickBody"><b>地狱</b><span>尽量用满每一步的思考时间</span></span>
+        </button>
+      </div>
+
+      <p class="pickDetail" id="pickDetail" hidden></p>
+      <div class="pickBar" id="pickBar" hidden>
+        <button class="btn ghost" id="pickBack" type="button">返回</button>
+        <button class="btn primary" id="pickConfirm" type="button" disabled>确认</button>
       </div>
 
       <p class="fine" id="homeFine">每步 30 秒 · 时间库 300 秒 · 悔棋 3 次</p>
