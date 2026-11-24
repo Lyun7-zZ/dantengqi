@@ -83,15 +83,6 @@
         <button class="menuItem" id="menuNet">
           <b>联机对战</b><span>房间码 · 点对点直连</span>
         </button>
-        <button class="menuItem" id="menuRules">
-          <b>游戏规则</b><span>棋盘、行动、胜负与计时</span>
-        </button>
-        <button class="menuItem" id="menuSlots">
-          <b>对局记录</b><span>掉线封存的棋局，可导出</span>
-        </button>
-        <button class="menuItem" id="menuSettings">
-          <b>设置</b><span>计时与悔棋次数</span>
-        </button>
       </div>
 
       <div class="menu" id="homeAI" hidden>
@@ -115,6 +106,18 @@
         </button>
         <button class="menuItem back" id="aiBack">
           <b>返回</b>
+        </button>
+      </div>
+
+      <div class="menu menuCommon" id="homeCommon">
+        <button class="menuItem" id="menuRules">
+          <b>游戏规则</b><span>棋盘、行动、胜负与计时</span>
+        </button>
+        <button class="menuItem" id="menuSlots">
+          <b>对局记录</b><span>掉线封存的棋局，可导出</span>
+        </button>
+        <button class="menuItem" id="menuSettings">
+          <b>设置</b><span>计时与悔棋次数</span>
         </button>
       </div>
 
@@ -226,6 +229,10 @@
       <div class="docBody" id="rulesAsync" hidden>
         <h3>人机</h3>
         <p>没有先后手。你选执左或执右，电脑坐另一边。每回合你和电脑同时行动，一起结算。</p>
+        <h3>同屏</h3>
+        <p>没有先后手。左方先把这一步定下来，右方再定，然后一起结算。先点的人不占先。</p>
+        <h3>联机</h3>
+        <p>没有先后手。房主执左，加入的人执右。双方各自选定，服务器一起结算。两边的计时同时倒数。</p>
         <h3>棋盘</h3>
         <p>10 列（A–J）× 12 行（1–12）。下方为起点线，上方为终点线。</p>
         <h3>行动</h3>

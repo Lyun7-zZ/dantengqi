@@ -25,12 +25,10 @@ async function asyncPair(srv) {
   return { a, b, seatA: created.seat };
 }
 
-async function startAsync(a, b, seatA) {
-  const connOf = (seat) => (seat === seatA ? a : b);
-  const dice = await a.wait((m) => m.t === "dice", "掷骰");
-  connOf(dice.chooser).send({ t: "choice", priority: "side", side: 0 });
+async function startAsync(a, b) {
   const snapA = await a.wait((m) => m.t === "state", "开局");
   const snapB = await b.wait((m) => m.t === "state", "开局");
+  assert.deepEqual(snapA.sides, [0, 1]);
   return { snapA, snapB };
 }
 
@@ -40,7 +38,7 @@ test("异步 M6：创建异步房间并双方提交后结算一回合", async (t
   const { a, b, seatA } = await asyncPair(srv);
   t.after(async () => { a.close(); b.close(); await srv.close(); });
 
-  const { snapA } = await startAsync(a, b, seatA);
+  const { snapA } = await startAsync(a, b);
   assert.equal(snapA.mode, "async");
   assert.equal(snapA.state.plies, 0);
   assert.ok(Array.isArray(snapA.state.vWall), "vWall 已转成普通数组");
@@ -64,7 +62,7 @@ test("异步 M6：同一玩家重复提交会被拒", async (t) => {
   const { a, b, seatA } = await asyncPair(srv);
   t.after(async () => { a.close(); b.close(); await srv.close(); });
 
-  await startAsync(a, b, seatA);
+  await startAsync(a, b);
   a.send({ t: "action", ply: 0, action: { type: "move", dirs: ["up"] } });
   await a.wait((m) => m.t === "submitted", "第一次提交");
   a.send({ t: "action", ply: 0, action: { type: "move", dirs: ["left"] } });
@@ -78,7 +76,7 @@ test("异步 M6：非法行动被拒", async (t) => {
   const { a, b, seatA } = await asyncPair(srv);
   t.after(async () => { a.close(); b.close(); await srv.close(); });
 
-  await startAsync(a, b, seatA);
+  await startAsync(a, b);
   a.send({ t: "action", ply: 0, action: { type: "move", dirs: ["up", "up", "up"] } });
   const err = await a.wait((m) => m.t === "error", "非法行动");
   assert.equal(err.code, "illegal-action");
