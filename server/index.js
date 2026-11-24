@@ -151,9 +151,8 @@ export function startServer({
 
       if (room.mode === "async") {
         const ta = tickAsyncGame(room.game, dt);
-        if (!ta.timedOut) continue;
-        fillTimeout(room.game, 0);
-        fillTimeout(room.game, 1);
+        if (!ta.timedOut.length) continue;
+        for (const side of ta.timedOut) fillTimeout(room.game, side);
         const round = resolveRoundIfReady(room.game);
         if (!round.ok) continue;
         recordHistory(room);
@@ -220,6 +219,7 @@ export function startServer({
       banks: g.clocks.banks.slice(),
       moveLeft: g.clocks.moveLeft,
       inBank: g.clocks.inBank,
+      ...(room.mode === "async" && Array.isArray(g.think) ? { think: g.think.slice() } : {}),
     };
   }
 
@@ -262,6 +262,14 @@ export function startServer({
   }
 
   // ---------- 掷骰与选边 ----------
+
+  function beginMatch(room) {
+    if (room.mode === "async") {
+      startPlay(room, { sides: [0, 1], firstSeat: 0 });
+      return;
+    }
+    beginDice(room);
+  }
 
   function beginDice(room) {
     const pts = rollDice(random);
@@ -515,7 +523,7 @@ export function startServer({
       room.firstSeat = null;
       room.phase = "ready";
       broadcastRoom(room, { t: "rematch", op: "accepted" });
-      beginDice(room);
+      beginMatch(room);
       return;
     }
   }
@@ -651,7 +659,7 @@ export function startServer({
       });
       broadcastRoom(r.room, { t: "room", phase: r.room.phase, room: r.room.code });
       log(`房间 ${r.room.code} 加入，座位 ${r.seat}`);
-      if (r.room.phase === "ready") beginDice(r.room);
+      if (r.room.phase === "ready") beginMatch(r.room);
       return;
     }
 

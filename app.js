@@ -39,6 +39,7 @@ const overlay = el("overlay");
 const homeOverlay = el("homeOverlay");
 const homeMain = el("homeMain");
 const homeAI = el("homeAI");
+const homeCommon = el("homeCommon");
 const homeFine = el("homeFine");
 const rulesOverlay = el("rulesOverlay");
 const rulesBtn = el("rulesBtn");
@@ -995,6 +996,7 @@ function syncStartOptionUI() {
 
 /** 从主菜单开局。 */
 function startGame(mode) {
+  if (window.__dantengHandoff?.("turn", mode)) return;
   resultFull.hidden = true;
   overlay.hidden = true;
   undoOverlay.hidden = true;
@@ -1183,6 +1185,7 @@ function goHome() {
   homeOverlay.hidden = false;
   homeMain.hidden = false;
   homeAI.hidden = true;
+  homeCommon.hidden = false;
   paintHomeFine();
   paint();
 }
@@ -1241,16 +1244,22 @@ el("menuLocal").addEventListener("click", () => startGame("local"));
 el("menuAI").addEventListener("click", () => {
   homeMain.hidden = true;
   homeAI.hidden = false;
+  homeCommon.hidden = true;
 });
 el("aiBack").addEventListener("click", () => {
   homeAI.hidden = true;
   homeMain.hidden = false;
+  homeCommon.hidden = false;
 });
 homeAI.addEventListener("click", (e) => {
   const btn = e.target.closest("[data-level]");
   if (btn) startGame(btn.dataset.level);
 });
-el("menuNet").addEventListener("click", () => { homeOverlay.hidden = true; openNet(); });
+el("menuNet").addEventListener("click", () => {
+  if (window.__dantengHandoff?.("turn", "net")) return;
+  homeOverlay.hidden = true;
+  openNet();
+});
 el("netBack").addEventListener("click", () => { netOverlay.hidden = true; homeOverlay.hidden = false; });
 el("netCreate").addEventListener("click", createRoom);
 el("netJoinBtn").addEventListener("click", () => { netMain.hidden = true; netJoin.hidden = false; roomInput.focus(); });
@@ -1982,4 +1991,15 @@ if (demo === "dice") {
   homeOverlay.hidden = true;
   S.started = false;
   startGame("local");
+}
+
+const pendingStart = sessionStorage.getItem("danteng.autostart");
+if (pendingStart && !demo) {
+  sessionStorage.removeItem("danteng.autostart");
+  if (pendingStart === "net") {
+    homeOverlay.hidden = true;
+    openNet();
+  } else {
+    startGame(pendingStart);
+  }
 }

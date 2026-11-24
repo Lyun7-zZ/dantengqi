@@ -272,6 +272,21 @@ body {
   box-shadow: inset 0 0 0 1px rgba(242, 164, 92, 0.55);
 }
 
+html[data-play="async"] .cell.move-target-far {
+  cursor: pointer;
+  background: rgba(70, 211, 166, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(70, 211, 166, 0.28);
+}
+
+html[data-play="async"] .cell.move-target-far.p1 {
+  background: rgba(242, 164, 92, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(242, 164, 92, 0.28);
+}
+
+html[data-play="async"] .cell.move-via {
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.72);
+}
+
 .cell.preview {
   background: linear-gradient(180deg, rgba(70, 211, 166, 0.28), rgba(70, 211, 166, 0.1));
   box-shadow: inset 0 0 0 2px rgba(70, 211, 166, 0.95);
@@ -372,10 +387,10 @@ body {
 .slot.placed.owner0 .bar { background: var(--p0); }
 .slot.placed.owner1 .bar { background: var(--p1); }
 .slot.placed.owner0.owner1 .bar {
-  background: linear-gradient(90deg, var(--p0) 0 42%, #10181e 42% 58%, var(--p1) 58% 100%);
+  background: linear-gradient(90deg, var(--p0) 0 50%, var(--p1) 50% 100%);
 }
 .slot-v.placed.owner0.owner1 .bar {
-  background: linear-gradient(180deg, var(--p0) 0 42%, #10181e 42% 58%, var(--p1) 58% 100%);
+  background: linear-gradient(180deg, var(--p0) 0 50%, var(--p1) 50% 100%);
 }
 .slot.placed .bar { opacity: 1; }
 
@@ -443,6 +458,131 @@ body {
 /* 同格时错开显示 */
 .piece.shift-left { transform: translate(-22%, -14%) scale(0.86); }
 .piece.shift-right { transform: translate(22%, 14%) scale(0.86); }
+
+/* 异步：走子、封墙、存点、越线 */
+html[data-play="async"] .piece {
+  transition:
+    left 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
+    top 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 0.35s ease;
+}
+
+html[data-play="async"] .piece.act-land::before {
+  animation: pieceLand 0.28s ease;
+}
+
+html[data-play="async"] .piece.act-bump {
+  animation: pieceBump 0.36s ease;
+}
+
+html[data-play="async"] .piece.act-store::before {
+  animation: pieceStore 0.46s ease;
+}
+
+html[data-play="async"] .piece.has-bank::after {
+  content: "1";
+  position: absolute;
+  right: -10%;
+  top: -18%;
+  width: 1.1em;
+  height: 1.1em;
+  border-radius: 50%;
+  background: #fff;
+  color: #102018;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.1em;
+  text-align: center;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+}
+
+html[data-play="async"] .piece.p0.has-bank::after { background: var(--p0); color: #06201a; }
+html[data-play="async"] .piece.p1.has-bank::after { background: var(--p1); color: #241305; }
+
+html[data-play="async"] .piece.act-store::after {
+  content: "存";
+  position: absolute;
+  left: 50%;
+  right: auto;
+  top: 0;
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  background: transparent;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.55);
+  animation: storeTag 0.62s ease forwards;
+  pointer-events: none;
+}
+
+html[data-play="async"] .piece.act-exit {
+  animation: pieceExit 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+  z-index: 6;
+}
+
+html[data-play="async"] .slot.arrive .bar {
+  transform-origin: center;
+  transition: none;
+  animation: wallGrowX 0.4s cubic-bezier(0.16, 0.84, 0.28, 1);
+}
+
+html[data-play="async"] .slot-v.arrive .bar {
+  animation-name: wallGrowY;
+}
+
+html[data-play="async"] .slot.reject .bar {
+  background: var(--danger);
+  animation: wallReject 0.42s ease forwards;
+}
+
+@keyframes pieceLand {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.14, 0.86); }
+  100% { transform: scale(1); }
+}
+
+@keyframes pieceBump {
+  0%, 100% { transform: translateX(0); }
+  30% { transform: translateX(-22%); }
+  70% { transform: translateX(18%); }
+}
+
+@keyframes pieceStore {
+  0% { transform: scale(1); filter: brightness(1); }
+  40% { transform: scale(1.2); filter: brightness(1.35); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+
+@keyframes storeTag {
+  0% { opacity: 0; transform: translate(-50%, 4px); }
+  25% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -22px); }
+}
+
+@keyframes pieceExit {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-140%); opacity: 0; }
+}
+
+@keyframes wallGrowX {
+  0% { transform: scaleX(0.12); opacity: 0; }
+  100% { transform: scaleX(1); opacity: 1; }
+}
+
+@keyframes wallGrowY {
+  0% { transform: scaleY(0.12); opacity: 0; }
+  100% { transform: scaleY(1); opacity: 1; }
+}
+
+@keyframes wallReject {
+  0% { transform: scale(0.35); opacity: 0; }
+  40% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(0.7); opacity: 0; }
+}
 
 /* ---------- 操作栏 ---------- */
 .actionbar {
@@ -622,6 +762,12 @@ body {
 .menuItem:hover { border-color: rgba(70, 211, 166, 0.5); background: #18252e; }
 .menuItem:active { transform: translateY(1px); }
 .menuItem.back { align-items: center; color: var(--muted); }
+
+.menuCommon {
+  margin-top: 2px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
 
 .panel .sub {
   font-size: 12px;

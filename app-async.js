@@ -19,6 +19,8 @@ import {
   loadSlots, saveSlot, deleteSlot, defaultSlotName, slotFileName, MAX_SLOTS,
 } from "./src/storage.js";
 
+document.documentElement.dataset.play = "async";
+
 const CELL_W = 10;          // 每列宽度（%）
 const CELL_H = 100 / ROWS;  // 每行高度（%）
 
@@ -35,12 +37,14 @@ const confirmBtn = el("confirm");
 const cancelBtn = el("cancel");
 const undoBtn = el("undo");
 const storeBtn = el("store");
-storeBtn.hidden = false;
+const startOpts = el("startOpts");
+if (startOpts) startOpts.hidden = true;
 const restartBtn = el("restart");
 const overlay = el("overlay");
 const homeOverlay = el("homeOverlay");
 const homeMain = el("homeMain");
 const homeAI = el("homeAI");
+const homeCommon = el("homeCommon");
 const homeFine = el("homeFine");
 const rulesOverlay = el("rulesOverlay");
 const rulesBtn = el("rulesBtn");
@@ -85,6 +89,9 @@ const diceEls = [el("dice0"), el("dice1")];
 const diceNameEls = [el("diceName0"), el("diceName1")];
 const diceDesc = el("diceDesc");
 const diceChoices = el("diceChoices");
+const diceTitle = el("diceTitle");
+const diceSub = el("diceSub");
+let diceGen = 0;
 const undoOverlay = el("undoOverlay");
 const undoDesc = el("undoDesc");
 const undoYes = el("undoYes");
@@ -140,6 +147,9 @@ const colLabelEls = new Map(); // 列标签（只用于越线提示）
 const pieceEls = [];
 let ghostEl = null;
 let exitBadge = null;
+const STEP_MS = 240;
+let motionUntil = 0;
+let motionHold = new Set();
 
 function activeSeat() {
   if (S.mode === "online") return S.mySeat ?? 0;
@@ -272,12 +282,18 @@ function buildBoard() {
   piecesEl.appendChild(exitBadge);
 }
 
-function paint() {
+function paint(opts) {
   const st = S.state;
   const seat = st ? activeSeat() : 0;
+  const keepMotion = motionUntil > performance.now();
+  const hold = opts?.hold instanceof Set ? opts.hold : null;
 
-  for (const [, d] of cellEls) d.classList.remove("move-target", "preview", "p1", "exit-cell");
+  for (const [, d] of cellEls) d.classList.remove("move-target", "move-target-far", "move-via", "preview", "p1", "exit-cell");
   for (const [, d] of slotEls) d.classList.remove("preview", "invalid", "p1", "owner0", "owner1");
+  if (!keepMotion) {
+    for (const el of pieceEls) el.classList.remove("act-land", "act-bump", "act-exit", "act-store");
+    for (const [, d] of slotEls) d.classList.remove("arrive", "reject");
+  }
   for (const [, d] of colLabelEls) d.classList.remove("can-exit", "exit-target", "p1");
   if (ghostEl) ghostEl.style.display = "none";
   if (exitBadge) {
@@ -298,6 +314,8 @@ function paint() {
   }
 
   for (let p = 0; p < 2; p++) {
+    pieceEls[p].classList.toggle("has-bank", st.bank[p] > 0);
+    if (hold?.has(p) || (keepMotion && motionHold.has(p))) continue;
     const { c, r } = st.players[p];
     pieceEls[p].style.left = `${c * CELL_W}%`;
     pieceEls[p].style.top = `${r * CELL_H}%`;
@@ -306,6 +324,11 @@ function paint() {
   const same = a.c === b.c && a.r === b.r;
   pieceEls[0].classList.toggle("shift-left", same);
   pieceEls[1].classList.toggle("shift-right", same);
+
+  if (!S.started) {
+    paintLobby();
+    return;
+  }
 
   const picking = !S.gameOver && !S.locked[seat];
   if (picking) {
@@ -318,6 +341,20 @@ function paint() {
       if (!cell) continue;
       cell.classList.add("move-target");
       if (seat === 1) cell.classList.add("p1");
+    }
+    if (st.bank[seat] >= 1 && S.preview?.action?.type !== "move") {
+      for (const dir of legalDirs(st, me.c, me.r, seat)) {
+        const mid = stepTarget(st, me.c, me.r, dir, seat);
+        if (!mid || mid.exit) continue;
+        for (const dir2 of legalDirs(st, mid.c, mid.r, seat)) {
+          const far = stepTarget(st, mid.c, mid.r, dir2, seat);
+          if (!far || far.exit || (far.c === me.c && far.r === me.r)) continue;
+          const cell = cellEls.get(cellKey(far.c, far.r));
+          if (!cell || cell.classList.contains("move-target")) continue;
+          cell.classList.add("move-target-far");
+          if (seat === 1) cell.classList.add("p1");
+        }
+      }
     }
     if (me.r === 0 && !blocksSeat(st, seat, "top", me.c, 0)) {
       const label = colLabelEls.get(me.c);
@@ -358,18 +395,45 @@ function paint() {
       ghostEl.style.left = `${traced.c * CELL_W}%`;
       ghostEl.style.top = `${traced.r * CELL_H}%`;
     }
+    if (S.preview.action.dirs?.length === 2) {
+      const mid = traceMove(st, seat, [S.preview.action.dirs[0]]);
+      if (mid.ok) {
+        const via = cellEls.get(cellKey(mid.c, mid.r));
+        if (via) {
+          via.classList.add("move-via");
+          if (seat === 1) via.classList.add("p1");
+        }
+      }
+    }
   }
 
   metaEl.textContent = `第 ${st.plies + 1} 回合 · 墙 ${st.wallsPlaced} · 存点 ${st.bank[0]}/${st.bank[1]}`;
+  const who = S.aiSeat != null ? "你" : (S.mode === "online" ? "你" : (seat === 0 ? "左方" : "右方"));
+  const idle = st.bank[seat] > 0
+    ? `${who}有 1 个存点。点相邻格走一格，再点下一格走两格`
+    : `${who}：走一格、放墙，或存点`;
+  const waiting = S.aiSeat != null
+    ? "正在和电脑一起结算"
+    : (S.mode === "online" ? "已选定，等待对方一起结算" : "这一步已定，等待一起结算");
+  const extending = S.preview?.valid
+    && S.preview.action.type === "move"
+    && S.preview.action.dirs?.length === 1
+    && st.bank[seat] > 0;
   statusEl.textContent = S.locked[seat]
-    ? "已选定，等待对方"
-    : (S.preview
-      ? (S.preview.valid ? `确认${S.preview.label}？` : "这一步不合法")
-      : `${seat === 0 ? "左方（青）" : "右方（橙）"}：走一格；有存点时可再点一格。也可放墙或存点`);
+    ? waiting
+    : (extending
+      ? "再点下一格走两格，或确认只走这一格"
+      : (S.preview
+        ? (S.preview.valid ? `确认${S.preview.label}？` : "这一步不合法")
+        : idle));
 
   confirmBtn.disabled = !S.preview || !S.preview.valid || S.gameOver || !!S.locked[seat];
   cancelBtn.disabled = !S.preview;
-  if (storeBtn) storeBtn.disabled = S.gameOver || !!S.locked[seat] || st.bank[seat] !== 0;
+  if (storeBtn) {
+    storeBtn.hidden = false;
+    storeBtn.textContent = st.bank[seat] > 0 ? "已存" : "存点";
+    storeBtn.disabled = S.gameOver || !!S.locked[seat] || st.bank[seat] !== 0;
+  }
   undoBtn.textContent = `悔棋 ${S.undoLeft[seat]}`;
   undoBtn.disabled = S.gameOver || !!S.locked[seat]
     || (S.mode === "online" && (seat !== S.mySeat || !NET.client))
@@ -378,35 +442,67 @@ function paint() {
   paintClocks();
 }
 
+function paintLobby() {
+  metaEl.textContent = "第 1 手 · 墙 0";
+  statusEl.textContent = "点击格子移动，或点击格线放墙";
+  confirmBtn.disabled = true;
+  cancelBtn.disabled = true;
+  if (storeBtn) {
+    storeBtn.hidden = true;
+    storeBtn.disabled = true;
+  }
+  undoBtn.textContent = `悔棋 ${S.settings.undoLimit}`;
+  undoBtn.disabled = true;
+  resignBtn.hidden = true;
+  thinkingEl.hidden = true;
+  const per = S.clocks?.perMove ?? S.settings.perMove;
+  for (let p = 0; p < 2; p++) {
+    clkEls[p].textContent = String(per);
+    bankEls[p].textContent = `库 ${Math.ceil(S.clocks?.banks?.[p] ?? S.settings.bank)}`;
+    clockEls[p].classList.remove("active", "warn", "inbank");
+    clockEls[p].classList.toggle("p1", p === 1);
+  }
+  turnBarFill.style.width = "100%";
+  turnBarEl.classList.remove("p1", "warn");
+}
+
 function paintClocks() {
   if (!S.clocks || !S.state) return;
   const c = S.clocks;
   const turn = activeSeat();
+  const online = S.mode === "online" && Array.isArray(S.think);
   for (let p = 0; p < 2; p++) {
     const box = clockEls[p];
-    const choosing = p === turn && !S.gameOver && !S.locked[p];
-    const main = choosing ? displayTime(c, turn) : c.perMove;
+    const choosing = online
+      ? !S.gameOver && !S.locked[p]
+      : p === turn && !S.gameOver && !S.locked[p];
+    const main = online
+      ? (S.think[p] > 0 ? S.think[p] : c.banks[p])
+      : (choosing ? displayTime(c, turn) : c.perMove);
     const mainSec = Math.max(0, Math.ceil(main));
     clkEls[p].textContent = String(mainSec);
     bankEls[p].textContent = `库 ${Math.ceil(c.banks[p])} · 存 ${S.state.bank[p]}`;
     box.classList.toggle("active", choosing);
     box.classList.toggle("p1", p === 1);
     box.classList.toggle("warn", choosing && mainSec <= 5);
-    box.classList.toggle("inbank", choosing && c.inBank);
+    box.classList.toggle("inbank", choosing && (online ? S.think[p] <= 0 : c.inBank));
   }
 
-  // 顶部计时长条
-  const remain = displayTime(c, turn);
+  // 顶部计时长条：联机显示自己的时间，同屏显示正在输入的一方
+  const barSeat = online ? (S.mySeat ?? 0) : turn;
+  const remain = online
+    ? (S.think[barSeat] > 0 ? S.think[barSeat] : c.banks[barSeat])
+    : displayTime(c, turn);
   const ratio = S.gameOver ? 1 : Math.min(1, Math.max(0, remain / Math.max(1, c.perMove)));
   turnBarFill.style.width = `${(ratio * 100).toFixed(1)}%`;
-  turnBarEl.classList.toggle("p1", turn === 1);
+  turnBarEl.classList.toggle("p1", barSeat === 1);
   turnBarEl.classList.toggle("warn", !S.gameOver && remain <= 5);
 
   // 对方正在行动 / 电脑正在思考
   let hint = "";
   if (S.started && !S.gameOver) {
     if (S.mode === "online") {
-      if (!S.locked[S.mySeat]) hint = "对方正在操作…";
+      if (S.locked[S.mySeat]) hint = "已提交，等待对方一起结算";
     } else if (S.aiSeat !== null && !S.locked[S.aiSeat]) {
       hint = "电脑正在思考…";
     }
@@ -441,6 +537,20 @@ function dirBetween(from, c, r) {
   if (c === from.c - 1 && r === from.r) return "left";
   if (c === from.c + 1 && r === from.r) return "right";
   return null;
+}
+
+function twoStepPaths(st, seat, c, r) {
+  const me = st.players[seat];
+  const paths = [];
+  for (const dir of legalDirs(st, me.c, me.r, seat)) {
+    const mid = stepTarget(st, me.c, me.r, dir, seat);
+    if (!mid || mid.exit) continue;
+    for (const dir2 of legalDirs(st, mid.c, mid.r, seat)) {
+      const far = stepTarget(st, mid.c, mid.r, dir2, seat);
+      if (far && !far.exit && far.c === c && far.r === r) paths.push([dir, dir2]);
+    }
+  }
+  return paths;
 }
 
 function setPreview(action, label) {
@@ -480,12 +590,23 @@ function onCellClick(c, r) {
   }
 
   const from = previewOrigin(st, seat);
+  const extending = !(from.c === me.c && from.r === me.r);
   const dir = dirBetween(from, c, r);
   if (!dir) {
+    if (!extending && st.bank[seat] >= 1) {
+      const paths = twoStepPaths(st, seat, c, r);
+      if (paths.length === 1) {
+        setPreview({ type: "move", dirs: paths[0] }, "走两格");
+        return;
+      }
+      if (paths.length > 1) {
+        toast("有多条路，先点第一格");
+        return;
+      }
+    }
     toast("只能走到相邻格");
     return;
   }
-  const extending = !(from.c === me.c && from.r === me.r);
   const dirs = extending ? S.preview.action.dirs.concat(dir) : [dir];
   setPreview({ type: "move", dirs }, dirs.length === 2 ? "走两格" : "走一格");
 }
@@ -533,6 +654,88 @@ function onColLabelClick(c) {
   else setPreview({ type: "exit" }, "越线");
 }
 
+function cancelMotion() {
+  motionUntil = 0;
+  motionHold = new Set();
+}
+
+function motionPlan(events) {
+  const hold = new Set();
+  for (const e of events || []) {
+    if (e.type === "move" && e.steps > 0) hold.add(e.player);
+  }
+  return hold;
+}
+
+function movePath(from, dirs, board, player) {
+  const pts = [];
+  let c = from.c;
+  let r = from.r;
+  for (const dir of dirs || []) {
+    const t = stepTarget(board, c, r, dir, player);
+    if (!t || t.exit) break;
+    c = t.c;
+    r = t.r;
+    pts.push({ c, r });
+  }
+  return pts;
+}
+
+function pulseClass(el, name) {
+  el.classList.remove(name);
+  void el.offsetWidth;
+  el.classList.add(name);
+}
+
+/** 回合结算后的走子、封墙、存点、越线。hold 住的棋子先留在原格，再逐格走过去。 */
+function playRoundMotion(prev, events, actions, board) {
+  if (!events?.length) return;
+  const hold = motionPlan(events);
+  motionHold = hold;
+  let longest = 0;
+  for (const e of events) {
+    if (e.type === "move") longest = Math.max(longest, Math.max(1, e.steps) * STEP_MS + 300);
+    else if (e.type === "exit") longest = Math.max(longest, e.ok ? 620 : 420);
+    else longest = Math.max(longest, 460);
+  }
+  motionUntil = performance.now() + longest;
+
+  for (const e of events) {
+    if (e.type === "wall" && e.placed) {
+      const slot = slotEls.get(slotKey(e.kind, e.c, e.r));
+      if (slot) slot.classList.add("arrive");
+    } else if (e.type === "wall" && !e.placed && actions?.[e.player]?.type === "wall") {
+      const a = actions[e.player];
+      const slot = slotEls.get(slotKey(a.kind, a.c, a.r));
+      if (slot) slot.classList.add("reject");
+    } else if (e.type === "store") {
+      pulseClass(pieceEls[e.player], "act-store");
+    } else if (e.type === "exit") {
+      pulseClass(pieceEls[e.player], e.ok ? "act-exit" : "act-bump");
+    } else if (e.type === "move") {
+      const el = pieceEls[e.player];
+      const pts = movePath(prev[e.player], e.dirs, board, e.player);
+      if (!pts.length) {
+        if (e.collided) pulseClass(el, "act-bump");
+        continue;
+      }
+      pts.forEach((pt, i) => {
+        setTimeout(() => {
+          el.style.left = `${pt.c * CELL_W}%`;
+          el.style.top = `${pt.r * CELL_H}%`;
+          pulseClass(el, i === pts.length - 1 && e.collided ? "act-bump" : "act-land");
+        }, STEP_MS * i + 30);
+      });
+    }
+  }
+}
+
+function settleRound(prev, events, actions, board) {
+  const hold = motionPlan(events);
+  paint({ hold });
+  playRoundMotion(prev, events, actions, board);
+}
+
 function describeEvents(events) {
   return events.map((e) => {
     const who = e.player === 0 ? "左" : "右";
@@ -550,11 +753,14 @@ function describeEvents(events) {
 function ensureAILock() {
   if (S.aiSeat == null || S.gameOver || !S.started) return;
   if (S.locked[S.aiSeat]) return;
-  S.locked[S.aiSeat] = AI[S.mode](S.state, S.aiSeat, Math.random);
+  const think = AI[S.mode] || AI.master;
+  S.locked[S.aiSeat] = think(S.state, S.aiSeat, Math.random);
 }
 
 function finishRound(actions, nextState, events) {
   const label = describeEvents(events);
+  const prev = S.state.players.map((p) => ({ c: p.c, r: p.r }));
+  cancelMotion();
   S.state = nextState;
   resetTurn(S.clocks);
   S.turnStartedAt = performance.now();
@@ -570,14 +776,11 @@ function finishRound(actions, nextState, events) {
   S.lastTs = performance.now();
   if (events.some((e) => e.both)) toast("同一位置两边都放了墙，谁都过不去");
   else if (events.some((e) => e.collided)) toast("撞上了对方这一回合放的墙，停在墙前");
-  if (nextState.winner !== null) {
-    S.gameOver = true;
-    paint();
-    setTimeout(showResult, 320);
-    return;
-  }
+  const exited = events.some((e) => e.type === "exit" && e.ok);
+  if (nextState.winner !== null) S.gameOver = true;
   ensureAILock();
-  paint();
+  settleRound(prev, events, actions, nextState);
+  if (nextState.winner !== null) setTimeout(showResult, exited ? 640 : 420);
 }
 
 function commit() {
@@ -682,6 +885,7 @@ function finishUndo(agree) {
   S.locked = [null, null];
   S.inputSeat = 0;
   S.lastTs = performance.now();
+  cancelMotion();
   ensureAILock();
   paint();
   toast(`已撤销上一回合`);
@@ -760,6 +964,7 @@ function paintHomeFine() {
 }
 
 function newGame(announce = false) {
+  cancelMotion();
   S.state = createState(S.firstSeat);
   S.clocks = createClock({ perMove: S.settings.perMove, bank: S.settings.bank });
   S.history = [{ state: S.state, clocks: clockSnapshot(S.clocks) }];
@@ -781,6 +986,8 @@ function newGame(announce = false) {
 
 /** 从主菜单开局。 */
 function startGame(mode) {
+  if (window.__dantengHandoff?.("async", mode)) return;
+  diceGen++;
   S.pendingMode = mode;
   S.mode = mode;
   S.aiPerson = mode === "local" ? null : 1;
@@ -790,9 +997,28 @@ function startGame(mode) {
     return;
   }
 
-  diceOverlay.hidden = false;
+  if (S.aiPerson !== null) {
+    openAiSide();
+    return;
+  }
+
+  startLocalMatch();
+}
+
+/** 同屏双人没有先后手。左方先输入，只是因为共用一块屏幕。 */
+function startLocalMatch() {
+  S.aiSeat = null;
+  S.firstSeat = 0;
+  S.started = true;
+  diceOverlay.hidden = true;
   renderChoices([]);
-  rollDice();
+  homeOverlay.hidden = true;
+  homeMain.hidden = false;
+  homeAI.hidden = true;
+  newGame();
+  S.lastTs = performance.now();
+  paint();
+  toast("没有先后手。左方先选定，右方再选定，然后一起结算");
 }
 
 function personNames() {
@@ -814,6 +1040,9 @@ function renderChoices(items) {
 }
 
 function rollDice() {
+  const gen = diceGen;
+  if (diceTitle) diceTitle.textContent = "掷骰选边";
+  if (diceSub) diceSub.textContent = "点数大者二选一：先手或选边，另一项归对方";
   const names = personNames();
   diceNameEls[0].textContent = names[0];
   diceNameEls[1].textContent = names[1];
@@ -829,6 +1058,7 @@ function rollDice() {
 
   setTimeout(() => {
     clearInterval(timer);
+    if (gen !== diceGen) return;
     const a = 1 + Math.floor(Math.random() * 6);
     const b = 1 + Math.floor(Math.random() * 6);
     diceEls[0].textContent = String(a);
@@ -837,7 +1067,7 @@ function rollDice() {
 
     if (a === b) {
       diceDesc.textContent = `都是 ${a} 点，重掷`;
-      setTimeout(rollDice, 650);
+      setTimeout(() => { if (gen === diceGen) rollDice(); }, 650);
       return;
     }
 
@@ -846,6 +1076,40 @@ function rollDice() {
     diceEls[S.diceChooser].classList.add("win");
     showPriority();
   }, GAME_CONFIG.diceDelay);
+}
+
+/** 异步人机没有先后手：人选题边，电脑坐另一边。 */
+function openAiSide() {
+  diceGen++;
+  diceOverlay.hidden = false;
+  if (diceTitle) diceTitle.textContent = "选择执子方向";
+  if (diceSub) diceSub.textContent = "异步人机没有先后手。你选一边，电脑坐另一边，然后同时行动。";
+  diceNameEls[0].textContent = "左";
+  diceNameEls[1].textContent = "右";
+  diceEls[0].textContent = "A";
+  diceEls[1].textContent = "J";
+  for (const d of diceEls) d.classList.remove("rolling", "win");
+  diceDesc.textContent = "执左从 A-12 出发，执右从 J-12 出发。";
+  renderChoices([
+    { label: "执左（A-12）", side: 0, primary: true, onClick: () => finishAiSide(0) },
+    { label: "执右（J-12）", side: 1, onClick: () => finishAiSide(1) },
+  ]);
+}
+
+function finishAiSide(humanSide) {
+  S.aiSeat = 1 - humanSide;
+  S.firstSeat = humanSide;
+  S.started = true;
+  diceOverlay.hidden = true;
+  renderChoices([]);
+  homeOverlay.hidden = true;
+  homeMain.hidden = false;
+  homeAI.hidden = true;
+  newGame();
+  S.lastTs = performance.now();
+  ensureAILock();
+  paint();
+  toast(`你执${humanSide === 0 ? "左" : "右"}，和电脑同时行动`);
 }
 
 /** 点数大者：先手 或 选边，二选一。 */
@@ -859,8 +1123,12 @@ function showPriority() {
   ]);
 
   if (S.aiPerson === chooser) {
+    const gen = diceGen;
     diceDesc.textContent += "（电脑选择中…）";
-    setTimeout(() => choosePriority(Math.random() < 0.6 ? "first" : "side"), 700);
+    setTimeout(() => {
+      if (gen !== diceGen) return;
+      choosePriority(Math.random() < 0.6 ? "first" : "side");
+    }, 700);
   }
 }
 
@@ -882,8 +1150,12 @@ function choosePriority(kind) {
   ]);
 
   if (S.aiPerson === S.diceSideActor) {
+    const gen = diceGen;
     diceDesc.textContent += "（电脑选择中…）";
-    setTimeout(() => chooseSide(Math.random() < 0.5 ? 0 : 1), 700);
+    setTimeout(() => {
+      if (gen !== diceGen) return;
+      chooseSide(Math.random() < 0.5 ? 0 : 1);
+    }, 700);
   }
 }
 
@@ -902,6 +1174,7 @@ function finishDice(side, sidePicker, firstPerson) {
 
   S.aiSeat = S.aiPerson === null ? null : seatOfPerson[S.aiPerson];
   S.firstSeat = seatOfPerson[firstPerson];
+  S.started = true;
 
   diceOverlay.hidden = true;
   renderChoices([]);
@@ -910,17 +1183,17 @@ function finishDice(side, sidePicker, firstPerson) {
   homeAI.hidden = true;
 
   newGame();
-  S.started = true;
   S.lastTs = performance.now();
   ensureAILock();
   paint();
   const firstWho = S.aiSeat === null
-    ? (firstSeat === 0 ? "左方" : "右方")
-    : (firstSeat === S.aiSeat ? "电脑" : "你");
+    ? (S.firstSeat === 0 ? "左方" : "右方")
+    : (S.firstSeat === S.aiSeat ? "电脑" : "你");
   toast(`${firstWho}选边完成，双方同时行动`);
 }
 
 function goHome() {
+  diceGen++;
   closeDrop();
   clearTimeout(S.handshakeTimer);
   stopNet();
@@ -934,6 +1207,7 @@ function goHome() {
   homeOverlay.hidden = false;
   homeMain.hidden = false;
   homeAI.hidden = true;
+  homeCommon.hidden = false;
   paintHomeFine();
   paint();
 }
@@ -996,16 +1270,22 @@ el("menuLocal").addEventListener("click", () => startGame("local"));
 el("menuAI").addEventListener("click", () => {
   homeMain.hidden = true;
   homeAI.hidden = false;
+  homeCommon.hidden = true;
 });
 el("aiBack").addEventListener("click", () => {
   homeAI.hidden = true;
   homeMain.hidden = false;
+  homeCommon.hidden = false;
 });
 homeAI.addEventListener("click", (e) => {
   const btn = e.target.closest("[data-level]");
   if (btn) startGame(btn.dataset.level);
 });
-el("menuNet").addEventListener("click", () => { homeOverlay.hidden = true; openNet(); });
+el("menuNet").addEventListener("click", () => {
+  if (window.__dantengHandoff?.("async", "net")) return;
+  homeOverlay.hidden = true;
+  openNet();
+});
 el("netBack").addEventListener("click", () => { netOverlay.hidden = true; homeOverlay.hidden = false; });
 el("netCreate").addEventListener("click", createRoom);
 el("netJoinBtn").addEventListener("click", () => { netMain.hidden = true; netJoin.hidden = false; roomInput.focus(); });
@@ -1032,8 +1312,8 @@ toHomeBtn.addEventListener("click", goHome);
 
 restartBtn.addEventListener("click", () => {
   if (S.state && S.state.plies > 0 && !window.confirm("当前对局还没结束，确定重新开始？")) return;
-  newGame(true);
   S.started = true;
+  newGame(true);
   ensureAILock();
   S.lastTs = performance.now();
 });
@@ -1108,8 +1388,8 @@ againBtn.addEventListener("click", () => {
     toast("已请求再来一局，等待对方同意");
     return;
   }
-  newGame(true);
   S.started = true;
+  newGame(true);
   ensureAILock();
   S.lastTs = performance.now();
 });
@@ -1132,6 +1412,7 @@ setInterval(() => {
   const dt = (now - S.lastTs) / 1000;
   S.lastTs = now;
   if (!S.state || !S.clocks || !S.started || S.gameOver || overlaysOpen() || document.hidden) return;
+  if (S.mode === "online") return;
   if (S.locked[activeSeat()]) return;
   if (dt <= 0) return;
   const r = tickClock(S.clocks, activeSeat(), Math.min(dt, 0.5));
@@ -1305,11 +1586,13 @@ function handleServerMessage(msg) {
       applyRound(msg);
       return;
     case "submitted":
-      setNetStatus(msg.seat === NET.seat ? "已提交，等待对方…" : "对方已提交，轮到你了");
+      setNetStatus(msg.seat === NET.seat ? "已提交，等待对方一起结算" : "对方已选定");
+      if (msg.seat === NET.seat) paint();
       return;
     case "clock":
       if (S.clocks) {
         clockRestore(S.clocks, { banks: msg.banks, moveLeft: msg.moveLeft, inBank: msg.inBank });
+        if (Array.isArray(msg.think)) S.think = msg.think.slice();
         paintClocks();
       }
       return;
@@ -1426,6 +1709,7 @@ function startOnlineGame(snap) {
   S.clocks = createClock({ perMove: snap.clocks.perMove, bank: snap.clocks.bank });
   clockRestore(S.clocks, { banks: snap.clocks.banks, moveLeft: snap.clocks.moveLeft, inBank: snap.clocks.inBank });
   S.mySeat = snap.sides[NET.seat];
+  S.think = Array.isArray(snap.clocks?.think) ? snap.clocks.think.slice() : null;
   S.locked = [null, null];
   S.inputSeat = S.mySeat;
   S.history = [{ state: S.state, clocks: clockSnapshot(S.clocks) }];
@@ -1437,11 +1721,14 @@ function startOnlineGame(snap) {
   overlay.hidden = true;
   boardWrap.hidden = false;
   paint();
-  toast("对局开始，双方同时行动");
+  const mine = snap.sides?.[NET.seat];
+  toast(mine === 0 ? "你执左，和对方同时行动" : mine === 1 ? "你执右，和对方同时行动" : "对局开始，双方同时行动");
 }
 
 function applyRound(msg) {
   if (!S.state) return;
+  const prev = S.state.players.map((p) => ({ c: p.c, r: p.r }));
+  cancelMotion();
   S.state = msg.state;
   S.locked = [null, null];
   S.preview = null;
@@ -1449,13 +1736,11 @@ function applyRound(msg) {
   S.history.push({ state: S.state, clocks: clockSnapshot(S.clocks), actions: msg.actions });
   S.lastTs = performance.now();
   if (msg.reason === "timeout") toast("超时，系统已代走");
-  if (S.state.winner !== null) {
-    S.gameOver = true;
-    paint();
-    setTimeout(showResult, 250);
-    return;
-  }
-  paint();
+  const exited = msg.events?.some((e) => e.type === "exit" && e.ok);
+  if (S.state.winner !== null) S.gameOver = true;
+  if (msg.events) settleRound(prev, msg.events, msg.actions, S.state);
+  else paint();
+  if (S.state.winner !== null) setTimeout(showResult, exited ? 640 : 420);
 }
 
 function endOnlineGame(msg) {
@@ -1777,4 +2062,15 @@ if (demo === "dice") {
   homeOverlay.hidden = true;
   S.started = false;
   startGame("local");
+}
+
+const pendingStart = sessionStorage.getItem("danteng.autostart");
+if (pendingStart && !demo) {
+  sessionStorage.removeItem("danteng.autostart");
+  if (pendingStart === "net") {
+    homeOverlay.hidden = true;
+    openNet();
+  } else {
+    startGame(pendingStart);
+  }
 }

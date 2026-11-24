@@ -45,6 +45,8 @@ export function createAsyncGame({ firstSide = 0, perMove = 30, bank = 300 } = {}
     clocks: createClock({ perMove, bank }),
     pending: [null, null],   // 本回合双方已提交的行动
     submitted: [false, false],
+    think: [perMove, perMove], // 双方各自的本步剩余时间，同时倒数
+    inBank: [false, false],
     startedAt: Date.now(),
   };
 }
@@ -78,6 +80,8 @@ export function resolveRoundIfReady(game) {
   game.state = res.state;
   game.pending = [null, null];
   game.submitted = [false, false];
+  game.think = [game.clocks.perMove, game.clocks.perMove];
+  game.inBank = [false, false];
   resetTurn(game.clocks);
   return {
     ok: true,
@@ -89,9 +93,24 @@ export function resolveRoundIfReady(game) {
 }
 
 export function tickGame(game, dt) {
-  if (game.state.winner !== null) return { timedOut: false };
-  const r = tickClock(game.clocks, 0, dt);
-  return { timedOut: r.timedOut };
+  if (game.state.winner !== null) return { timedOut: [] };
+  const timedOut = [];
+  for (let p = 0; p < 2; p++) {
+    if (game.submitted[p]) continue;
+    const view = {
+      moveLeft: game.think[p],
+      inBank: game.inBank[p],
+      banks: game.clocks.banks,
+      perMove: game.clocks.perMove,
+    };
+    const r = tickClock(view, p, dt);
+    game.think[p] = view.moveLeft;
+    game.inBank[p] = view.inBank;
+    if (r.timedOut) timedOut.push(p);
+  }
+  game.clocks.moveLeft = game.think[0];
+  game.clocks.inBank = game.inBank[0];
+  return { timedOut };
 }
 
 export function snapshot(game) {
@@ -105,6 +124,7 @@ export function snapshot(game) {
       banks: game.clocks.banks.slice(),
       moveLeft: game.clocks.moveLeft,
       inBank: game.clocks.inBank,
+      think: game.think.slice(),
     },
     plies: game.state.plies,
     hash: stateHash(game.state),
