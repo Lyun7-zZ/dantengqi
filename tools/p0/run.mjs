@@ -35,10 +35,13 @@ const routeWalls = Number(arg("route-walls", 3));
 const label = arg("label", "A0");
 const shard = Number(arg("shard", 0));
 const shards = Number(arg("shards", 1));
+const startId = Number(arg("start-id", 0));
+const endId = Number(arg("end-id", count - 1));
 const outDir = "_extract/p0";
 mkdirSync(outDir, { recursive: true });
 
 const sourceCommit = (() => { try { return execSync("git rev-parse HEAD", { encoding: "utf8" }).trim(); } catch { return "unknown"; } })();
+const dirtyTracked = (() => { try { return execSync("git status --porcelain --untracked-files=no", { encoding: "utf8" }).trim().length > 0; } catch { return true; } })();
 const dirty = (() => { try { return execSync("git status --porcelain", { encoding: "utf8" }).trim().length > 0; } catch { return true; } })();
 
 const hellCfg = createHellConfig({ timeMs: hellMs, routeWalls });
@@ -48,14 +51,15 @@ const gmCfg = {
   necessaryPathGuard: "soft", endgameDepth: 9,
 };
 
-const allOpenings = makeOpenings(count);
-const openings = allOpenings.filter((o) => o.id % shards === shard);
-const openingsText = allOpenings.map((o) => JSON.stringify(o)).join("\n") + "\n";
+const allOpenings = makeOpenings(Math.max(count, endId + 1));
+const rangeOpenings = allOpenings.filter((o) => o.id >= startId && o.id <= endId);
+const openings = rangeOpenings.filter((o) => o.id % shards === shard);
+const openingsText = rangeOpenings.map((o) => JSON.stringify(o)).join("\n") + "\n";
 const openingsHash = sha256(openingsText);
 writeFileSync(`${outDir}/openings.jsonl`, openingsText);
 writeFileSync(`${outDir}/01_config_snapshot_${label}.json`, JSON.stringify({
   label, shard, shards, hell: hellCfg, gm: gmCfg, hellHash: configHash(hellCfg),
-  openingsHash, openings: count, plyCap: PLY_CAP, sourceCommit, dirty,
+  openingsHash, openings: rangeOpenings.length, startId, endId, plyCap: PLY_CAP, sourceCommit, dirty, dirtyTracked,
 }, null, 1));
 
 const hell = createMasterAI(hellCfg);
@@ -104,6 +108,7 @@ for (const op of openings) {
       seed,
       sourceCommit,
       dirty,
+      dirtyTracked,
       configHash: configHash(hellCfg),
       openingsHash,
       hellMs,
