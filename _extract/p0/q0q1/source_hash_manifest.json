@@ -1,0 +1,9 @@
+﻿{
+    "src/hell-config.js":  "de2c68fae9b221cb024479bb8f064d8d94519f4ce810630975c86e25628084b9",
+    "tools/p0/lib.mjs":  "8c00b757f9589b2d185e4bc86d95c5a07d7aebe19c695b3ef5c436a1c0bf5d62",
+    "src/rules.js":  "b42e05dad8b9c2666f727be6fe7d1bf912343b80b90081524c07bf68061278a6",
+    "tools/p0/run.mjs":  "ae9324ba2e48c597e43a1ab1088b600e140df442913fa2a99e92935b6c97585f",
+    "src/ai.js":  "79bc716c1f5fcef6250794cee415ec92b1a7f4cf8b71020b8a9d30f19070851f",
+    "src/ai-master.js":  "771ff94ce0dd9d6b25c5abb038cde4872274837eb627e887cb4c6447b388faab",
+    "src/ai-worker.js":  "b320e6f5d7752d82f379f6cdffc59de7b22b604d382ad727ba556e0ba718dded"
+}
