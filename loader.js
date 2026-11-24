@@ -43,7 +43,7 @@ function applyMode(next) {
   if (aiSpan) aiSpan.textContent = copy.ai;
   const netSpan = document.querySelector("#menuNet span");
   if (netSpan) netSpan.textContent = copy.net;
-  for (const level of ["grandmaster", "hell"]) {
+  for (const level of ["grandmaster", "hell", "experiment"]) {
     const btn = document.querySelector(`#homeAI [data-level="${level}"]`);
     if (btn) btn.hidden = next === "async";
   }
