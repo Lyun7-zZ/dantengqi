@@ -1,0 +1,20 @@
+{
+ "commonPrefix": 67,
+ "state": {
+  "ply": 73,
+  "turn": 1,
+  "winner": 0,
+  "players": [
+   {
+    "c": 3,
+    "r": 0
+   },
+   {
+    "c": 1,
+    "r": 10
+   }
+  ]
+ },
+ "lenA0": 67,
+ "lenA1": 67
+}

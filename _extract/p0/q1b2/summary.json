@@ -1,0 +1,186 @@
+{
+ "cases": [
+  {
+   "key": "23-0",
+   "divIndex": 0,
+   "runs": 3,
+   "matches": 0,
+   "chosen": [
+    {
+     "type": "wall",
+     "kind": "top",
+     "c": 9,
+     "r": 0
+    },
+    {
+     "type": "wall",
+     "kind": "top",
+     "c": 9,
+     "r": 0
+    },
+    {
+     "type": "wall",
+     "kind": "top",
+     "c": 9,
+     "r": 0
+    }
+   ],
+   "recorded": {
+    "type": "move",
+    "dir": "up"
+   },
+   "depth": [
+    10,
+    10,
+    10
+   ],
+   "tTotal": [
+    27952.2068,
+    27954.753600000004,
+    27950.2849
+   ],
+   "elapsed": [
+    28,
+    28,
+    28
+   ]
+  },
+  {
+   "key": "22-1",
+   "divIndex": 3,
+   "runs": 3,
+   "matches": 0,
+   "chosen": [
+    {
+     "type": "move",
+     "dir": "up"
+    },
+    {
+     "type": "move",
+     "dir": "up"
+    },
+    {
+     "type": "move",
+     "dir": "up"
+    }
+   ],
+   "recorded": {
+    "type": "wall",
+    "kind": "top",
+    "c": 1,
+    "r": 0
+   },
+   "depth": [
+    11,
+    11,
+    11
+   ],
+   "tTotal": [
+    27954.316699999996,
+    27954.31170000002,
+    27954.6936
+   ],
+   "elapsed": [
+    57,
+    57,
+    57
+   ]
+  },
+  {
+   "key": "13-0",
+   "divIndex": 28,
+   "runs": 3,
+   "matches": 3,
+   "chosen": [
+    {
+     "type": "wall",
+     "kind": "v",
+     "c": 7,
+     "r": 5
+    },
+    {
+     "type": "wall",
+     "kind": "v",
+     "c": 7,
+     "r": 5
+    },
+    {
+     "type": "wall",
+     "kind": "v",
+     "c": 7,
+     "r": 5
+    }
+   ],
+   "recorded": {
+    "type": "wall",
+    "kind": "v",
+    "c": 7,
+    "r": 5
+   },
+   "depth": [
+    11,
+    11,
+    11
+   ],
+   "tTotal": [
+    27960.5125999999,
+    27960.264800000004,
+    27953.31880000001
+   ],
+   "elapsed": [
+    399,
+    400,
+    399
+   ]
+  },
+  {
+   "key": "20-0",
+   "divIndex": 60,
+   "runs": 1,
+   "matches": 1,
+   "chosen": [
+    {
+     "type": "wall",
+     "kind": "h",
+     "c": 6,
+     "r": 1
+    }
+   ],
+   "recorded": {
+    "type": "wall",
+    "kind": "h",
+    "c": 6,
+    "r": 1
+   },
+   "depth": [
+    12
+   ],
+   "tTotal": [
+    19945.67579999985
+   ],
+   "elapsed": [
+    519
+   ]
+  }
+ ],
+ "terminal18": {
+  "commonPrefix": 67,
+  "state": {
+   "ply": 73,
+   "turn": 1,
+   "winner": 0,
+   "players": [
+    {
+     "c": 3,
+     "r": 0
+    },
+    {
+     "c": 1,
+     "r": 10
+    }
+   ]
+  },
+  "lenA0": 67,
+  "lenA1": 67
+ }
+}
