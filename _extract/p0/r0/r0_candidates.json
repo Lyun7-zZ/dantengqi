@@ -1,0 +1,124 @@
+{
+ "candidates": [
+  {
+   "key": "37-1",
+   "role": "failure",
+   "openingId": 37,
+   "seat": 1,
+   "a1": "hell_loss",
+   "a0": "hell_loss",
+   "plies": 227,
+   "tMax": 27990,
+   "tAvg": 15003,
+   "cand": 1006,
+   "route": 329,
+   "sources": {
+    "search": 113
+   },
+   "transition": "hell_loss->hell_loss"
+  },
+  {
+   "key": "44-1",
+   "role": "failure",
+   "openingId": 44,
+   "seat": 1,
+   "a1": "hell_loss",
+   "a0": "hell_win",
+   "plies": 229,
+   "tMax": 27975,
+   "tAvg": 12261,
+   "cand": 1031,
+   "route": 274,
+   "sources": {
+    "search": 114
+   },
+   "transition": "hell_win->hell_loss"
+  },
+  {
+   "key": "31-0",
+   "role": "failure",
+   "openingId": 31,
+   "seat": 0,
+   "a1": "unfinished",
+   "a0": "draw",
+   "plies": 240,
+   "tMax": 27975,
+   "tAvg": 13953,
+   "cand": 1327,
+   "route": 493,
+   "sources": {
+    "search": 120
+   },
+   "transition": "draw->unfinished"
+  },
+  {
+   "key": "31-1",
+   "role": "failure",
+   "openingId": 31,
+   "seat": 1,
+   "a1": "hell_loss",
+   "a0": "draw",
+   "plies": 233,
+   "tMax": 27975,
+   "tAvg": 12565,
+   "cand": 1078,
+   "route": 274,
+   "sources": {
+    "search": 116
+   },
+   "transition": "draw->hell_loss"
+  },
+  {
+   "key": "28-0",
+   "role": "failure",
+   "openingId": 28,
+   "seat": 0,
+   "a1": "hell_loss",
+   "a0": "hell_loss",
+   "plies": 116,
+   "tMax": 27973,
+   "tAvg": 15961,
+   "cand": 730,
+   "route": 109,
+   "sources": {
+    "search": 58
+   },
+   "transition": "hell_loss->hell_loss"
+  },
+  {
+   "key": "44-0",
+   "role": "failure",
+   "openingId": 44,
+   "seat": 0,
+   "a1": "unfinished",
+   "a0": "draw",
+   "plies": 240,
+   "tMax": 27972,
+   "tAvg": 18144,
+   "cand": 1205,
+   "route": 351,
+   "sources": {
+    "search": 120
+   },
+   "transition": "draw->unfinished"
+  }
+ ],
+ "wins": [
+  {
+   "key": "28-1",
+   "role": "control",
+   "a0": "hell_win",
+   "a1": "hell_win",
+   "tMax": 27970,
+   "cand": 371
+  },
+  {
+   "key": "32-0",
+   "role": "control",
+   "a0": "hell_win",
+   "a1": "hell_win",
+   "tMax": 27970,
+   "cand": 575
+  }
+ ]
+}

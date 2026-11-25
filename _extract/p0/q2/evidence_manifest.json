@@ -1,0 +1,17 @@
+﻿{
+    "files":  {
+                  "src/hell-config.js":  "de2c68fae9b221cb024479bb8f064d8d94519f4ce810630975c86e25628084b9",
+                  "tools/p0/merge_q2.mjs":  "ed50cb89f2fa6bb3885fc6cf04f40218ed107bdf22052267098b5d3ce27976b5",
+                  "_extract/p0/q2/paired_results.tsv":  "078a905a26b0e785b193729c68255e4a7c391739c539154e5b82f157333b8743",
+                  "_extract/p0/q2/q2_summary.json":  "64c4be5550371c52ecafbaf5f0317430e52433a3ef8b8fb333bde793d8b5c13f",
+                  "src/rules.js":  "b42e05dad8b9c2666f727be6fe7d1bf912343b80b90081524c07bf68061278a6",
+                  "tools/p0/run.mjs":  "3a91dc26c7d8972c06fcd5339f616dc0c7e4a97f43dab9c649c6fbbadb154398",
+                  "src/ai.js":  "79bc716c1f5fcef6250794cee415ec92b1a7f4cf8b71020b8a9d30f19070851f",
+                  "_extract/p0/runs/q2/openings_25_54.jsonl":  "c7dd3f5c2b8c34e6f8ffb3f000b4638d64129563ea0a96a922eda86b122500d9",
+                  "src/ai-master.js":  "771ff94ce0dd9d6b25c5abb038cde4872274837eb627e887cb4c6447b388faab",
+                  "src/ai-worker.js":  "b320e6f5d7752d82f379f6cdffc59de7b22b604d382ad727ba556e0ba718dded",
+                  "_extract/p0/q2/games_raw.jsonl":  "7c62a046e82b1f7e99c06fbb945e353debb52c3fcbeaf398d4070c919698e508"
+              },
+    "node":  "v24.13.1",
+    "commit":  "7c84a4273bf1c072dca1a4252b506a2112ceb243"
+}

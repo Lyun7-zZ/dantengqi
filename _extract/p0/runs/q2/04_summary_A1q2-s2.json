@@ -1,0 +1,31 @@
+{
+ "total": 16,
+ "hell_win": 14,
+ "draw": 1,
+ "hell_loss": 1,
+ "unfinished": 0,
+ "completed": 16,
+ "completionRate": 1,
+ "winRate": 0.875,
+ "winRateCompleted": 0.875,
+ "drawRate": 0.0625,
+ "lossRate": 0.0625,
+ "score": 0.9063,
+ "reasons": {
+  "normal_terminal": 16
+ },
+ "seats": {
+  "0": {
+   "win": 7,
+   "draw": 1,
+   "loss": 0,
+   "unfinished": 0
+  },
+  "1": {
+   "win": 7,
+   "draw": 0,
+   "loss": 1,
+   "unfinished": 0
+  }
+ }
+}

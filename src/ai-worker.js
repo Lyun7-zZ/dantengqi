@@ -4,6 +4,7 @@
  */
 
 import { createMasterAI } from "./ai-master.js";
+import { createHellConfig } from "./hell-config.js";
 
 const CONFIG = {
   hard: { timeMs: 350, maxDepth: 4, usePlan: false },
@@ -17,12 +18,8 @@ const CONFIG = {
     planMoves: true, planFallback: true,
     necessaryPathGuard: "soft", endgameDepth: 9,
   },
-  hell: {
-    timeMs: 28000, maxDepth: 12, usePlan: true, routeWalls: 3, smartExit: true,
-    netWalls: true, avoidRepeat: true, repeatPenalty: 160,
-    planMoves: true, planFallback: true,
-    necessaryPathGuard: "soft", endgameDepth: 12,
-  },
+  hell: createHellConfig(),
+
 };
 
 let ai = null;

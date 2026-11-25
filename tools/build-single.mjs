@@ -43,6 +43,7 @@ const TURN = [
   "src/clock.js",
   "src/ai-random.js",
   "src/ai-master.js",
+  "src/hell-config.js",
   "src/ai-rl-weights.js",
   "src/ai-rl.js",
   "src/ai.js",
@@ -85,6 +86,7 @@ const WORKER = [
   "src/rules.js",
   "src/ai-random.js",
   "src/ai-master.js",
+  "src/hell-config.js",
   "src/ai-worker.js",
 ];
 

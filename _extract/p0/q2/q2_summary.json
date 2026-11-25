@@ -1,0 +1,219 @@
+{
+ "a0": {
+  "total": 60,
+  "hell_win": 38,
+  "draw": 4,
+  "hell_loss": 13,
+  "unfinished": 5,
+  "completed": 55,
+  "completionRate": 0.9167,
+  "winRate": 0.6333,
+  "winRateCompleted": 0.6909,
+  "drawRate": 0.0667,
+  "lossRate": 0.2167,
+  "score": 0.6667,
+  "reasons": {
+   "normal_terminal": 55,
+   "ply_cap": 5
+  },
+  "seats": {
+   "0": {
+    "win": 21,
+    "draw": 2,
+    "loss": 5,
+    "unfinished": 2
+   },
+   "1": {
+    "win": 17,
+    "draw": 2,
+    "loss": 8,
+    "unfinished": 3
+   }
+  }
+ },
+ "a1": {
+  "total": 60,
+  "hell_win": 42,
+  "draw": 4,
+  "hell_loss": 11,
+  "unfinished": 3,
+  "completed": 57,
+  "completionRate": 0.95,
+  "winRate": 0.7,
+  "winRateCompleted": 0.7368,
+  "drawRate": 0.0667,
+  "lossRate": 0.1833,
+  "score": 0.7333,
+  "reasons": {
+   "normal_terminal": 57,
+   "ply_cap": 3
+  },
+  "seats": {
+   "0": {
+    "win": 21,
+    "draw": 4,
+    "loss": 3,
+    "unfinished": 2
+   },
+   "1": {
+    "win": 21,
+    "draw": 0,
+    "loss": 8,
+    "unfinished": 1
+   }
+  }
+ },
+ "paired": {
+  "meanDelta": 0.06666666666666667,
+  "bootstrap95": [
+   -0.075,
+   0.20833333333333334
+  ],
+  "flips": [
+   {
+    "key": "31-0",
+    "a0": "draw",
+    "a1": "unfinished",
+    "d": -0.5
+   },
+   {
+    "key": "31-1",
+    "a0": "draw",
+    "a1": "hell_loss",
+    "d": -0.5
+   },
+   {
+    "key": "34-1",
+    "a0": "hell_loss",
+    "a1": "hell_win",
+    "d": 1
+   },
+   {
+    "key": "35-0",
+    "a0": "hell_win",
+    "a1": "draw",
+    "d": -0.5
+   },
+   {
+    "key": "36-1",
+    "a0": "hell_loss",
+    "a1": "hell_win",
+    "d": 1
+   },
+   {
+    "key": "38-0",
+    "a0": "hell_loss",
+    "a1": "hell_win",
+    "d": 1
+   },
+   {
+    "key": "40-0",
+    "a0": "hell_loss",
+    "a1": "hell_win",
+    "d": 1
+   },
+   {
+    "key": "41-0",
+    "a0": "unfinished",
+    "a1": "hell_win",
+    "d": 1
+   },
+   {
+    "key": "42-1",
+    "a0": "unfinished",
+    "a1": "hell_win",
+    "d": 1
+   },
+   {
+    "key": "43-1",
+    "a0": "hell_loss",
+    "a1": "hell_win",
+    "d": 1
+   },
+   {
+    "key": "44-0",
+    "a0": "draw",
+    "a1": "unfinished",
+    "d": -0.5
+   },
+   {
+    "key": "44-1",
+    "a0": "hell_win",
+    "a1": "hell_loss",
+    "d": -1
+   },
+   {
+    "key": "45-0",
+    "a0": "hell_win",
+    "a1": "draw",
+    "d": -0.5
+   },
+   {
+    "key": "46-0",
+    "a0": "hell_loss",
+    "a1": "hell_win",
+    "d": 1
+   },
+   {
+    "key": "46-1",
+    "a0": "hell_win",
+    "a1": "hell_loss",
+    "d": -1
+   },
+   {
+    "key": "47-1",
+    "a0": "hell_win",
+    "a1": "unfinished",
+    "d": -1
+   },
+   {
+    "key": "48-0",
+    "a0": "hell_win",
+    "a1": "draw",
+    "d": -0.5
+   },
+   {
+    "key": "49-1",
+    "a0": "unfinished",
+    "a1": "hell_win",
+    "d": 1
+   },
+   {
+    "key": "50-0",
+    "a0": "hell_loss",
+    "a1": "draw",
+    "d": 0.5
+   },
+   {
+    "key": "50-1",
+    "a0": "draw",
+    "a1": "hell_win",
+    "d": 0.5
+   },
+   {
+    "key": "51-0",
+    "a0": "hell_win",
+    "a1": "hell_loss",
+    "d": -1
+   },
+   {
+    "key": "52-1",
+    "a0": "unfinished",
+    "a1": "hell_win",
+    "d": 1
+   },
+   {
+    "key": "53-0",
+    "a0": "hell_win",
+    "a1": "hell_loss",
+    "d": -1
+   },
+   {
+    "key": "54-0",
+    "a0": "unfinished",
+    "a1": "hell_win",
+    "d": 1
+   }
+  ]
+ }
+}

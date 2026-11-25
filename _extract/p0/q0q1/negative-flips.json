@@ -1,0 +1,112 @@
+[
+ {
+  "id": 17,
+  "seat": 0,
+  "firstDiffIndex": 100,
+  "a0Action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 5,
+   "r": 3
+  },
+  "a1Action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 6,
+   "r": 1
+  },
+  "state": {
+   "ply": 106,
+   "turn": 0,
+   "players": [
+    {
+     "c": 5,
+     "r": 3
+    },
+    {
+     "c": 5,
+     "r": 5
+    }
+   ],
+   "dist": [
+    6,
+    8
+   ],
+   "exits": 1,
+   "wallsPlaced": 25
+  },
+  "candidates": 4
+ },
+ {
+  "id": 20,
+  "seat": 0,
+  "firstDiffIndex": 60,
+  "a0Action": {
+   "type": "move",
+   "dir": "right"
+  },
+  "a1Action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 6,
+   "r": 1
+  },
+  "state": {
+   "ply": 66,
+   "turn": 0,
+   "players": [
+    {
+     "c": 6,
+     "r": 11
+    },
+    {
+     "c": 6,
+     "r": 2
+    }
+   ],
+   "dist": [
+    20,
+    5
+   ],
+   "exits": 1,
+   "wallsPlaced": 30
+  },
+  "candidates": 4
+ },
+ {
+  "id": 23,
+  "seat": 0,
+  "firstDiffIndex": 0,
+  "a0Action": {
+   "type": "wall",
+   "kind": "top",
+   "c": 9,
+   "r": 0
+  },
+  "a1Action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "state": {
+   "ply": 6,
+   "turn": 0,
+   "players": [
+    {
+     "c": 0,
+     "r": 10
+    },
+    {
+     "c": 9,
+     "r": 10
+    }
+   ],
+   "dist": [
+    11,
+    11
+   ],
+   "exits": 10,
+   "wallsPlaced": 0
+  },
+  "candidates": 24
+ }
+]

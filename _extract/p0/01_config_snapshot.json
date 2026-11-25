@@ -1,0 +1,32 @@
+{
+ "label": "A0-s3",
+ "hell": {
+  "timeMs": 28000,
+  "maxDepth": 12,
+  "usePlan": true,
+  "netWalls": true,
+  "avoidRepeat": true,
+  "repeatPenalty": 160,
+  "planMoves": true,
+  "planFallback": true,
+  "necessaryPathGuard": "soft",
+  "endgameDepth": 12,
+  "routeWalls": 3,
+  "smartExit": true
+ },
+ "gm": {
+  "timeMs": 3000,
+  "maxDepth": 7,
+  "usePlan": true,
+  "netWalls": true,
+  "avoidRepeat": true,
+  "repeatPenalty": 160,
+  "planMoves": true,
+  "planFallback": true,
+  "necessaryPathGuard": "soft",
+  "endgameDepth": 9
+ },
+ "hellHash": "9b33f828",
+ "openings": 10,
+ "plyCap": 240
+}

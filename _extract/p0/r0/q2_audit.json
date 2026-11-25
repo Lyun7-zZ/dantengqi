@@ -1,0 +1,293 @@
+{
+ "counts": {
+  "a0": 60,
+  "a1": 60
+ },
+ "problems": [],
+ "transition": {
+  "hell_win": {
+   "hell_win": 30,
+   "draw": 3,
+   "hell_loss": 4,
+   "unfinished": 1
+  },
+  "draw": {
+   "hell_win": 1,
+   "draw": 0,
+   "hell_loss": 1,
+   "unfinished": 2
+  },
+  "hell_loss": {
+   "hell_win": 6,
+   "draw": 1,
+   "hell_loss": 6,
+   "unfinished": 0
+  },
+  "unfinished": {
+   "hell_win": 5,
+   "draw": 0,
+   "hell_loss": 0,
+   "unfinished": 0
+  }
+ },
+ "a0": {
+  "seat0": {
+   "n": 30,
+   "W": 21,
+   "D": 2,
+   "L": 5,
+   "U": 2
+  },
+  "seat1": {
+   "n": 30,
+   "W": 17,
+   "D": 2,
+   "L": 8,
+   "U": 3
+  }
+ },
+ "a1": {
+  "seat0": {
+   "n": 30,
+   "W": 21,
+   "D": 4,
+   "L": 3,
+   "U": 2
+  },
+  "seat1": {
+   "n": 30,
+   "W": 21,
+   "D": 0,
+   "L": 8,
+   "U": 1
+  }
+ },
+ "failures": [
+  {
+   "key": "37-1",
+   "openingId": 37,
+   "seat": 1,
+   "a1": "hell_loss",
+   "a0": "hell_loss",
+   "plies": 227,
+   "tMax": 27990,
+   "tAvg": 15003,
+   "cand": 1006,
+   "route": 329,
+   "sources": {
+    "search": 113
+   },
+   "transition": "hell_loss->hell_loss"
+  },
+  {
+   "key": "44-1",
+   "openingId": 44,
+   "seat": 1,
+   "a1": "hell_loss",
+   "a0": "hell_win",
+   "plies": 229,
+   "tMax": 27975,
+   "tAvg": 12261,
+   "cand": 1031,
+   "route": 274,
+   "sources": {
+    "search": 114
+   },
+   "transition": "hell_win->hell_loss"
+  },
+  {
+   "key": "31-0",
+   "openingId": 31,
+   "seat": 0,
+   "a1": "unfinished",
+   "a0": "draw",
+   "plies": 240,
+   "tMax": 27975,
+   "tAvg": 13953,
+   "cand": 1327,
+   "route": 493,
+   "sources": {
+    "search": 120
+   },
+   "transition": "draw->unfinished"
+  },
+  {
+   "key": "31-1",
+   "openingId": 31,
+   "seat": 1,
+   "a1": "hell_loss",
+   "a0": "draw",
+   "plies": 233,
+   "tMax": 27975,
+   "tAvg": 12565,
+   "cand": 1078,
+   "route": 274,
+   "sources": {
+    "search": 116
+   },
+   "transition": "draw->hell_loss"
+  },
+  {
+   "key": "28-0",
+   "openingId": 28,
+   "seat": 0,
+   "a1": "hell_loss",
+   "a0": "hell_loss",
+   "plies": 116,
+   "tMax": 27973,
+   "tAvg": 15961,
+   "cand": 730,
+   "route": 109,
+   "sources": {
+    "search": 58
+   },
+   "transition": "hell_loss->hell_loss"
+  },
+  {
+   "key": "44-0",
+   "openingId": 44,
+   "seat": 0,
+   "a1": "unfinished",
+   "a0": "draw",
+   "plies": 240,
+   "tMax": 27972,
+   "tAvg": 18144,
+   "cand": 1205,
+   "route": 351,
+   "sources": {
+    "search": 120
+   },
+   "transition": "draw->unfinished"
+  },
+  {
+   "key": "25-1",
+   "openingId": 25,
+   "seat": 1,
+   "a1": "hell_loss",
+   "a0": "hell_loss",
+   "plies": 49,
+   "tMax": 27971,
+   "tAvg": 25350,
+   "cand": 266,
+   "route": 60,
+   "sources": {
+    "search": 24
+   },
+   "transition": "hell_loss->hell_loss"
+  },
+  {
+   "key": "33-1",
+   "openingId": 33,
+   "seat": 1,
+   "a1": "hell_loss",
+   "a0": "hell_loss",
+   "plies": 199,
+   "tMax": 27971,
+   "tAvg": 16630,
+   "cand": 961,
+   "route": 231,
+   "sources": {
+    "search": 99
+   },
+   "transition": "hell_loss->hell_loss"
+  },
+  {
+   "key": "46-1",
+   "openingId": 46,
+   "seat": 1,
+   "a1": "hell_loss",
+   "a0": "hell_win",
+   "plies": 115,
+   "tMax": 27971,
+   "tAvg": 24746,
+   "cand": 521,
+   "route": 119,
+   "sources": {
+    "search": 57
+   },
+   "transition": "hell_win->hell_loss"
+  },
+  {
+   "key": "41-1",
+   "openingId": 41,
+   "seat": 1,
+   "a1": "hell_loss",
+   "a0": "hell_loss",
+   "plies": 195,
+   "tMax": 27970,
+   "tAvg": 16419,
+   "cand": 913,
+   "route": 231,
+   "sources": {
+    "search": 97
+   },
+   "transition": "hell_loss->hell_loss"
+  },
+  {
+   "key": "51-0",
+   "openingId": 51,
+   "seat": 0,
+   "a1": "hell_loss",
+   "a0": "hell_win",
+   "plies": 210,
+   "tMax": 27970,
+   "tAvg": 16044,
+   "cand": 1058,
+   "route": 280,
+   "sources": {
+    "search": 105
+   },
+   "transition": "hell_win->hell_loss"
+  },
+  {
+   "key": "51-1",
+   "openingId": 51,
+   "seat": 1,
+   "a1": "hell_loss",
+   "a0": "hell_loss",
+   "plies": 195,
+   "tMax": 27970,
+   "tAvg": 16654,
+   "cand": 788,
+   "route": 195,
+   "sources": {
+    "search": 94,
+    "plan-new": 1,
+    "plan": 2
+   },
+   "transition": "hell_loss->hell_loss"
+  },
+  {
+   "key": "53-0",
+   "openingId": 53,
+   "seat": 0,
+   "a1": "hell_loss",
+   "a0": "hell_win",
+   "plies": 164,
+   "tMax": 27969,
+   "tAvg": 22667,
+   "cand": 818,
+   "route": 208,
+   "sources": {
+    "search": 82
+   },
+   "transition": "hell_win->hell_loss"
+  },
+  {
+   "key": "47-1",
+   "openingId": 47,
+   "seat": 1,
+   "a1": "unfinished",
+   "a0": "hell_win",
+   "plies": 240,
+   "tMax": 27966,
+   "tAvg": 9186,
+   "cand": 881,
+   "route": 72,
+   "sources": {
+    "search": 120
+   },
+   "transition": "hell_win->unfinished"
+  }
+ ]
+}

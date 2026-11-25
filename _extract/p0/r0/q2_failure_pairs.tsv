@@ -1,0 +1,15 @@
+openingId	seat	A0	A1	A1_plies	A1_tMax	A1_cand	A1_route
+37	1	hell_loss	hell_loss	227	27990	1006	329
+44	1	hell_win	hell_loss	229	27975	1031	274
+31	0	draw	unfinished	240	27975	1327	493
+31	1	draw	hell_loss	233	27975	1078	274
+28	0	hell_loss	hell_loss	116	27973	730	109
+44	0	draw	unfinished	240	27972	1205	351
+25	1	hell_loss	hell_loss	49	27971	266	60
+33	1	hell_loss	hell_loss	199	27971	961	231
+46	1	hell_win	hell_loss	115	27971	521	119
+41	1	hell_loss	hell_loss	195	27970	913	231
+51	0	hell_win	hell_loss	210	27970	1058	280
+51	1	hell_loss	hell_loss	195	27970	788	195
+53	0	hell_win	hell_loss	164	27969	818	208
+47	1	hell_win	unfinished	240	27966	881	72

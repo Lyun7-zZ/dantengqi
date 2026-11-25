@@ -1,0 +1,730 @@
+[
+ {
+  "key": "20-0",
+  "result": "hell_loss",
+  "divergenceIndex": 60,
+  "gameA0": {
+   "type": "move",
+   "dir": "right"
+  },
+  "gameA1": {
+   "type": "wall",
+   "kind": "h",
+   "c": 6,
+   "r": 1
+  },
+  "a0Actions": [
+   {
+    "type": "move",
+    "dir": "right"
+   },
+   {
+    "type": "move",
+    "dir": "right"
+   },
+   {
+    "type": "move",
+    "dir": "right"
+   }
+  ],
+  "a1Actions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 6,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 6,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 6,
+    "r": 1
+   }
+  ],
+  "a0Sources": [
+   "search",
+   "search",
+   "search"
+  ],
+  "a1Sources": [
+   "search",
+   "search",
+   "search"
+  ],
+  "fixedA0": {
+   "type": "wall",
+   "kind": "v",
+   "c": 5,
+   "r": 0
+  },
+  "fixedA1": {
+   "type": "wall",
+   "kind": "v",
+   "c": 5,
+   "r": 1
+  }
+ },
+ {
+  "key": "13-0",
+  "result": "hell_loss",
+  "divergenceIndex": 28,
+  "gameA0": {
+   "type": "wall",
+   "kind": "h",
+   "c": 6,
+   "r": 0
+  },
+  "gameA1": {
+   "type": "wall",
+   "kind": "v",
+   "c": 7,
+   "r": 5
+  },
+  "a0Actions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 6,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 6,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 6,
+    "r": 0
+   }
+  ],
+  "a1Actions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 7,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 7,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 7,
+    "r": 5
+   }
+  ],
+  "a0Sources": [
+   "search",
+   "search",
+   "search"
+  ],
+  "a1Sources": [
+   "search",
+   "search",
+   "search"
+  ],
+  "fixedA0": {
+   "type": "wall",
+   "kind": "top",
+   "c": 5,
+   "r": 0
+  },
+  "fixedA1": {
+   "type": "wall",
+   "kind": "top",
+   "c": 5,
+   "r": 0
+  }
+ },
+ {
+  "key": "17-0",
+  "result": "unfinished",
+  "divergenceIndex": 100,
+  "gameA0": {
+   "type": "wall",
+   "kind": "h",
+   "c": 5,
+   "r": 3
+  },
+  "gameA1": {
+   "type": "wall",
+   "kind": "h",
+   "c": 6,
+   "r": 1
+  },
+  "a0Actions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 3
+   }
+  ],
+  "a1Actions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 6,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 6,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 6,
+    "r": 1
+   }
+  ],
+  "a0Sources": [
+   "search",
+   "search",
+   "search"
+  ],
+  "a1Sources": [
+   "search",
+   "search",
+   "search"
+  ],
+  "fixedA0": {
+   "type": "move",
+   "dir": "up"
+  },
+  "fixedA1": {
+   "type": "move",
+   "dir": "up"
+  }
+ },
+ {
+  "key": "18-1",
+  "result": "hell_loss",
+  "divergenceIndex": 67,
+  "a0Actions": [
+   {
+    "type": "move",
+    "dir": "up"
+   },
+   {
+    "type": "move",
+    "dir": "up"
+   },
+   {
+    "type": "move",
+    "dir": "up"
+   }
+  ],
+  "a1Actions": [
+   {
+    "type": "move",
+    "dir": "up"
+   },
+   {
+    "type": "move",
+    "dir": "up"
+   },
+   {
+    "type": "move",
+    "dir": "up"
+   }
+  ],
+  "a0Sources": [
+   "search",
+   "search",
+   "search"
+  ],
+  "a1Sources": [
+   "search",
+   "search",
+   "search"
+  ],
+  "fixedA0": {
+   "type": "move",
+   "dir": "up"
+  },
+  "fixedA1": {
+   "type": "move",
+   "dir": "up"
+  }
+ },
+ {
+  "key": "22-1",
+  "result": "hell_loss",
+  "divergenceIndex": 3,
+  "gameA0": {
+   "type": "move",
+   "dir": "up"
+  },
+  "gameA1": {
+   "type": "wall",
+   "kind": "top",
+   "c": 1,
+   "r": 0
+  },
+  "a0Actions": [
+   {
+    "type": "move",
+    "dir": "up"
+   },
+   {
+    "type": "move",
+    "dir": "up"
+   },
+   {
+    "type": "move",
+    "dir": "up"
+   }
+  ],
+  "a1Actions": [
+   {
+    "type": "move",
+    "dir": "up"
+   },
+   {
+    "type": "move",
+    "dir": "up"
+   },
+   {
+    "type": "move",
+    "dir": "up"
+   }
+  ],
+  "a0Sources": [
+   "search",
+   "search",
+   "search"
+  ],
+  "a1Sources": [
+   "search",
+   "search",
+   "search"
+  ],
+  "fixedA0": {
+   "type": "wall",
+   "kind": "top",
+   "c": 6,
+   "r": 0
+  },
+  "fixedA1": {
+   "type": "wall",
+   "kind": "top",
+   "c": 6,
+   "r": 0
+  }
+ },
+ {
+  "key": "23-0",
+  "result": "hell_loss",
+  "divergenceIndex": 0,
+  "gameA0": {
+   "type": "wall",
+   "kind": "top",
+   "c": 9,
+   "r": 0
+  },
+  "gameA1": {
+   "type": "move",
+   "dir": "up"
+  },
+  "a0Actions": [
+   {
+    "type": "wall",
+    "kind": "top",
+    "c": 9,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "top",
+    "c": 9,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "top",
+    "c": 9,
+    "r": 0
+   }
+  ],
+  "a1Actions": [
+   {
+    "type": "wall",
+    "kind": "top",
+    "c": 9,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "top",
+    "c": 9,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "top",
+    "c": 9,
+    "r": 0
+   }
+  ],
+  "a0Sources": [
+   "search",
+   "search",
+   "search"
+  ],
+  "a1Sources": [
+   "search",
+   "search",
+   "search"
+  ],
+  "fixedA0": {
+   "type": "move",
+   "dir": "up"
+  },
+  "fixedA1": {
+   "type": "move",
+   "dir": "up"
+  }
+ },
+ {
+  "key": "11-1",
+  "result": "hell_win",
+  "divergenceIndex": 5,
+  "gameA0": {
+   "type": "wall",
+   "kind": "top",
+   "c": 7,
+   "r": 0
+  },
+  "gameA1": {
+   "type": "move",
+   "dir": "up"
+  },
+  "a0Actions": [
+   {
+    "type": "wall",
+    "kind": "top",
+    "c": 7,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "top",
+    "c": 7,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "top",
+    "c": 7,
+    "r": 0
+   }
+  ],
+  "a1Actions": [
+   {
+    "type": "wall",
+    "kind": "top",
+    "c": 7,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "top",
+    "c": 7,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "top",
+    "c": 7,
+    "r": 0
+   }
+  ],
+  "a0Sources": [
+   "search",
+   "search",
+   "search"
+  ],
+  "a1Sources": [
+   "search",
+   "search",
+   "search"
+  ],
+  "fixedA0": {
+   "type": "wall",
+   "kind": "top",
+   "c": 7,
+   "r": 0
+  },
+  "fixedA1": {
+   "type": "wall",
+   "kind": "top",
+   "c": 7,
+   "r": 0
+  }
+ },
+ {
+  "key": "12-1",
+  "result": "hell_win",
+  "divergenceIndex": 31,
+  "gameA0": {
+   "type": "wall",
+   "kind": "v",
+   "c": 1,
+   "r": 9
+  },
+  "gameA1": {
+   "type": "wall",
+   "kind": "h",
+   "c": 0,
+   "r": 8
+  },
+  "a0Actions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 9
+   }
+  ],
+  "a1Actions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 8
+   }
+  ],
+  "a0Sources": [
+   "search",
+   "search",
+   "search"
+  ],
+  "a1Sources": [
+   "search",
+   "search",
+   "search"
+  ],
+  "fixedA0": {
+   "type": "wall",
+   "kind": "top",
+   "c": 3,
+   "r": 0
+  },
+  "fixedA1": {
+   "type": "wall",
+   "kind": "top",
+   "c": 3,
+   "r": 0
+  }
+ },
+ {
+  "key": "14-0",
+  "result": "hell_win",
+  "divergenceIndex": 64,
+  "gameA0": {
+   "type": "wall",
+   "kind": "top",
+   "c": 5,
+   "r": 0
+  },
+  "gameA1": {
+   "type": "wall",
+   "kind": "h",
+   "c": 5,
+   "r": 10
+  },
+  "a0Actions": [
+   {
+    "type": "wall",
+    "kind": "top",
+    "c": 5,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "top",
+    "c": 5,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "top",
+    "c": 5,
+    "r": 0
+   }
+  ],
+  "a1Actions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 10
+   }
+  ],
+  "a0Sources": [
+   "search",
+   "search",
+   "search"
+  ],
+  "a1Sources": [
+   "search",
+   "search",
+   "search"
+  ],
+  "fixedA0": {
+   "type": "wall",
+   "kind": "top",
+   "c": 5,
+   "r": 0
+  },
+  "fixedA1": {
+   "type": "wall",
+   "kind": "top",
+   "c": 5,
+   "r": 0
+  }
+ },
+ {
+  "key": "21-0",
+  "result": "hell_win",
+  "divergenceIndex": 64,
+  "gameA0": {
+   "type": "wall",
+   "kind": "top",
+   "c": 5,
+   "r": 0
+  },
+  "gameA1": {
+   "type": "wall",
+   "kind": "h",
+   "c": 5,
+   "r": 10
+  },
+  "a0Actions": [
+   {
+    "type": "wall",
+    "kind": "top",
+    "c": 5,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "top",
+    "c": 5,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "top",
+    "c": 5,
+    "r": 0
+   }
+  ],
+  "a1Actions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 10
+   }
+  ],
+  "a0Sources": [
+   "search",
+   "search",
+   "search"
+  ],
+  "a1Sources": [
+   "search",
+   "search",
+   "search"
+  ],
+  "fixedA0": {
+   "type": "wall",
+   "kind": "top",
+   "c": 5,
+   "r": 0
+  },
+  "fixedA1": {
+   "type": "wall",
+   "kind": "top",
+   "c": 5,
+   "r": 0
+  }
+ }
+]
