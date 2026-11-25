@@ -65,13 +65,20 @@ await sleep(1500);
 const evalJs = async (expr) => (await send("Runtime.evaluate", { expression: expr, awaitPromise: true })).result?.result?.value;
 
 // 开局：本地对战，走一步
-await evalJs("document.getElementById('menuLocal').click()");
-await sleep(400);
-if (!process.argv.includes("--nomove")) {
-  await evalJs("document.querySelector('.cell[data-c=\"0\"][data-r=\"10\"]').click()");
-  await sleep(150);
-  await evalJs("document.getElementById('confirm').click()");
-  await sleep(900);
+if (process.argv.includes("--home")) {
+  // 只截主菜单
+} else if (process.argv.includes("--levels")) {
+  await evalJs("document.getElementById('menuAI').click()");
+  await sleep(600);
+} else {
+  await evalJs("document.getElementById('menuLocal').click()");
+  await sleep(400);
+  if (!process.argv.includes("--nomove")) {
+    await evalJs("document.querySelector('.cell[data-c=\"0\"][data-r=\"10\"]').click()");
+    await sleep(150);
+    await evalJs("document.getElementById('confirm').click()");
+    await sleep(900);
+  }
 }
 
 if (process.argv.includes("--ai") || process.argv.includes("--probe")) {
