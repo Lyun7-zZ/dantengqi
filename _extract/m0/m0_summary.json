@@ -1,0 +1,122 @@
+{
+ "G0": {
+  "total": 40,
+  "hell_win": 15,
+  "draw": 7,
+  "hell_loss": 16,
+  "unfinished": 2,
+  "completed": 38,
+  "completionRate": 0.95,
+  "winRate": 0.375,
+  "winRateCompleted": 0.3947,
+  "drawRate": 0.175,
+  "lossRate": 0.4,
+  "score": 0.4625,
+  "reasons": {
+   "normal_terminal": 38,
+   "ply_cap": 2
+  },
+  "seats": {
+   "0": {
+    "win": 3,
+    "draw": 3,
+    "loss": 13,
+    "unfinished": 1
+   },
+   "1": {
+    "win": 12,
+    "draw": 4,
+    "loss": 3,
+    "unfinished": 1
+   }
+  },
+  "timing": {
+   "tAvg": 403,
+   "tMax": 2962,
+   "depthAvg": 6.7,
+   "candAvg": 10.7,
+   "timeouts": 0
+  }
+ },
+ "H0": {
+  "total": 40,
+  "hell_win": 21,
+  "draw": 2,
+  "hell_loss": 9,
+  "unfinished": 8,
+  "completed": 32,
+  "completionRate": 0.8,
+  "winRate": 0.525,
+  "winRateCompleted": 0.6563,
+  "drawRate": 0.05,
+  "lossRate": 0.225,
+  "score": 0.55,
+  "reasons": {
+   "normal_terminal": 32,
+   "ply_cap": 8
+  },
+  "seats": {
+   "0": {
+    "win": 11,
+    "draw": 2,
+    "loss": 4,
+    "unfinished": 3
+   },
+   "1": {
+    "win": 10,
+    "draw": 0,
+    "loss": 5,
+    "unfinished": 5
+   }
+  },
+  "timing": {
+   "tAvg": 2432,
+   "tMax": 3013,
+   "depthAvg": 8.95,
+   "candAvg": 9.2,
+   "timeouts": 1
+  }
+ },
+ "H1": {
+  "total": 40,
+  "hell_win": 21,
+  "draw": 1,
+  "hell_loss": 11,
+  "unfinished": 7,
+  "completed": 33,
+  "completionRate": 0.825,
+  "winRate": 0.525,
+  "winRateCompleted": 0.6364,
+  "drawRate": 0.025,
+  "lossRate": 0.275,
+  "score": 0.5375,
+  "reasons": {
+   "normal_terminal": 33,
+   "ply_cap": 7
+  },
+  "seats": {
+   "0": {
+    "win": 9,
+    "draw": 1,
+    "loss": 5,
+    "unfinished": 5
+   },
+   "1": {
+    "win": 12,
+    "draw": 0,
+    "loss": 6,
+    "unfinished": 2
+   }
+  },
+  "timing": {
+   "tAvg": 2521,
+   "tMax": 2985,
+   "depthAvg": 8.97,
+   "candAvg": 10.5,
+   "timeouts": 0
+  }
+ },
+ "H0-G0": 0.087,
+ "H1-G0": 0.075,
+ "H1-H0": -0.013
+}

@@ -1,0 +1,11 @@
+﻿{
+    "node":  "v24.13.1",
+    "sourceCommit":  "99254b137c10bdc004b0746a60113b286030d1ba",
+    "files":  {
+                  "src/ai-master.js":  "1f3754a66f58c94646628cccbc40d47de0d42d61973e0d6bc6c448e398a5a424",
+                  "_extract/m0/runs/m0/openings_55_74.jsonl":  "b18963f87975ab681423d9bed0169b96b06f1ec1d2f26597bce8fee9037468c2",
+                  "_extract/m0/m0_summary.json":  "09d24905e5dd4595a93244b006ed59b04eae065aab20001d330eecc6139cb1bf",
+                  "src/hell-config.js":  "2ada305ea149aa577911ebbdfa84f62b67ffa8b25de6bb289e6559990ef3d505",
+                  "_extract/m0/games_raw.jsonl":  "b04a97dfbdd854d4687d15145af0a968b92cf9f45c615890b1bee870095ad481"
+              }
+}
