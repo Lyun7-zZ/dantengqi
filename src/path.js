@@ -7,6 +7,7 @@
 
 import { COLS, ROWS, V_COUNT, H_COUNT } from "./board.js";
 import { M, now } from "./metrics.js";
+import { PC, hashWalls, cacheGet, cacheSet } from "./path-cache.js";
 
 const SIZE = COLS * ROWS;
 const key = (c, r) => r * COLS + c;
@@ -144,19 +145,51 @@ export function shortestPathWalls(state, c0, r0) {
 
 
 export function distanceToGoal(state, c0, r0) {
-  if (!M.on) return distanceToGoalImpl(state, c0, r0);
-  const t = now();
-  M.pathCalls++;
-  const out = distanceToGoalImpl(state, c0, r0);
-  M.pathMs += now() - t;
+  const tracing = M.on;
+  if (!PC.on && !tracing) return distanceToGoalImpl(state, c0, r0);
+  const t = tracing ? now() : 0;
+  if (tracing) M.pathCalls++;
+  let out;
+  if (PC.on) {
+    const h = hashWalls(state);
+    const pk = (c0 * 12 + r0) * 2;
+    const hit = cacheGet(h, pk);
+    if (hit !== undefined) {
+      PC.hits++;
+      out = hit;
+    } else {
+      PC.misses++;
+      out = distanceToGoalImpl(state, c0, r0);
+      cacheSet(h, pk, out);
+    }
+  } else {
+    out = distanceToGoalImpl(state, c0, r0);
+  }
+  if (tracing) M.pathMs += now() - t;
   return out;
 }
 
 export function hasPath(state, c, r) {
-  if (!M.on) return hasPathImpl(state, c, r);
-  const t = now();
-  M.pathCalls++;
-  const out = hasPathImpl(state, c, r);
-  M.pathMs += now() - t;
+  const tracing = M.on;
+  if (!PC.on && !tracing) return hasPathImpl(state, c, r);
+  const t = tracing ? now() : 0;
+  if (tracing) M.pathCalls++;
+  let out;
+  if (PC.on) {
+    const h = hashWalls(state);
+    const pk = (c * 12 + r) * 2 + 1;
+    const hit = cacheGet(h, pk);
+    if (hit !== undefined) {
+      PC.hits++;
+      out = hit;
+    } else {
+      PC.misses++;
+      out = hasPathImpl(state, c, r);
+      cacheSet(h, pk, out);
+    }
+  } else {
+    out = hasPathImpl(state, c, r);
+  }
+  if (tracing) M.pathMs += now() - t;
   return out;
 }

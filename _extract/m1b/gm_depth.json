@@ -1,0 +1,494 @@
+[
+ {
+  "state": "early-55",
+  "depthLimit": 7,
+  "rep": 0,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 9,
+   "r": 9
+  },
+  "tTotal": 1289,
+  "depth": 7,
+  "nodes": 38088
+ },
+ {
+  "state": "early-55",
+  "depthLimit": 7,
+  "rep": 1,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 9,
+   "r": 9
+  },
+  "tTotal": 1300,
+  "depth": 7,
+  "nodes": 38088
+ },
+ {
+  "state": "early-55",
+  "depthLimit": 7,
+  "rep": 2,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 9,
+   "r": 9
+  },
+  "tTotal": 1286,
+  "depth": 7,
+  "nodes": 38088
+ },
+ {
+  "state": "early-55",
+  "depthLimit": 9,
+  "rep": 0,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 9,
+   "r": 9
+  },
+  "tTotal": 2865,
+  "depth": 7,
+  "nodes": 38088
+ },
+ {
+  "state": "early-55",
+  "depthLimit": 9,
+  "rep": 1,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 9,
+   "r": 9
+  },
+  "tTotal": 2854,
+  "depth": 7,
+  "nodes": 38088
+ },
+ {
+  "state": "early-55",
+  "depthLimit": 9,
+  "rep": 2,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 9,
+   "r": 9
+  },
+  "tTotal": 2856,
+  "depth": 7,
+  "nodes": 38088
+ },
+ {
+  "state": "early-65",
+  "depthLimit": 7,
+  "rep": 0,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 8,
+   "r": 8
+  },
+  "tTotal": 854,
+  "depth": 7,
+  "nodes": 23031
+ },
+ {
+  "state": "early-65",
+  "depthLimit": 7,
+  "rep": 1,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 8,
+   "r": 8
+  },
+  "tTotal": 841,
+  "depth": 7,
+  "nodes": 23031
+ },
+ {
+  "state": "early-65",
+  "depthLimit": 7,
+  "rep": 2,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 8,
+   "r": 8
+  },
+  "tTotal": 843,
+  "depth": 7,
+  "nodes": 23031
+ },
+ {
+  "state": "early-65",
+  "depthLimit": 9,
+  "rep": 0,
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "tTotal": 2851,
+  "depth": 8,
+  "nodes": 64732
+ },
+ {
+  "state": "early-65",
+  "depthLimit": 9,
+  "rep": 1,
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "tTotal": 2850,
+  "depth": 8,
+  "nodes": 64732
+ },
+ {
+  "state": "early-65",
+  "depthLimit": 9,
+  "rep": 2,
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "tTotal": 2857,
+  "depth": 8,
+  "nodes": 64732
+ },
+ {
+  "state": "mid-56",
+  "depthLimit": 7,
+  "rep": 0,
+  "action": {
+   "type": "wall",
+   "kind": "top",
+   "c": 5,
+   "r": 0
+  },
+  "tTotal": 125,
+  "depth": 7,
+  "nodes": 3559
+ },
+ {
+  "state": "mid-56",
+  "depthLimit": 7,
+  "rep": 1,
+  "action": {
+   "type": "wall",
+   "kind": "top",
+   "c": 5,
+   "r": 0
+  },
+  "tTotal": 134,
+  "depth": 7,
+  "nodes": 3559
+ },
+ {
+  "state": "mid-56",
+  "depthLimit": 7,
+  "rep": 2,
+  "action": {
+   "type": "wall",
+   "kind": "top",
+   "c": 5,
+   "r": 0
+  },
+  "tTotal": 133,
+  "depth": 7,
+  "nodes": 3559
+ },
+ {
+  "state": "mid-56",
+  "depthLimit": 9,
+  "rep": 0,
+  "action": {
+   "type": "wall",
+   "kind": "top",
+   "c": 5,
+   "r": 0
+  },
+  "tTotal": 940,
+  "depth": 9,
+  "nodes": 25388
+ },
+ {
+  "state": "mid-56",
+  "depthLimit": 9,
+  "rep": 1,
+  "action": {
+   "type": "wall",
+   "kind": "top",
+   "c": 5,
+   "r": 0
+  },
+  "tTotal": 916,
+  "depth": 9,
+  "nodes": 25388
+ },
+ {
+  "state": "mid-56",
+  "depthLimit": 9,
+  "rep": 2,
+  "action": {
+   "type": "wall",
+   "kind": "top",
+   "c": 5,
+   "r": 0
+  },
+  "tTotal": 931,
+  "depth": 9,
+  "nodes": 25388
+ },
+ {
+  "state": "mid-61",
+  "depthLimit": 7,
+  "rep": 0,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 9,
+   "r": 8
+  },
+  "tTotal": 657,
+  "depth": 7,
+  "nodes": 23647
+ },
+ {
+  "state": "mid-61",
+  "depthLimit": 7,
+  "rep": 1,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 9,
+   "r": 8
+  },
+  "tTotal": 671,
+  "depth": 7,
+  "nodes": 23647
+ },
+ {
+  "state": "mid-61",
+  "depthLimit": 7,
+  "rep": 2,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 9,
+   "r": 8
+  },
+  "tTotal": 673,
+  "depth": 7,
+  "nodes": 23647
+ },
+ {
+  "state": "mid-61",
+  "depthLimit": 9,
+  "rep": 0,
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "tTotal": 2851,
+  "depth": 8,
+  "nodes": 52798
+ },
+ {
+  "state": "mid-61",
+  "depthLimit": 9,
+  "rep": 1,
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "tTotal": 2854,
+  "depth": 8,
+  "nodes": 52798
+ },
+ {
+  "state": "mid-61",
+  "depthLimit": 9,
+  "rep": 2,
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "tTotal": 2854,
+  "depth": 8,
+  "nodes": 52798
+ },
+ {
+  "state": "end-70",
+  "depthLimit": 7,
+  "rep": 0,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 5,
+   "r": 5
+  },
+  "tTotal": 1013,
+  "depth": 7,
+  "nodes": 24480
+ },
+ {
+  "state": "end-70",
+  "depthLimit": 7,
+  "rep": 1,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 5,
+   "r": 5
+  },
+  "tTotal": 1009,
+  "depth": 7,
+  "nodes": 24480
+ },
+ {
+  "state": "end-70",
+  "depthLimit": 7,
+  "rep": 2,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 5,
+   "r": 5
+  },
+  "tTotal": 1016,
+  "depth": 7,
+  "nodes": 24480
+ },
+ {
+  "state": "end-70",
+  "depthLimit": 9,
+  "rep": 0,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 5,
+   "r": 5
+  },
+  "tTotal": 2851,
+  "depth": 8,
+  "nodes": 38684
+ },
+ {
+  "state": "end-70",
+  "depthLimit": 9,
+  "rep": 1,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 5,
+   "r": 5
+  },
+  "tTotal": 2854,
+  "depth": 8,
+  "nodes": 38684
+ },
+ {
+  "state": "end-70",
+  "depthLimit": 9,
+  "rep": 2,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 5,
+   "r": 5
+  },
+  "tTotal": 2858,
+  "depth": 8,
+  "nodes": 38684
+ },
+ {
+  "state": "end-71",
+  "depthLimit": 7,
+  "rep": 0,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 8,
+   "r": 9
+  },
+  "tTotal": 486,
+  "depth": 7,
+  "nodes": 9924
+ },
+ {
+  "state": "end-71",
+  "depthLimit": 7,
+  "rep": 1,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 8,
+   "r": 9
+  },
+  "tTotal": 484,
+  "depth": 7,
+  "nodes": 9924
+ },
+ {
+  "state": "end-71",
+  "depthLimit": 7,
+  "rep": 2,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 8,
+   "r": 9
+  },
+  "tTotal": 480,
+  "depth": 7,
+  "nodes": 9924
+ },
+ {
+  "state": "end-71",
+  "depthLimit": 9,
+  "rep": 0,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 8,
+   "r": 9
+  },
+  "tTotal": 2857,
+  "depth": 8,
+  "nodes": 20879
+ },
+ {
+  "state": "end-71",
+  "depthLimit": 9,
+  "rep": 1,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 8,
+   "r": 9
+  },
+  "tTotal": 2850,
+  "depth": 8,
+  "nodes": 20879
+ },
+ {
+  "state": "end-71",
+  "depthLimit": 9,
+  "rep": 2,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 8,
+   "r": 9
+  },
+  "tTotal": 2863,
+  "depth": 8,
+  "nodes": 20879
+ }
+]

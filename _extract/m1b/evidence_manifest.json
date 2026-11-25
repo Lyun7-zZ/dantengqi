@@ -1,0 +1,17 @@
+﻿{
+    "node":  "v24.13.1",
+    "sourceCommit":  "03f6f32584e340eeb405265877a13fb545beb239",
+    "files":  {
+                  "src/path-cache.js":  "dfec2c9288b8a83f54e8212c7c0ca73d81091e6c24bcf598dc531e5a862b100b",
+                  "_extract/m1b/gm_depth.json":  "6aa228c90c0ab14f9445fae63ed332c72ba5b90e643664fce2544d84c059a7f1",
+                  "tools/m1b/qualify.mjs":  "9536723e3588d9e1fe388dae9e3d4691381cf5656f8b522db3c777b297f125f3",
+                  "_extract/m1b/equivalence.json":  "7bcf3d3a2798c41e4db795a66defdb5f248f6e4a6688dc9ba3bd1e754a798155",
+                  "tools/m1b/stress.mjs":  "316dff1e03e304f6d89d5853fe01261e130f2778e95c4f59268f677de0a55085",
+                  "src/plus-config.js":  "616414ff21ff02b7af2d8fb73a0e9eeedca6bd20adf227b4cf6f611842478a7c",
+                  "src/ai-master.js":  "701094355454f40fd3c43775db1e9770a44546b5d1b77cb4b078844e35b62129",
+                  "src/path.js":  "03d08efc11fcb52ef4d4a51a2be98ad31263d8ca6b25401191f433cbff8e1135",
+                  "_extract/m1b/path_query_audit.json":  "f95c440a062251c3e8600cdff10887f2cdd318930e06afeb5f8a7156dc3d477d",
+                  "_extract/m1b/bench_raw.jsonl":  "ef3633ded55c84593e7832483829f4695306dc49961915ba9352375bcf98fad8",
+                  "_extract/m1b/stress.jsonl":  "5082742d558dde20ae4dcabd8051e4efdd7f53e5def98f96bda14481e3fe11f5"
+              }
+}

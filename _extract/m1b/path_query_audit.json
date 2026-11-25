@@ -1,0 +1,314 @@
+[
+ {
+  "state": "early-55",
+  "rep": 0,
+  "tTotal": 2852,
+  "action": {
+   "type": "wall",
+   "kind": "top",
+   "c": 9,
+   "r": 0
+  },
+  "cache": {
+   "hits": 3342144,
+   "misses": 646257,
+   "hitRate": 0.838,
+   "uniqueKeys": 46257,
+   "clears": 3
+  }
+ },
+ {
+  "state": "early-55",
+  "rep": 1,
+  "tTotal": 2854,
+  "action": {
+   "type": "wall",
+   "kind": "top",
+   "c": 9,
+   "r": 0
+  },
+  "cache": {
+   "hits": 3396495,
+   "misses": 659975,
+   "hitRate": 0.8373,
+   "uniqueKeys": 59975,
+   "clears": 3
+  }
+ },
+ {
+  "state": "early-55",
+  "rep": 2,
+  "tTotal": 2851,
+  "action": {
+   "type": "wall",
+   "kind": "top",
+   "c": 9,
+   "r": 0
+  },
+  "cache": {
+   "hits": 3419729,
+   "misses": 666328,
+   "hitRate": 0.8369,
+   "uniqueKeys": 66328,
+   "clears": 3
+  }
+ },
+ {
+  "state": "early-65",
+  "rep": 0,
+  "tTotal": 2852,
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "cache": {
+   "hits": 3331396,
+   "misses": 692464,
+   "hitRate": 0.8279,
+   "uniqueKeys": 92464,
+   "clears": 3
+  }
+ },
+ {
+  "state": "early-65",
+  "rep": 1,
+  "tTotal": 2854,
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "cache": {
+   "hits": 3355892,
+   "misses": 698813,
+   "hitRate": 0.8277,
+   "uniqueKeys": 98813,
+   "clears": 3
+  }
+ },
+ {
+  "state": "early-65",
+  "rep": 2,
+  "tTotal": 2851,
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "cache": {
+   "hits": 3346980,
+   "misses": 696327,
+   "hitRate": 0.8278,
+   "uniqueKeys": 96327,
+   "clears": 3
+  }
+ },
+ {
+  "state": "mid-56",
+  "rep": 0,
+  "tTotal": 2857,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 8,
+   "r": 8
+  },
+  "cache": {
+   "hits": 2346642,
+   "misses": 1132754,
+   "hitRate": 0.6744,
+   "uniqueKeys": 132754,
+   "clears": 5
+  }
+ },
+ {
+  "state": "mid-56",
+  "rep": 1,
+  "tTotal": 2855,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 8,
+   "r": 8
+  },
+  "cache": {
+   "hits": 2364703,
+   "misses": 1138210,
+   "hitRate": 0.6751,
+   "uniqueKeys": 138210,
+   "clears": 5
+  }
+ },
+ {
+  "state": "mid-56",
+  "rep": 2,
+  "tTotal": 2851,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 8,
+   "r": 8
+  },
+  "cache": {
+   "hits": 2368882,
+   "misses": 1139295,
+   "hitRate": 0.6752,
+   "uniqueKeys": 139295,
+   "clears": 5
+  }
+ },
+ {
+  "state": "mid-61",
+  "rep": 0,
+  "tTotal": 2853,
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "cache": {
+   "hits": 2249621,
+   "misses": 1116902,
+   "hitRate": 0.6682,
+   "uniqueKeys": 116902,
+   "clears": 5
+  }
+ },
+ {
+  "state": "mid-61",
+  "rep": 1,
+  "tTotal": 2854,
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "cache": {
+   "hits": 2253750,
+   "misses": 1119181,
+   "hitRate": 0.6682,
+   "uniqueKeys": 119181,
+   "clears": 5
+  }
+ },
+ {
+  "state": "mid-61",
+  "rep": 2,
+  "tTotal": 2852,
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "cache": {
+   "hits": 2249621,
+   "misses": 1116902,
+   "hitRate": 0.6682,
+   "uniqueKeys": 116902,
+   "clears": 5
+  }
+ },
+ {
+  "state": "end-70",
+  "rep": 0,
+  "tTotal": 2856,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 5,
+   "r": 5
+  },
+  "cache": {
+   "hits": 2414645,
+   "misses": 1267767,
+   "hitRate": 0.6557,
+   "uniqueKeys": 67767,
+   "clears": 6
+  }
+ },
+ {
+  "state": "end-70",
+  "rep": 1,
+  "tTotal": 2854,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 5,
+   "r": 5
+  },
+  "cache": {
+   "hits": 2447047,
+   "misses": 1284089,
+   "hitRate": 0.6558,
+   "uniqueKeys": 84089,
+   "clears": 6
+  }
+ },
+ {
+  "state": "end-70",
+  "rep": 2,
+  "tTotal": 2852,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 5,
+   "r": 5
+  },
+  "cache": {
+   "hits": 2389074,
+   "misses": 1249749,
+   "hitRate": 0.6566,
+   "uniqueKeys": 49749,
+   "clears": 6
+  }
+ },
+ {
+  "state": "end-71",
+  "rep": 0,
+  "tTotal": 2855,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 8,
+   "r": 9
+  },
+  "cache": {
+   "hits": 2901565,
+   "misses": 1109718,
+   "hitRate": 0.7234,
+   "uniqueKeys": 109718,
+   "clears": 5
+  }
+ },
+ {
+  "state": "end-71",
+  "rep": 1,
+  "tTotal": 2856,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 8,
+   "r": 9
+  },
+  "cache": {
+   "hits": 2901565,
+   "misses": 1109718,
+   "hitRate": 0.7234,
+   "uniqueKeys": 109718,
+   "clears": 5
+  }
+ },
+ {
+  "state": "end-71",
+  "rep": 2,
+  "tTotal": 2854,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 8,
+   "r": 9
+  },
+  "cache": {
+   "hits": 2901565,
+   "misses": 1109718,
+   "hitRate": 0.7234,
+   "uniqueKeys": 109718,
+   "clears": 5
+  }
+ }
+]

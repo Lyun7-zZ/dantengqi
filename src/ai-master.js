@@ -8,6 +8,7 @@ import { distanceOf, legalDirs, applyAction, validateAction, cloneState, wallPla
 import { shortestPathWalls, distanceToGoal, hasPath } from "./path.js";
 import { randomAI } from "./ai-random.js";
 import { M, resetMetrics, snapshot } from "./metrics.js";
+import { enablePathCache, disablePathCache, cacheStats } from "./path-cache.js";
 
 const AI2_SIZE = COLS * ROWS;
 
@@ -673,6 +674,7 @@ function createMasterAI({
   smartExit = false,
   returnBuffer = 0,
   trace = false,
+  pathCache = false,
 } = {}) {
   let plan = null;
   let plansUsed = 0;
@@ -690,6 +692,7 @@ function createMasterAI({
     const buffer = Math.max(0, Math.min(returnBuffer, Math.max(0, timeMs - 20)));
     const globalDeadline = hardDeadline - buffer;
     if (trace) { M.on = true; resetMetrics(); }
+    if (pathCache) enablePathCache();
     try {
 
     const exit = exitAction(state);
@@ -856,10 +859,12 @@ function createMasterAI({
       tPlan,
       returnBuffer: buffer,
       trace: trace ? snapshot() : null,
+      pathCache: pathCache ? cacheStats() : null,
     };
     return action;
     } finally {
       if (trace) M.on = false;
+      if (pathCache) disablePathCache();
     }
   }
 
