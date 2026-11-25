@@ -1,0 +1,35 @@
+{
+  "version": "A1",
+  "tag": "hell-a1-freeze-2026-11-25",
+  "sourceCommit": "4134567",
+  "configHash": "1ffffc1d",
+  "frozenAt": "2026-11-25",
+  "status": "recommended-frozen-candidate",
+  "config": {
+    "timeMs": 28000,
+    "maxDepth": 12,
+    "usePlan": true,
+    "netWalls": true,
+    "avoidRepeat": true,
+    "repeatPenalty": 160,
+    "planMoves": true,
+    "planFallback": true,
+    "necessaryPathGuard": "soft",
+    "endgameDepth": 12,
+    "routeWalls": 6,
+    "smartExit": true
+  },
+  "results": {
+    "q2": {
+      "openings": "25-54",
+      "games": 60,
+      "W": 42,
+      "D": 4,
+      "L": 11,
+      "U": 3,
+      "winRate": 0.700,
+      "lossRate": 0.183,
+      "completionRate": 0.95
+    }
+  }
+}
