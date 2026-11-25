@@ -6,6 +6,7 @@
  */
 
 import { COLS, ROWS, V_COUNT, H_COUNT } from "./board.js";
+import { M, now } from "./metrics.js";
 
 const SIZE = COLS * ROWS;
 const key = (c, r) => r * COLS + c;
@@ -13,7 +14,7 @@ const key = (c, r) => r * COLS + c;
 /**
  * 从 (c0,r0) 出发，返回到达终点所需步数；无路可走时返回 Infinity。
  */
-export function distanceToGoal(state, c0, r0) {
+function distanceToGoalImpl(state, c0, r0) {
   const { vWall, hWall, topWall } = state;
   const dist = new Int16Array(SIZE).fill(-1);
   const q = new Int16Array(SIZE * 2);
@@ -67,7 +68,7 @@ export function distanceToGoal(state, c0, r0) {
   return Infinity;
 }
 
-export function hasPath(state, c, r) {
+function hasPathImpl(state, c, r) {
   return Number.isFinite(distanceToGoal(state, c, r));
 }
 
@@ -139,4 +140,23 @@ export function shortestPathWalls(state, c0, r0) {
   const lc = last % COLS;
   walls.push({ kind: "top", c: lc, r: 0 });
   return walls;
+}
+
+
+export function distanceToGoal(state, c0, r0) {
+  if (!M.on) return distanceToGoalImpl(state, c0, r0);
+  const t = now();
+  M.pathCalls++;
+  const out = distanceToGoalImpl(state, c0, r0);
+  M.pathMs += now() - t;
+  return out;
+}
+
+export function hasPath(state, c, r) {
+  if (!M.on) return hasPathImpl(state, c, r);
+  const t = now();
+  M.pathCalls++;
+  const out = hasPathImpl(state, c, r);
+  M.pathMs += now() - t;
+  return out;
 }

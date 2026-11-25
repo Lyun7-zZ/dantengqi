@@ -1,0 +1,21 @@
+﻿{
+    "node":  "v24.13.1",
+    "sourceCommit":  "659e49f5dd7eadb9a619d32ab3f90dfb7df362e9",
+    "files":  {
+                  "_extract/m1a/m0_close.json":  "246136ad2b6cca047f3fe83e002a56f686df1886080c3fa38326971b029811a4",
+                  "_extract/m1a/limit_regression.json":  "8adf8f95a913b4acd9f72694bcff32def259b6bc477a2df22023fcde7d54608c",
+                  "src/path.js":  "99fcccb7e924458df6a9019c15a986e8ea0966b33d9961e083db0d8167226594",
+                  "tools/m1a/checks.mjs":  "d23a6ad35bf6f41ff4fceabd9b26d2d999fc07791136755e2ca5b42e78b551ac",
+                  "_extract/m1a/trace_overhead.json":  "311625bf9a91696667f63f699616d33721c51a6a347df030366057c1ac3eabcb",
+                  "src/metrics.js":  "d803da3ad56816dd09a7efc3ce5df784e4e03e78ef5c426499f40828ff0f4c64",
+                  "src/plus-config.js":  "616414ff21ff02b7af2d8fb73a0e9eeedca6bd20adf227b4cf6f611842478a7c",
+                  "src/rules.js":  "d6e5afb0a50a1ef6af24caadb228ac6366de672f466695fc44f1dd170714dbdf",
+                  "_extract/m0/games_raw.jsonl":  "b04a97dfbdd854d4687d15145af0a968b92cf9f45c615890b1bee870095ad481",
+                  "_extract/m1a/profile_summary.json":  "9cd037b9ce08b5824b8f9c07b441294d3f122b74083d25c51059deec0d78afa0",
+                  "tools/m1a/profile.mjs":  "a029794d02cb77cf51cd47abbfadbc348a246d104e4d83c9c956d031ee6c6af0",
+                  "_extract/m1a/fixed_depth.json":  "73ed80e97da752a1c91fd9deb090229484e6b5ddc4771a5c210754eb620412c1",
+                  "src/ai-master.js":  "9c87dc497166d30eecd62a73256f8bc28036d25e6978b9f3512b8fa0d46058a1",
+                  "tools/m1a/close.mjs":  "06d88b7f79fdd3bea42f66afab9e58708e21e6ce6dac8b5a69ea5ccd6fa92e3c",
+                  "_extract/m1a/profile_turns.jsonl":  "376a3039c2efddc3125bcaa845bc7d61cd8253f2495e54e2567382ed4efdbca4"
+              }
+}

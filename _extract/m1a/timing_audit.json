@@ -1,0 +1,174 @@
+{
+ "timing": {
+  "G0": {
+   "tAvgMean": 403,
+   "tMax": 2962,
+   "timeouts": 0,
+   "depthAvg": 6.7,
+   "candidatesAvg": 10.7
+  },
+  "H0": {
+   "tAvgMean": 2432,
+   "tMax": 3013,
+   "timeouts": 1,
+   "depthAvg": 8.95,
+   "candidatesAvg": 9.2
+  },
+  "H1": {
+   "tAvgMean": 2521,
+   "tMax": 2985,
+   "timeouts": 0,
+   "depthAvg": 8.97,
+   "candidatesAvg": 10.5
+  }
+ },
+ "timeoutEvents": [
+  {
+   "arm": "H0",
+   "openingId": 69,
+   "seat": 1,
+   "tMax": 3013,
+   "tTotal": 273354,
+   "plies": 240,
+   "result": "unfinished"
+  }
+ ],
+ "unfinished": [
+  {
+   "arm": "G0",
+   "openingId": 69,
+   "seat": 0,
+   "plies": 240,
+   "tMax": 2759,
+   "tAvg": 260
+  },
+  {
+   "arm": "G0",
+   "openingId": 69,
+   "seat": 1,
+   "plies": 240,
+   "tMax": 1970,
+   "tAvg": 219
+  },
+  {
+   "arm": "H0",
+   "openingId": 64,
+   "seat": 1,
+   "plies": 240,
+   "tMax": 2980,
+   "tAvg": 2366
+  },
+  {
+   "arm": "H0",
+   "openingId": 72,
+   "seat": 0,
+   "plies": 240,
+   "tMax": 2975,
+   "tAvg": 2516
+  },
+  {
+   "arm": "H0",
+   "openingId": 65,
+   "seat": 0,
+   "plies": 240,
+   "tMax": 2969,
+   "tAvg": 2751
+  },
+  {
+   "arm": "H0",
+   "openingId": 66,
+   "seat": 0,
+   "plies": 240,
+   "tMax": 2974,
+   "tAvg": 2732
+  },
+  {
+   "arm": "H0",
+   "openingId": 74,
+   "seat": 1,
+   "plies": 240,
+   "tMax": 2964,
+   "tAvg": 2542
+  },
+  {
+   "arm": "H0",
+   "openingId": 60,
+   "seat": 1,
+   "plies": 240,
+   "tMax": 2979,
+   "tAvg": 2617
+  },
+  {
+   "arm": "H0",
+   "openingId": 69,
+   "seat": 1,
+   "plies": 240,
+   "tMax": 3013,
+   "tAvg": 2278
+  },
+  {
+   "arm": "H0",
+   "openingId": 62,
+   "seat": 1,
+   "plies": 240,
+   "tMax": 2980,
+   "tAvg": 2378
+  },
+  {
+   "arm": "H1",
+   "openingId": 72,
+   "seat": 0,
+   "plies": 240,
+   "tMax": 2971,
+   "tAvg": 2732
+  },
+  {
+   "arm": "H1",
+   "openingId": 65,
+   "seat": 0,
+   "plies": 240,
+   "tMax": 2972,
+   "tAvg": 2776
+  },
+  {
+   "arm": "H1",
+   "openingId": 66,
+   "seat": 0,
+   "plies": 240,
+   "tMax": 2972,
+   "tAvg": 2758
+  },
+  {
+   "arm": "H1",
+   "openingId": 60,
+   "seat": 0,
+   "plies": 240,
+   "tMax": 2976,
+   "tAvg": 2918
+  },
+  {
+   "arm": "H1",
+   "openingId": 60,
+   "seat": 1,
+   "plies": 240,
+   "tMax": 2985,
+   "tAvg": 2842
+  },
+  {
+   "arm": "H1",
+   "openingId": 62,
+   "seat": 0,
+   "plies": 240,
+   "tMax": 2980,
+   "tAvg": 2917
+  },
+  {
+   "arm": "H1",
+   "openingId": 62,
+   "seat": 1,
+   "plies": 240,
+   "tMax": 2973,
+   "tAvg": 2843
+  }
+ ]
+}

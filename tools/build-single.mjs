@@ -38,6 +38,7 @@ function stripModuleSyntax(code) {
 const TURN = [
   "src/config.js",
   "src/board.js",
+  "src/metrics.js",
   "src/path.js",
   "src/rules.js",
   "src/clock.js",
@@ -82,6 +83,7 @@ async function bundle(files, fnName) {
 const WORKER = [
   "src/config.js",
   "src/board.js",
+  "src/metrics.js",
   "src/path.js",
   "src/rules.js",
   "src/ai-random.js",

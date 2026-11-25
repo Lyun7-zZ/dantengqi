@@ -1,0 +1,90 @@
+[
+ {
+  "state": "mid-56",
+  "arm": "H0+",
+  "wall": 94,
+  "action": {
+   "type": "wall",
+   "kind": "top",
+   "c": 5,
+   "r": 0
+  },
+  "depth": 6,
+  "nodes": 2232,
+  "tTotal": 94,
+  "candidates": 21,
+  "trace": {
+   "pathCalls": 80204,
+   "pathMs": 84.24,
+   "legalCalls": 9397,
+   "legalMs": 12.55,
+   "applyCalls": 9195,
+   "applyMs": 16.36
+  }
+ },
+ {
+  "state": "mid-56",
+  "arm": "H1+",
+  "wall": 110,
+  "action": {
+   "type": "wall",
+   "kind": "top",
+   "c": 5,
+   "r": 0
+  },
+  "depth": 6,
+  "nodes": 2568,
+  "tTotal": 110,
+  "candidates": 24,
+  "trace": {
+   "pathCalls": 99536,
+   "pathMs": 100.93,
+   "legalCalls": 11449,
+   "legalMs": 14.84,
+   "applyCalls": 11247,
+   "applyMs": 19.68
+  }
+ },
+ {
+  "state": "end-synth",
+  "arm": "H0+",
+  "wall": 2,
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "depth": 3,
+  "nodes": 31,
+  "tTotal": 2,
+  "candidates": 3,
+  "trace": {
+   "pathCalls": 1873,
+   "pathMs": 1.75,
+   "legalCalls": 261,
+   "legalMs": 0.68,
+   "applyCalls": 51,
+   "applyMs": 0.03
+  }
+ },
+ {
+  "state": "end-synth",
+  "arm": "H1+",
+  "wall": 1,
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "depth": 3,
+  "nodes": 31,
+  "tTotal": 1,
+  "candidates": 3,
+  "trace": {
+   "pathCalls": 1873,
+   "pathMs": 1.41,
+   "legalCalls": 261,
+   "legalMs": 0.49,
+   "applyCalls": 51,
+   "applyMs": 0.03
+  }
+ }
+]

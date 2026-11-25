@@ -1,0 +1,74 @@
+[
+ {
+  "ai": "H1+",
+  "trace": false,
+  "rep": 0,
+  "tTotal": 2854,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 8,
+   "r": 8
+  }
+ },
+ {
+  "ai": "H1+",
+  "trace": false,
+  "rep": 1,
+  "tTotal": 2856,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 8,
+   "r": 8
+  }
+ },
+ {
+  "ai": "H1+",
+  "trace": false,
+  "rep": 2,
+  "tTotal": 2856,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 8,
+   "r": 8
+  }
+ },
+ {
+  "ai": "H1+",
+  "trace": true,
+  "rep": 0,
+  "tTotal": 2856,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 8,
+   "r": 8
+  }
+ },
+ {
+  "ai": "H1+",
+  "trace": true,
+  "rep": 1,
+  "tTotal": 2864,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 8,
+   "r": 8
+  }
+ },
+ {
+  "ai": "H1+",
+  "trace": true,
+  "rep": 2,
+  "tTotal": 2852,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 8,
+   "r": 8
+  }
+ }
+]

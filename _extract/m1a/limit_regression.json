@@ -1,0 +1,182 @@
+[
+ {
+  "state": "early-55",
+  "arm": "H0+",
+  "rep": 0,
+  "tTotal": 2854,
+  "over": false,
+  "legal": true,
+  "buffer": 100,
+  "maxDepth": 7
+ },
+ {
+  "state": "early-55",
+  "arm": "H0+",
+  "rep": 1,
+  "tTotal": 2867,
+  "over": false,
+  "legal": true,
+  "buffer": 100,
+  "maxDepth": 7
+ },
+ {
+  "state": "early-55",
+  "arm": "H0+",
+  "rep": 2,
+  "tTotal": 2858,
+  "over": false,
+  "legal": true,
+  "buffer": 100,
+  "maxDepth": 7
+ },
+ {
+  "state": "early-55",
+  "arm": "H1+",
+  "rep": 0,
+  "tTotal": 2868,
+  "over": false,
+  "legal": true,
+  "buffer": 100,
+  "maxDepth": 7
+ },
+ {
+  "state": "early-55",
+  "arm": "H1+",
+  "rep": 1,
+  "tTotal": 2863,
+  "over": false,
+  "legal": true,
+  "buffer": 100,
+  "maxDepth": 7
+ },
+ {
+  "state": "early-55",
+  "arm": "H1+",
+  "rep": 2,
+  "tTotal": 2860,
+  "over": false,
+  "legal": true,
+  "buffer": 100,
+  "maxDepth": 7
+ },
+ {
+  "state": "mid-56",
+  "arm": "H0+",
+  "rep": 0,
+  "tTotal": 2854,
+  "over": false,
+  "legal": true,
+  "buffer": 100,
+  "maxDepth": 9
+ },
+ {
+  "state": "mid-56",
+  "arm": "H0+",
+  "rep": 1,
+  "tTotal": 2862,
+  "over": false,
+  "legal": true,
+  "buffer": 100,
+  "maxDepth": 9
+ },
+ {
+  "state": "mid-56",
+  "arm": "H0+",
+  "rep": 2,
+  "tTotal": 2852,
+  "over": false,
+  "legal": true,
+  "buffer": 100,
+  "maxDepth": 9
+ },
+ {
+  "state": "mid-56",
+  "arm": "H1+",
+  "rep": 0,
+  "tTotal": 2854,
+  "over": false,
+  "legal": true,
+  "buffer": 100,
+  "maxDepth": 9
+ },
+ {
+  "state": "mid-56",
+  "arm": "H1+",
+  "rep": 1,
+  "tTotal": 2859,
+  "over": false,
+  "legal": true,
+  "buffer": 100,
+  "maxDepth": 9
+ },
+ {
+  "state": "mid-56",
+  "arm": "H1+",
+  "rep": 2,
+  "tTotal": 2852,
+  "over": false,
+  "legal": true,
+  "buffer": 100,
+  "maxDepth": 9
+ },
+ {
+  "state": "end-synth",
+  "arm": "H0+",
+  "rep": 0,
+  "tTotal": 2,
+  "over": false,
+  "legal": true,
+  "buffer": 100,
+  "maxDepth": 3
+ },
+ {
+  "state": "end-synth",
+  "arm": "H0+",
+  "rep": 1,
+  "tTotal": 2,
+  "over": false,
+  "legal": true,
+  "buffer": 100,
+  "maxDepth": 3
+ },
+ {
+  "state": "end-synth",
+  "arm": "H0+",
+  "rep": 2,
+  "tTotal": 1,
+  "over": false,
+  "legal": true,
+  "buffer": 100,
+  "maxDepth": 3
+ },
+ {
+  "state": "end-synth",
+  "arm": "H1+",
+  "rep": 0,
+  "tTotal": 1,
+  "over": false,
+  "legal": true,
+  "buffer": 100,
+  "maxDepth": 3
+ },
+ {
+  "state": "end-synth",
+  "arm": "H1+",
+  "rep": 1,
+  "tTotal": 1,
+  "over": false,
+  "legal": true,
+  "buffer": 100,
+  "maxDepth": 3
+ },
+ {
+  "state": "end-synth",
+  "arm": "H1+",
+  "rep": 2,
+  "tTotal": 1,
+  "over": false,
+  "legal": true,
+  "buffer": 100,
+  "maxDepth": 3
+ }
+]

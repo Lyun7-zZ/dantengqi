@@ -7,6 +7,7 @@ import { COLS, ROWS, H_COUNT, allWallSlots } from "./board.js";
 import { distanceOf, legalDirs, applyAction, validateAction, cloneState, wallPlaced, stepTarget, autoMove, setWall } from "./rules.js";
 import { shortestPathWalls, distanceToGoal, hasPath } from "./path.js";
 import { randomAI } from "./ai-random.js";
+import { M, resetMetrics, snapshot } from "./metrics.js";
 
 const AI2_SIZE = COLS * ROWS;
 
@@ -670,6 +671,8 @@ function createMasterAI({
   endgameDepth = 0,
   routeWalls = 0,
   smartExit = false,
+  returnBuffer = 0,
+  trace = false,
 } = {}) {
   let plan = null;
   let plansUsed = 0;
@@ -683,7 +686,11 @@ function createMasterAI({
     const opp = 1 - me;
     const mePos = state.players[me];
     const tStart = aiNow();
-    const globalDeadline = tStart + Math.max(50, timeMs);
+    const hardDeadline = tStart + Math.max(50, timeMs);
+    const buffer = Math.max(0, Math.min(returnBuffer, Math.max(0, timeMs - 20)));
+    const globalDeadline = hardDeadline - buffer;
+    if (trace) { M.on = true; resetMetrics(); }
+    try {
 
     const exit = exitAction(state);
     const logBase = {
@@ -788,6 +795,7 @@ function createMasterAI({
       return fallback;
     }
 
+    const tPlan = aiNow() - tStart;
     stats.searches++;
     const tSearch0 = aiNow();
     const dm = distanceOf(state, me);
@@ -845,8 +853,14 @@ function createMasterAI({
       routeCutAdded: diag.routeCutAdded ?? 0,
       searchedCount: diag.searchedCount ?? 0,
       selectedSource: "search",
+      tPlan,
+      returnBuffer: buffer,
+      trace: trace ? snapshot() : null,
     };
     return action;
+    } finally {
+      if (trace) M.on = false;
+    }
   }
 
   choose.stats = stats;
