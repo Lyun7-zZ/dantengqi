@@ -10,6 +10,8 @@
 
 export const MAX_SLOTS = 3;
 
+import { normalizeState } from "./rules.js";
+
 const KEY = "danteng.slots.v1";
 
 function store(storage) {
@@ -20,7 +22,11 @@ export function loadSlots(storage) {
   try {
     const raw = store(storage).getItem(KEY);
     const arr = raw ? JSON.parse(raw) : [];
-    return Array.isArray(arr) ? arr : [];
+    if (!Array.isArray(arr)) return [];
+    return arr.map((slot) => {
+      if (slot && slot.state) normalizeState(slot.state);
+      return slot;
+    });
   } catch {
     return [];
   }

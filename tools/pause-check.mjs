@@ -94,6 +94,13 @@ await sleep(400);
 st = await state();
 check("从存档继续：棋盘恢复", st.started === true && st.paused === false && st.boardHidden === false, JSON.stringify(st));
 check("从存档继续：手数保留", st.plies === 1, JSON.stringify(st));
+
+const lim = await ev("window.__danteng.state.wallLimit.map(v => v === Infinity ? 'inf' : String(v)).join(',')");
+check("继续后墙数上限恢复", lim === "inf,inf", lim);
+await ev("document.querySelector('.slot[data-kind=\"h\"][data-c=\"4\"][data-r=\"5\"]').click(); document.getElementById('confirm').click(); true");
+await sleep(400);
+const used = await ev("window.__danteng.state.wallsUsed[0] + window.__danteng.state.wallsUsed[1]");
+check("继续后可正常下墙", used === 1, String(used));
 check("无页面错误", errors.length === 0, errors.slice(0, 2).join(" | "));
 
 const failed = results.filter((r) => !r.ok);

@@ -5,7 +5,7 @@
 
 import {
   createState, applyAction, validateAction,
-  legalDirs, stepTarget, distanceOf, autoMove,
+  legalDirs, stepTarget, distanceOf, autoMove, normalizeState,
 } from "./src/rules.js";
 import { COL_NAMES, COLS, ROWS, wallName } from "./src/board.js";
 import {
@@ -1869,7 +1869,7 @@ function resumeSlot(slot) {
   S.started = true;
   S.gameOver = false;
   S.paused = false;
-  S.state = slot.state;
+  S.state = normalizeState(slot.state);
   const cfg = slot.config || {};
   S.clocks = createClock({
     perMove: cfg.perMove != null ? cfg.perMove : S.settings.perMove,

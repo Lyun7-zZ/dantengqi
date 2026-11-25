@@ -51,8 +51,39 @@ export function cloneState(s) {
   };
 }
 
-export function wallPlaced(s, kind, c, r) {
-  if (kind === "v") return s.vWall[vIndex(c, r)] === 1;
+/**
+ * 修复外部读入的状态：JSON 往返会把 Infinity 变成 null、Uint8Array 变成普通对象，
+ * 旧存档也可能缺字段。只补默认值，不改变已有合法值。
+ */
+export function normalizeState(state) {
+  if (!state || typeof state !== "object") return state;
+  const u8 = (v, n) => {
+    if (v instanceof Uint8Array && v.length === n) return v;
+    return Uint8Array.from({ length: n }, (_, i) => Number(v?.[i]) || 0);
+  };
+  state.vWall = u8(state.vWall, V_COUNT * ROWS);
+  state.hWall = u8(state.hWall, H_COUNT * COLS);
+  state.topWall = u8(state.topWall, TOP_COUNT);
+  const lim = Array.isArray(state.wallLimit) ? state.wallLimit : [state.wallLimit, state.wallLimit];
+  state.wallLimit = [0, 1].map((i) => (typeof lim[i] === "number" && Number.isFinite(lim[i]) ? lim[i] : Infinity));
+  if (!Array.isArray(state.wallsUsed)) state.wallsUsed = [0, 0];
+  else state.wallsUsed = [Number(state.wallsUsed[0]) || 0, Number(state.wallsUsed[1]) || 0];
+  state.tolerance = Number.isFinite(state.tolerance) ? state.tolerance : 1;
+  if (typeof state.drawMode !== "string" || !state.drawMode) state.drawMode = "firstOnly";
+  if (state.turn !== 0 && state.turn !== 1) state.turn = state.firstPlayer === 1 ? 1 : 0;
+  if (state.firstPlayer !== 0 && state.firstPlayer !== 1) state.firstPlayer = state.turn;
+  if (!Array.isArray(state.players) || state.players.length !== 2) {
+    state.players = [{ c: 0, r: ROWS - 1 }, { c: COLS - 1, r: ROWS - 1 }];
+  } else {
+    state.players = state.players.map((p) => ({ c: Number(p?.c) || 0, r: Number(p?.r) || 0 }));
+  }
+  state.plies = Number.isFinite(state.plies) ? state.plies : 0;
+  state.wallsPlaced = Number.isFinite(state.wallsPlaced) ? state.wallsPlaced : 0;
+  if (state.winner === undefined) state.winner = null;
+  return state;
+}
+
+export function wallPlaced(s, kind, c, r) {  if (kind === "v") return s.vWall[vIndex(c, r)] === 1;
   if (kind === "h") return s.hWall[hIndex(c, r)] === 1;
   if (kind === "top") return s.topWall[topIndex(c)] === 1;
   throw new Error(`unknown wall kind: ${kind}`);

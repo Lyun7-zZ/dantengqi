@@ -93,7 +93,7 @@ node tools/build-single.mjs       # 打包单文件到 dist/
 测试：
 
 ```bash
-node --test                       # 内核单测
+node --test                       # 全部单测（内核 + 服务端）
 node tools/ui-check.mjs           # 界面自检（真实鼠标事件）
 node tools/net-ui-check.mjs       # 回合制联机端到端（自动起服务端 + 两个浏览器）
 node tools/async-ui-check.mjs     # 同时行动联机端到端
@@ -116,9 +116,8 @@ node tools/p0/summarize.mjs _extract/p0/runs/<runId>/03_games_raw_A0.jsonl
 
 | 项 | 结果 |
 |---|---|
-| 内核单测 | 89 项 |
+| 单测（内核 + 服务端） | 85 项 |
 | 界面自检（打包产物） | 71 项 |
-| 服务端单测（回合制 + 异步） | 21 项 |
 | 回合制联机端到端 | 21 项 |
 | 同时行动联机端到端 | 9 项 |
 | 暂停 / 存档专项 | 10 项 |
