@@ -7,7 +7,7 @@
 
 import { COLS, ROWS, V_COUNT, H_COUNT } from "./board.js";
 import { M, now } from "./metrics.js";
-import { PC, hashWalls, cacheGet, cacheSet } from "./path-cache.js";
+import { PC, wallHash, cacheGet, cacheSet } from "./path-cache.js";
 
 const SIZE = COLS * ROWS;
 const key = (c, r) => r * COLS + c;
@@ -151,16 +151,16 @@ export function distanceToGoal(state, c0, r0) {
   if (tracing) M.pathCalls++;
   let out;
   if (PC.on) {
-    const h = hashWalls(state);
+    const { h, sig } = wallHash(state);
     const pk = (c0 * 12 + r0) * 2;
-    const hit = cacheGet(h, pk);
+    const hit = cacheGet(h, pk, sig);
     if (hit !== undefined) {
       PC.hits++;
       out = hit;
     } else {
       PC.misses++;
       out = distanceToGoalImpl(state, c0, r0);
-      cacheSet(h, pk, out);
+      cacheSet(h, pk, sig, out);
     }
   } else {
     out = distanceToGoalImpl(state, c0, r0);
@@ -176,16 +176,16 @@ export function hasPath(state, c, r) {
   if (tracing) M.pathCalls++;
   let out;
   if (PC.on) {
-    const h = hashWalls(state);
+    const { h, sig } = wallHash(state);
     const pk = (c * 12 + r) * 2 + 1;
-    const hit = cacheGet(h, pk);
+    const hit = cacheGet(h, pk, sig);
     if (hit !== undefined) {
       PC.hits++;
       out = hit;
     } else {
       PC.misses++;
       out = hasPathImpl(state, c, r);
-      cacheSet(h, pk, out);
+      cacheSet(h, pk, sig, out);
     }
   } else {
     out = hasPathImpl(state, c, r);

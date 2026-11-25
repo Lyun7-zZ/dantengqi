@@ -675,6 +675,7 @@ function createMasterAI({
   returnBuffer = 0,
   trace = false,
   pathCache = false,
+  pathCacheAudit = false,
 } = {}) {
   let plan = null;
   let plansUsed = 0;
@@ -692,7 +693,7 @@ function createMasterAI({
     const buffer = Math.max(0, Math.min(returnBuffer, Math.max(0, timeMs - 20)));
     const globalDeadline = hardDeadline - buffer;
     if (trace) { M.on = true; resetMetrics(); }
-    if (pathCache) enablePathCache();
+    if (pathCache) enablePathCache(200000, pathCacheAudit);
     try {
 
     const exit = exitAction(state);

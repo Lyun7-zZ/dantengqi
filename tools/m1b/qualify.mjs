@@ -51,6 +51,7 @@ for (let k = 0; k < 16; k++) {
   const ply = [14, 34][k % 2];
   states.push({ name: `gen-${id}-${ply}`, phase: ply < 20 ? "开局" : "中局", state: scripted(id, ply) });
 }
+states.push({ name: "gen-72-50", phase: "中局", state: scripted(72, 50) });
 for (const st of states) st.hash = hash(st.state);
 
 const median = (xs) => {
@@ -62,7 +63,7 @@ const median = (xs) => {
 const b0 = [];
 for (const st of states.slice(0, 6)) {
   for (let rep = 0; rep < 3; rep++) {
-    const ai = createMasterAI(createGrandmasterPlusConfig({ pathCache: true }));
+    const ai = createMasterAI(createGrandmasterPlusConfig({ pathCache: true, pathCacheAudit: true }));
     const a = ai(st.state, makeRng(30000 + rep));
     const log = ai.stats.lastLog;
     b0.push({ state: st.name, rep, tTotal: Math.round(log.tTotal), action: a, cache: log.pathCache });

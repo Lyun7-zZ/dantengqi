@@ -2,7 +2,7 @@
  {
   "state": "early-55",
   "rep": 0,
-  "tTotal": 2852,
+  "tTotal": 2853,
   "action": {
    "type": "wall",
    "kind": "top",
@@ -10,11 +10,14 @@
    "r": 0
   },
   "cache": {
-   "hits": 3342144,
-   "misses": 646257,
-   "hitRate": 0.838,
-   "uniqueKeys": 46257,
-   "clears": 3
+   "hits": 3275117,
+   "misses": 621688,
+   "hitRate": 0.8405,
+   "uniqueKeys": 21688,
+   "peak": 200000,
+   "distinct": 446961,
+   "clears": 3,
+   "collisions": 0
   }
  },
  {
@@ -28,17 +31,20 @@
    "r": 0
   },
   "cache": {
-   "hits": 3396495,
-   "misses": 659975,
-   "hitRate": 0.8373,
-   "uniqueKeys": 59975,
-   "clears": 3
+   "hits": 3363089,
+   "misses": 649720,
+   "hitRate": 0.8381,
+   "uniqueKeys": 49720,
+   "peak": 200000,
+   "distinct": 459782,
+   "clears": 3,
+   "collisions": 0
   }
  },
  {
   "state": "early-55",
   "rep": 2,
-  "tTotal": 2851,
+  "tTotal": 2853,
   "action": {
    "type": "wall",
    "kind": "top",
@@ -46,149 +52,56 @@
    "r": 0
   },
   "cache": {
-   "hits": 3419729,
-   "misses": 666328,
-   "hitRate": 0.8369,
-   "uniqueKeys": 66328,
-   "clears": 3
+   "hits": 3370018,
+   "misses": 652421,
+   "hitRate": 0.8378,
+   "uniqueKeys": 52421,
+   "peak": 200000,
+   "distinct": 461030,
+   "clears": 3,
+   "collisions": 0
   }
  },
  {
   "state": "early-65",
   "rep": 0,
-  "tTotal": 2852,
-  "action": {
-   "type": "move",
-   "dir": "up"
-  },
-  "cache": {
-   "hits": 3331396,
-   "misses": 692464,
-   "hitRate": 0.8279,
-   "uniqueKeys": 92464,
-   "clears": 3
-  }
- },
- {
-  "state": "early-65",
-  "rep": 1,
-  "tTotal": 2854,
-  "action": {
-   "type": "move",
-   "dir": "up"
-  },
-  "cache": {
-   "hits": 3355892,
-   "misses": 698813,
-   "hitRate": 0.8277,
-   "uniqueKeys": 98813,
-   "clears": 3
-  }
- },
- {
-  "state": "early-65",
-  "rep": 2,
   "tTotal": 2851,
   "action": {
    "type": "move",
    "dir": "up"
   },
   "cache": {
-   "hits": 3346980,
-   "misses": 696327,
-   "hitRate": 0.8278,
-   "uniqueKeys": 96327,
-   "clears": 3
+   "hits": 3250955,
+   "misses": 663558,
+   "hitRate": 0.8305,
+   "uniqueKeys": 63558,
+   "peak": 200000,
+   "distinct": 473561,
+   "clears": 3,
+   "collisions": 0
   }
  },
  {
-  "state": "mid-56",
-  "rep": 0,
-  "tTotal": 2857,
-  "action": {
-   "type": "wall",
-   "kind": "h",
-   "c": 8,
-   "r": 8
-  },
-  "cache": {
-   "hits": 2346642,
-   "misses": 1132754,
-   "hitRate": 0.6744,
-   "uniqueKeys": 132754,
-   "clears": 5
-  }
- },
- {
-  "state": "mid-56",
+  "state": "early-65",
   "rep": 1,
-  "tTotal": 2855,
-  "action": {
-   "type": "wall",
-   "kind": "h",
-   "c": 8,
-   "r": 8
-  },
-  "cache": {
-   "hits": 2364703,
-   "misses": 1138210,
-   "hitRate": 0.6751,
-   "uniqueKeys": 138210,
-   "clears": 5
-  }
- },
- {
-  "state": "mid-56",
-  "rep": 2,
-  "tTotal": 2851,
-  "action": {
-   "type": "wall",
-   "kind": "h",
-   "c": 8,
-   "r": 8
-  },
-  "cache": {
-   "hits": 2368882,
-   "misses": 1139295,
-   "hitRate": 0.6752,
-   "uniqueKeys": 139295,
-   "clears": 5
-  }
- },
- {
-  "state": "mid-61",
-  "rep": 0,
   "tTotal": 2853,
   "action": {
    "type": "move",
    "dir": "up"
   },
   "cache": {
-   "hits": 2249621,
-   "misses": 1116902,
-   "hitRate": 0.6682,
-   "uniqueKeys": 116902,
-   "clears": 5
+   "hits": 3250955,
+   "misses": 663558,
+   "hitRate": 0.8305,
+   "uniqueKeys": 63558,
+   "peak": 200000,
+   "distinct": 473561,
+   "clears": 3,
+   "collisions": 0
   }
  },
  {
-  "state": "mid-61",
-  "rep": 1,
-  "tTotal": 2854,
-  "action": {
-   "type": "move",
-   "dir": "up"
-  },
-  "cache": {
-   "hits": 2253750,
-   "misses": 1119181,
-   "hitRate": 0.6682,
-   "uniqueKeys": 119181,
-   "clears": 5
-  }
- },
- {
-  "state": "mid-61",
+  "state": "early-65",
   "rep": 2,
   "tTotal": 2852,
   "action": {
@@ -196,53 +109,140 @@
    "dir": "up"
   },
   "cache": {
-   "hits": 2249621,
-   "misses": 1116902,
-   "hitRate": 0.6682,
-   "uniqueKeys": 116902,
-   "clears": 5
+   "hits": 3241227,
+   "misses": 661455,
+   "hitRate": 0.8305,
+   "uniqueKeys": 61455,
+   "peak": 200000,
+   "distinct": 473105,
+   "clears": 3,
+   "collisions": 0
   }
  },
  {
-  "state": "end-70",
+  "state": "mid-56",
   "rep": 0,
-  "tTotal": 2856,
+  "tTotal": 2851,
   "action": {
    "type": "wall",
    "kind": "h",
-   "c": 5,
-   "r": 5
+   "c": 8,
+   "r": 8
   },
   "cache": {
-   "hits": 2414645,
-   "misses": 1267767,
-   "hitRate": 0.6557,
-   "uniqueKeys": 67767,
-   "clears": 6
+   "hits": 2186186,
+   "misses": 1039808,
+   "hitRate": 0.6777,
+   "uniqueKeys": 39808,
+   "peak": 200000,
+   "distinct": 709234,
+   "clears": 5,
+   "collisions": 0
   }
  },
  {
-  "state": "end-70",
+  "state": "mid-56",
   "rep": 1,
   "tTotal": 2854,
   "action": {
    "type": "wall",
    "kind": "h",
-   "c": 5,
-   "r": 5
+   "c": 8,
+   "r": 8
   },
   "cache": {
-   "hits": 2447047,
-   "misses": 1284089,
-   "hitRate": 0.6558,
-   "uniqueKeys": 84089,
-   "clears": 6
+   "hits": 2186186,
+   "misses": 1039808,
+   "hitRate": 0.6777,
+   "uniqueKeys": 39808,
+   "peak": 200000,
+   "distinct": 709234,
+   "clears": 5,
+   "collisions": 0
+  }
+ },
+ {
+  "state": "mid-56",
+  "rep": 2,
+  "tTotal": 2852,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 8,
+   "r": 8
+  },
+  "cache": {
+   "hits": 2154674,
+   "misses": 1031900,
+   "hitRate": 0.6762,
+   "uniqueKeys": 31900,
+   "peak": 200000,
+   "distinct": 707556,
+   "clears": 5,
+   "collisions": 0
+  }
+ },
+ {
+  "state": "mid-61",
+  "rep": 0,
+  "tTotal": 2851,
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "cache": {
+   "hits": 2027723,
+   "misses": 990679,
+   "hitRate": 0.6718,
+   "uniqueKeys": 190679,
+   "peak": 200000,
+   "distinct": 696049,
+   "clears": 4,
+   "collisions": 0
+  }
+ },
+ {
+  "state": "mid-61",
+  "rep": 1,
+  "tTotal": 2855,
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "cache": {
+   "hits": 2085812,
+   "misses": 1027166,
+   "hitRate": 0.67,
+   "uniqueKeys": 27166,
+   "peak": 200000,
+   "distinct": 723761,
+   "clears": 5,
+   "collisions": 0
+  }
+ },
+ {
+  "state": "mid-61",
+  "rep": 2,
+  "tTotal": 2853,
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "cache": {
+   "hits": 2097428,
+   "misses": 1036184,
+   "hitRate": 0.6693,
+   "uniqueKeys": 36184,
+   "peak": 200000,
+   "distinct": 732491,
+   "clears": 5,
+   "collisions": 0
   }
  },
  {
   "state": "end-70",
-  "rep": 2,
-  "tTotal": 2852,
+  "rep": 0,
+  "tTotal": 2850,
   "action": {
    "type": "wall",
    "kind": "h",
@@ -250,35 +250,83 @@
    "r": 5
   },
   "cache": {
-   "hits": 2389074,
-   "misses": 1249749,
-   "hitRate": 0.6566,
-   "uniqueKeys": 49749,
-   "clears": 6
+   "hits": 2165584,
+   "misses": 1133377,
+   "hitRate": 0.6564,
+   "uniqueKeys": 133377,
+   "peak": 200000,
+   "distinct": 689716,
+   "clears": 5,
+   "collisions": 0
   }
  },
  {
-  "state": "end-71",
-  "rep": 0,
+  "state": "end-70",
+  "rep": 1,
+  "tTotal": 2853,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 5,
+   "r": 5
+  },
+  "cache": {
+   "hits": 2147032,
+   "misses": 1121065,
+   "hitRate": 0.657,
+   "uniqueKeys": 121065,
+   "peak": 200000,
+   "distinct": 683543,
+   "clears": 5,
+   "collisions": 0
+  }
+ },
+ {
+  "state": "end-70",
+  "rep": 2,
   "tTotal": 2855,
   "action": {
    "type": "wall",
    "kind": "h",
+   "c": 5,
+   "r": 5
+  },
+  "cache": {
+   "hits": 2137184,
+   "misses": 1118177,
+   "hitRate": 0.6565,
+   "uniqueKeys": 118177,
+   "peak": 200000,
+   "distinct": 682440,
+   "clears": 5,
+   "collisions": 0
+  }
+ },
+ {
+  "state": "end-71",
+  "rep": 0,
+  "tTotal": 2857,
+  "action": {
+   "type": "wall",
+   "kind": "h",
    "c": 8,
    "r": 9
   },
   "cache": {
-   "hits": 2901565,
-   "misses": 1109718,
-   "hitRate": 0.7234,
-   "uniqueKeys": 109718,
-   "clears": 5
+   "hits": 2601121,
+   "misses": 960272,
+   "hitRate": 0.7304,
+   "uniqueKeys": 160272,
+   "peak": 200000,
+   "distinct": 639413,
+   "clears": 4,
+   "collisions": 0
   }
  },
  {
   "state": "end-71",
   "rep": 1,
-  "tTotal": 2856,
+  "tTotal": 2859,
   "action": {
    "type": "wall",
    "kind": "h",
@@ -286,17 +334,20 @@
    "r": 9
   },
   "cache": {
-   "hits": 2901565,
-   "misses": 1109718,
-   "hitRate": 0.7234,
-   "uniqueKeys": 109718,
-   "clears": 5
+   "hits": 2632494,
+   "misses": 975078,
+   "hitRate": 0.7297,
+   "uniqueKeys": 175078,
+   "peak": 200000,
+   "distinct": 649217,
+   "clears": 4,
+   "collisions": 0
   }
  },
  {
   "state": "end-71",
   "rep": 2,
-  "tTotal": 2854,
+  "tTotal": 2853,
   "action": {
    "type": "wall",
    "kind": "h",
@@ -304,11 +355,14 @@
    "r": 9
   },
   "cache": {
-   "hits": 2901565,
-   "misses": 1109718,
-   "hitRate": 0.7234,
-   "uniqueKeys": 109718,
-   "clears": 5
+   "hits": 2608494,
+   "misses": 964538,
+   "hitRate": 0.7301,
+   "uniqueKeys": 164538,
+   "peak": 200000,
+   "distinct": 641794,
+   "clears": 4,
+   "collisions": 0
   }
  }
 ]

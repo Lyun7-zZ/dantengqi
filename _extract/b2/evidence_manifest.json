@@ -1,0 +1,16 @@
+﻿{
+    "node":  "v24.13.1",
+    "sourceCommit":  "0cac49377db2110ce7333bb554716f415bc29513",
+    "files":  {
+                  "src/path-cache.js":  "960ed3703dcaf0577e200367ca7225866024e04be80bb9000b1af05b7ebcb370",
+                  "tools/m1b/qualify.mjs":  "1362bb4f56c012f11c785d09a156399c7f95589699572bb5672548afa43af233",
+                  "tools/b2/summary.mjs":  "2fb6f98d77d2258c6b44e4298d7738ac8aa712fa4e1f4672c30f48db0935e2a6",
+                  "_extract/m1b/equivalence.json":  "50920944229832c8018379e0076a83c460b2ee0e54b3e82a05a7d4df04b762a2",
+                  "src/ai-master.js":  "bf30e10a330946ab586b1555f75047a477f441eb421414efade3a0a2a56361c5",
+                  "src/path.js":  "0c04a17332431842e3cb1ba72cff6c033daddf747fb5dcb45ff857acae5efbc5",
+                  "_extract/b2/b2_summary.json":  "ddf734938a8e67db5b355a94b2041b42dd77e5eaf451ab2aa30ef317bfc7a6c4",
+                  "_extract/b2/games_raw.jsonl":  "6b754a5eb4173fb3acd79b931f4590dcc1c249037130a3ff199c52c1798fd0d4",
+                  "tools/b2/run.mjs":  "beb1b59d0ab191fba2bff007833befc9a0f5eee61fc00837345b1e3c1a5e09c0",
+                  "_extract/m1b/stress.jsonl":  "1bcca5a26d51b6f52b631558322de20accca490637de6a9bf4b6e5b9ecaead48"
+              }
+}

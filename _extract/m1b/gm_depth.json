@@ -9,7 +9,7 @@
    "c": 9,
    "r": 9
   },
-  "tTotal": 1289,
+  "tTotal": 1158,
   "depth": 7,
   "nodes": 38088
  },
@@ -23,7 +23,7 @@
    "c": 9,
    "r": 9
   },
-  "tTotal": 1300,
+  "tTotal": 1170,
   "depth": 7,
   "nodes": 38088
  },
@@ -37,7 +37,7 @@
    "c": 9,
    "r": 9
   },
-  "tTotal": 1286,
+  "tTotal": 1161,
   "depth": 7,
   "nodes": 38088
  },
@@ -51,7 +51,7 @@
    "c": 9,
    "r": 9
   },
-  "tTotal": 2865,
+  "tTotal": 2855,
   "depth": 7,
   "nodes": 38088
  },
@@ -65,7 +65,7 @@
    "c": 9,
    "r": 9
   },
-  "tTotal": 2854,
+  "tTotal": 2860,
   "depth": 7,
   "nodes": 38088
  },
@@ -79,7 +79,7 @@
    "c": 9,
    "r": 9
   },
-  "tTotal": 2856,
+  "tTotal": 2853,
   "depth": 7,
   "nodes": 38088
  },
@@ -93,7 +93,7 @@
    "c": 8,
    "r": 8
   },
-  "tTotal": 854,
+  "tTotal": 738,
   "depth": 7,
   "nodes": 23031
  },
@@ -107,7 +107,7 @@
    "c": 8,
    "r": 8
   },
-  "tTotal": 841,
+  "tTotal": 735,
   "depth": 7,
   "nodes": 23031
  },
@@ -121,7 +121,7 @@
    "c": 8,
    "r": 8
   },
-  "tTotal": 843,
+  "tTotal": 740,
   "depth": 7,
   "nodes": 23031
  },
@@ -133,7 +133,7 @@
    "type": "move",
    "dir": "up"
   },
-  "tTotal": 2851,
+  "tTotal": 2863,
   "depth": 8,
   "nodes": 64732
  },
@@ -141,162 +141,162 @@
   "state": "early-65",
   "depthLimit": 9,
   "rep": 1,
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "tTotal": 2852,
+  "depth": 8,
+  "nodes": 64732
+ },
+ {
+  "state": "early-65",
+  "depthLimit": 9,
+  "rep": 2,
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "tTotal": 2855,
+  "depth": 8,
+  "nodes": 64732
+ },
+ {
+  "state": "mid-56",
+  "depthLimit": 7,
+  "rep": 0,
+  "action": {
+   "type": "wall",
+   "kind": "top",
+   "c": 5,
+   "r": 0
+  },
+  "tTotal": 112,
+  "depth": 7,
+  "nodes": 3559
+ },
+ {
+  "state": "mid-56",
+  "depthLimit": 7,
+  "rep": 1,
+  "action": {
+   "type": "wall",
+   "kind": "top",
+   "c": 5,
+   "r": 0
+  },
+  "tTotal": 110,
+  "depth": 7,
+  "nodes": 3559
+ },
+ {
+  "state": "mid-56",
+  "depthLimit": 7,
+  "rep": 2,
+  "action": {
+   "type": "wall",
+   "kind": "top",
+   "c": 5,
+   "r": 0
+  },
+  "tTotal": 113,
+  "depth": 7,
+  "nodes": 3559
+ },
+ {
+  "state": "mid-56",
+  "depthLimit": 9,
+  "rep": 0,
+  "action": {
+   "type": "wall",
+   "kind": "top",
+   "c": 5,
+   "r": 0
+  },
+  "tTotal": 821,
+  "depth": 9,
+  "nodes": 25388
+ },
+ {
+  "state": "mid-56",
+  "depthLimit": 9,
+  "rep": 1,
+  "action": {
+   "type": "wall",
+   "kind": "top",
+   "c": 5,
+   "r": 0
+  },
+  "tTotal": 817,
+  "depth": 9,
+  "nodes": 25388
+ },
+ {
+  "state": "mid-56",
+  "depthLimit": 9,
+  "rep": 2,
+  "action": {
+   "type": "wall",
+   "kind": "top",
+   "c": 5,
+   "r": 0
+  },
+  "tTotal": 828,
+  "depth": 9,
+  "nodes": 25388
+ },
+ {
+  "state": "mid-61",
+  "depthLimit": 7,
+  "rep": 0,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 9,
+   "r": 8
+  },
+  "tTotal": 600,
+  "depth": 7,
+  "nodes": 23647
+ },
+ {
+  "state": "mid-61",
+  "depthLimit": 7,
+  "rep": 1,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 9,
+   "r": 8
+  },
+  "tTotal": 574,
+  "depth": 7,
+  "nodes": 23647
+ },
+ {
+  "state": "mid-61",
+  "depthLimit": 7,
+  "rep": 2,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 9,
+   "r": 8
+  },
+  "tTotal": 586,
+  "depth": 7,
+  "nodes": 23647
+ },
+ {
+  "state": "mid-61",
+  "depthLimit": 9,
+  "rep": 0,
   "action": {
    "type": "move",
    "dir": "up"
   },
   "tTotal": 2850,
   "depth": 8,
-  "nodes": 64732
- },
- {
-  "state": "early-65",
-  "depthLimit": 9,
-  "rep": 2,
-  "action": {
-   "type": "move",
-   "dir": "up"
-  },
-  "tTotal": 2857,
-  "depth": 8,
-  "nodes": 64732
- },
- {
-  "state": "mid-56",
-  "depthLimit": 7,
-  "rep": 0,
-  "action": {
-   "type": "wall",
-   "kind": "top",
-   "c": 5,
-   "r": 0
-  },
-  "tTotal": 125,
-  "depth": 7,
-  "nodes": 3559
- },
- {
-  "state": "mid-56",
-  "depthLimit": 7,
-  "rep": 1,
-  "action": {
-   "type": "wall",
-   "kind": "top",
-   "c": 5,
-   "r": 0
-  },
-  "tTotal": 134,
-  "depth": 7,
-  "nodes": 3559
- },
- {
-  "state": "mid-56",
-  "depthLimit": 7,
-  "rep": 2,
-  "action": {
-   "type": "wall",
-   "kind": "top",
-   "c": 5,
-   "r": 0
-  },
-  "tTotal": 133,
-  "depth": 7,
-  "nodes": 3559
- },
- {
-  "state": "mid-56",
-  "depthLimit": 9,
-  "rep": 0,
-  "action": {
-   "type": "wall",
-   "kind": "top",
-   "c": 5,
-   "r": 0
-  },
-  "tTotal": 940,
-  "depth": 9,
-  "nodes": 25388
- },
- {
-  "state": "mid-56",
-  "depthLimit": 9,
-  "rep": 1,
-  "action": {
-   "type": "wall",
-   "kind": "top",
-   "c": 5,
-   "r": 0
-  },
-  "tTotal": 916,
-  "depth": 9,
-  "nodes": 25388
- },
- {
-  "state": "mid-56",
-  "depthLimit": 9,
-  "rep": 2,
-  "action": {
-   "type": "wall",
-   "kind": "top",
-   "c": 5,
-   "r": 0
-  },
-  "tTotal": 931,
-  "depth": 9,
-  "nodes": 25388
- },
- {
-  "state": "mid-61",
-  "depthLimit": 7,
-  "rep": 0,
-  "action": {
-   "type": "wall",
-   "kind": "h",
-   "c": 9,
-   "r": 8
-  },
-  "tTotal": 657,
-  "depth": 7,
-  "nodes": 23647
- },
- {
-  "state": "mid-61",
-  "depthLimit": 7,
-  "rep": 1,
-  "action": {
-   "type": "wall",
-   "kind": "h",
-   "c": 9,
-   "r": 8
-  },
-  "tTotal": 671,
-  "depth": 7,
-  "nodes": 23647
- },
- {
-  "state": "mid-61",
-  "depthLimit": 7,
-  "rep": 2,
-  "action": {
-   "type": "wall",
-   "kind": "h",
-   "c": 9,
-   "r": 8
-  },
-  "tTotal": 673,
-  "depth": 7,
-  "nodes": 23647
- },
- {
-  "state": "mid-61",
-  "depthLimit": 9,
-  "rep": 0,
-  "action": {
-   "type": "move",
-   "dir": "up"
-  },
-  "tTotal": 2851,
-  "depth": 8,
   "nodes": 52798
  },
  {
@@ -306,106 +306,106 @@
   "action": {
    "type": "move",
    "dir": "up"
-  },
-  "tTotal": 2854,
-  "depth": 8,
-  "nodes": 52798
- },
- {
-  "state": "mid-61",
-  "depthLimit": 9,
-  "rep": 2,
-  "action": {
-   "type": "move",
-   "dir": "up"
-  },
-  "tTotal": 2854,
-  "depth": 8,
-  "nodes": 52798
- },
- {
-  "state": "end-70",
-  "depthLimit": 7,
-  "rep": 0,
-  "action": {
-   "type": "wall",
-   "kind": "h",
-   "c": 5,
-   "r": 5
-  },
-  "tTotal": 1013,
-  "depth": 7,
-  "nodes": 24480
- },
- {
-  "state": "end-70",
-  "depthLimit": 7,
-  "rep": 1,
-  "action": {
-   "type": "wall",
-   "kind": "h",
-   "c": 5,
-   "r": 5
-  },
-  "tTotal": 1009,
-  "depth": 7,
-  "nodes": 24480
- },
- {
-  "state": "end-70",
-  "depthLimit": 7,
-  "rep": 2,
-  "action": {
-   "type": "wall",
-   "kind": "h",
-   "c": 5,
-   "r": 5
-  },
-  "tTotal": 1016,
-  "depth": 7,
-  "nodes": 24480
- },
- {
-  "state": "end-70",
-  "depthLimit": 9,
-  "rep": 0,
-  "action": {
-   "type": "wall",
-   "kind": "h",
-   "c": 5,
-   "r": 5
-  },
-  "tTotal": 2851,
-  "depth": 8,
-  "nodes": 38684
- },
- {
-  "state": "end-70",
-  "depthLimit": 9,
-  "rep": 1,
-  "action": {
-   "type": "wall",
-   "kind": "h",
-   "c": 5,
-   "r": 5
-  },
-  "tTotal": 2854,
-  "depth": 8,
-  "nodes": 38684
- },
- {
-  "state": "end-70",
-  "depthLimit": 9,
-  "rep": 2,
-  "action": {
-   "type": "wall",
-   "kind": "h",
-   "c": 5,
-   "r": 5
   },
   "tTotal": 2858,
   "depth": 8,
-  "nodes": 38684
+  "nodes": 52798
+ },
+ {
+  "state": "mid-61",
+  "depthLimit": 9,
+  "rep": 2,
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "tTotal": 2852,
+  "depth": 8,
+  "nodes": 52798
+ },
+ {
+  "state": "end-70",
+  "depthLimit": 7,
+  "rep": 0,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 5,
+   "r": 5
+  },
+  "tTotal": 917,
+  "depth": 7,
+  "nodes": 24480
+ },
+ {
+  "state": "end-70",
+  "depthLimit": 7,
+  "rep": 1,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 5,
+   "r": 5
+  },
+  "tTotal": 919,
+  "depth": 7,
+  "nodes": 24480
+ },
+ {
+  "state": "end-70",
+  "depthLimit": 7,
+  "rep": 2,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 5,
+   "r": 5
+  },
+  "tTotal": 900,
+  "depth": 7,
+  "nodes": 24480
+ },
+ {
+  "state": "end-70",
+  "depthLimit": 9,
+  "rep": 0,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 5,
+   "r": 5
+  },
+  "tTotal": 2795,
+  "depth": 9,
+  "nodes": 70474
+ },
+ {
+  "state": "end-70",
+  "depthLimit": 9,
+  "rep": 1,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 5,
+   "r": 5
+  },
+  "tTotal": 2791,
+  "depth": 9,
+  "nodes": 70474
+ },
+ {
+  "state": "end-70",
+  "depthLimit": 9,
+  "rep": 2,
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 5,
+   "r": 5
+  },
+  "tTotal": 2803,
+  "depth": 9,
+  "nodes": 70474
  },
  {
   "state": "end-71",
@@ -417,7 +417,7 @@
    "c": 8,
    "r": 9
   },
-  "tTotal": 486,
+  "tTotal": 419,
   "depth": 7,
   "nodes": 9924
  },
@@ -431,7 +431,7 @@
    "c": 8,
    "r": 9
   },
-  "tTotal": 484,
+  "tTotal": 423,
   "depth": 7,
   "nodes": 9924
  },
@@ -445,7 +445,7 @@
    "c": 8,
    "r": 9
   },
-  "tTotal": 480,
+  "tTotal": 420,
   "depth": 7,
   "nodes": 9924
  },
@@ -459,7 +459,7 @@
    "c": 8,
    "r": 9
   },
-  "tTotal": 2857,
+  "tTotal": 2851,
   "depth": 8,
   "nodes": 20879
  },
@@ -473,7 +473,7 @@
    "c": 8,
    "r": 9
   },
-  "tTotal": 2850,
+  "tTotal": 2853,
   "depth": 8,
   "nodes": 20879
  },
@@ -487,7 +487,7 @@
    "c": 8,
    "r": 9
   },
-  "tTotal": 2863,
+  "tTotal": 2859,
   "depth": 8,
   "nodes": 20879
  }
