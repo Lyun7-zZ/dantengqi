@@ -1,0 +1,132 @@
+{
+ "decisions": 2891,
+ "failures": 17,
+ "controls": 23,
+ "missedWin": 0,
+ "missedDraw": 0,
+ "avoidable": 0,
+ "noSafeFound": 15,
+ "noSafeGames": 15,
+ "events": [
+  {
+   "key": "96-0",
+   "role": "failure",
+   "ply": 76,
+   "type": "no-safe-found",
+   "total": 197,
+   "safe": 0
+  },
+  {
+   "key": "96-1",
+   "role": "failure",
+   "ply": 81,
+   "type": "no-safe-found",
+   "total": 195,
+   "safe": 0
+  },
+  {
+   "key": "112-1",
+   "role": "failure",
+   "ply": 243,
+   "type": "no-safe-found",
+   "total": 138,
+   "safe": 0
+  },
+  {
+   "key": "97-0",
+   "role": "failure",
+   "ply": 80,
+   "type": "no-safe-found",
+   "total": 199,
+   "safe": 0
+  },
+  {
+   "key": "113-0",
+   "role": "failure",
+   "ply": 162,
+   "type": "no-safe-found",
+   "total": 149,
+   "safe": 0
+  },
+  {
+   "key": "98-1",
+   "role": "failure",
+   "ply": 85,
+   "type": "no-safe-found",
+   "total": 200,
+   "safe": 0
+  },
+  {
+   "key": "114-1",
+   "role": "failure",
+   "ply": 165,
+   "type": "no-safe-found",
+   "total": 176,
+   "safe": 0
+  },
+  {
+   "key": "102-0",
+   "role": "failure",
+   "ply": 68,
+   "type": "no-safe-found",
+   "total": 202,
+   "safe": 0
+  },
+  {
+   "key": "102-1",
+   "role": "failure",
+   "ply": 125,
+   "type": "no-safe-found",
+   "total": 177,
+   "safe": 0
+  },
+  {
+   "key": "110-0",
+   "role": "failure",
+   "ply": 174,
+   "type": "no-safe-found",
+   "total": 151,
+   "safe": 0
+  },
+  {
+   "key": "110-1",
+   "role": "failure",
+   "ply": 81,
+   "type": "no-safe-found",
+   "total": 196,
+   "safe": 0
+  },
+  {
+   "key": "95-0",
+   "role": "failure",
+   "ply": 208,
+   "type": "no-safe-found",
+   "total": 153,
+   "safe": 0
+  },
+  {
+   "key": "95-1",
+   "role": "failure",
+   "ply": 65,
+   "type": "no-safe-found",
+   "total": 207,
+   "safe": 0
+  },
+  {
+   "key": "103-1",
+   "role": "failure",
+   "ply": 59,
+   "type": "no-safe-found",
+   "total": 205,
+   "safe": 0
+  },
+  {
+   "key": "111-1",
+   "role": "failure",
+   "ply": 209,
+   "type": "no-safe-found",
+   "total": 141,
+   "safe": 0
+  }
+ ]
+}

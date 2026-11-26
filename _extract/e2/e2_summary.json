@@ -1,0 +1,799 @@
+{
+ "head": "unknown",
+ "t0": {
+  "decisions": 2891,
+  "failures": 17,
+  "controls": 23,
+  "missedWin": 0,
+  "missedDraw": 0,
+  "avoidable": 0,
+  "noSafeFound": 15,
+  "noSafeGames": 15,
+  "events": [
+   {
+    "key": "96-0",
+    "role": "failure",
+    "ply": 76,
+    "type": "no-safe-found",
+    "total": 197,
+    "safe": 0
+   },
+   {
+    "key": "96-1",
+    "role": "failure",
+    "ply": 81,
+    "type": "no-safe-found",
+    "total": 195,
+    "safe": 0
+   },
+   {
+    "key": "112-1",
+    "role": "failure",
+    "ply": 243,
+    "type": "no-safe-found",
+    "total": 138,
+    "safe": 0
+   },
+   {
+    "key": "97-0",
+    "role": "failure",
+    "ply": 80,
+    "type": "no-safe-found",
+    "total": 199,
+    "safe": 0
+   },
+   {
+    "key": "113-0",
+    "role": "failure",
+    "ply": 162,
+    "type": "no-safe-found",
+    "total": 149,
+    "safe": 0
+   },
+   {
+    "key": "98-1",
+    "role": "failure",
+    "ply": 85,
+    "type": "no-safe-found",
+    "total": 200,
+    "safe": 0
+   },
+   {
+    "key": "114-1",
+    "role": "failure",
+    "ply": 165,
+    "type": "no-safe-found",
+    "total": 176,
+    "safe": 0
+   },
+   {
+    "key": "102-0",
+    "role": "failure",
+    "ply": 68,
+    "type": "no-safe-found",
+    "total": 202,
+    "safe": 0
+   },
+   {
+    "key": "102-1",
+    "role": "failure",
+    "ply": 125,
+    "type": "no-safe-found",
+    "total": 177,
+    "safe": 0
+   },
+   {
+    "key": "110-0",
+    "role": "failure",
+    "ply": 174,
+    "type": "no-safe-found",
+    "total": 151,
+    "safe": 0
+   },
+   {
+    "key": "110-1",
+    "role": "failure",
+    "ply": 81,
+    "type": "no-safe-found",
+    "total": 196,
+    "safe": 0
+   },
+   {
+    "key": "95-0",
+    "role": "failure",
+    "ply": 208,
+    "type": "no-safe-found",
+    "total": 153,
+    "safe": 0
+   },
+   {
+    "key": "95-1",
+    "role": "failure",
+    "ply": 65,
+    "type": "no-safe-found",
+    "total": 207,
+    "safe": 0
+   },
+   {
+    "key": "103-1",
+    "role": "failure",
+    "ply": 59,
+    "type": "no-safe-found",
+    "total": 205,
+    "safe": 0
+   },
+   {
+    "key": "111-1",
+    "role": "failure",
+    "ply": 209,
+    "type": "no-safe-found",
+    "total": 141,
+    "safe": 0
+   }
+  ]
+ },
+ "sample": {
+  "risk": 17,
+  "controls": 8,
+  "states": 25
+ },
+ "agg": {
+  "risk": {
+   "states": 17,
+   "avgMaxF": 1.18,
+   "maxF": 2,
+   "highStates": 0,
+   "avgHigh": 0
+  },
+  "control": {
+   "states": 8,
+   "avgMaxF": 0.38,
+   "maxF": 1,
+   "highStates": 0,
+   "avgHigh": 0
+  }
+ },
+ "audits": [
+  {
+   "key": "96-0",
+   "role": "risk",
+   "dU0": 9,
+   "dT0": 4,
+   "pU": [
+    5,
+    5
+   ],
+   "pT": [
+    1,
+    1
+   ],
+   "maxF": 2,
+   "maxSelf": 2,
+   "bestWall": {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 1
+   },
+   "high": 0,
+   "exits": 1,
+   "wallsUsed": [
+    18,
+    10
+   ]
+  },
+  {
+   "key": "96-1",
+   "role": "risk",
+   "dU0": 14,
+   "dT0": 1,
+   "pU": [
+    4,
+    4
+   ],
+   "pT": [
+    1,
+    1
+   ],
+   "maxF": 2,
+   "maxSelf": 2,
+   "bestWall": {
+    "type": "wall",
+    "kind": "v",
+    "c": 3,
+    "r": 1
+   },
+   "high": 0,
+   "exits": 1,
+   "wallsUsed": [
+    14,
+    15
+   ]
+  },
+  {
+   "key": "112-0",
+   "role": "risk",
+   "dU0": 19,
+   "dT0": 7,
+   "pU": [
+    20,
+    24
+   ],
+   "pT": [
+    4,
+    4
+   ],
+   "maxF": 0,
+   "maxSelf": 0,
+   "bestWall": null,
+   "high": 0,
+   "exits": 1,
+   "wallsUsed": [
+    20,
+    13
+   ]
+  },
+  {
+   "key": "112-1",
+   "role": "risk",
+   "dU0": 42,
+   "dT0": 14,
+   "pU": [
+    20,
+    24
+   ],
+   "pT": [
+    1,
+    1
+   ],
+   "maxF": 0,
+   "maxSelf": 0,
+   "bestWall": null,
+   "high": 0,
+   "exits": 1,
+   "wallsUsed": [
+    21,
+    47
+   ]
+  },
+  {
+   "key": "97-0",
+   "role": "risk",
+   "dU0": 14,
+   "dT0": 1,
+   "pU": [
+    10,
+    10
+   ],
+   "pT": [
+    1,
+    1
+   ],
+   "maxF": 2,
+   "maxSelf": 2,
+   "bestWall": {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 0
+   },
+   "high": 0,
+   "exits": 1,
+   "wallsUsed": [
+    16,
+    16
+   ]
+  },
+  {
+   "key": "105-1",
+   "role": "risk",
+   "dU0": 12,
+   "dT0": 9,
+   "pU": [
+    2,
+    2
+   ],
+   "pT": [
+    2,
+    2
+   ],
+   "maxF": 0,
+   "maxSelf": 0,
+   "bestWall": null,
+   "high": 0,
+   "exits": 9,
+   "wallsUsed": [
+    9,
+    2
+   ]
+  },
+  {
+   "key": "113-0",
+   "role": "risk",
+   "dU0": 36,
+   "dT0": 10,
+   "pU": [
+    1,
+    1
+   ],
+   "pT": [
+    1,
+    1
+   ],
+   "maxF": 2,
+   "maxSelf": 2,
+   "bestWall": {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 7
+   },
+   "high": 0,
+   "exits": 1,
+   "wallsUsed": [
+    31,
+    26
+   ]
+  },
+  {
+   "key": "98-1",
+   "role": "risk",
+   "dU0": 12,
+   "dT0": 2,
+   "pU": [
+    10,
+    10
+   ],
+   "pT": [
+    1,
+    1
+   ],
+   "maxF": 0,
+   "maxSelf": 0,
+   "bestWall": null,
+   "high": 0,
+   "exits": 1,
+   "wallsUsed": [
+    12,
+    18
+   ]
+  },
+  {
+   "key": "114-1",
+   "role": "risk",
+   "dU0": 26,
+   "dT0": 10,
+   "pU": [
+    20,
+    24
+   ],
+   "pT": [
+    7,
+    7
+   ],
+   "maxF": 2,
+   "maxSelf": 2,
+   "bestWall": {
+    "type": "wall",
+    "kind": "v",
+    "c": 7,
+    "r": 2
+   },
+   "high": 0,
+   "exits": 1,
+   "wallsUsed": [
+    9,
+    19
+   ]
+  },
+  {
+   "key": "102-0",
+   "role": "risk",
+   "dU0": 16,
+   "dT0": 2,
+   "pU": [
+    20,
+    24
+   ],
+   "pT": [
+    1,
+    1
+   ],
+   "maxF": 2,
+   "maxSelf": 2,
+   "bestWall": {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 3
+   },
+   "high": 0,
+   "exits": 1,
+   "wallsUsed": [
+    12,
+    15
+   ]
+  },
+  {
+   "key": "102-1",
+   "role": "risk",
+   "dU0": 31,
+   "dT0": 8,
+   "pU": [
+    20,
+    24
+   ],
+   "pT": [
+    1,
+    1
+   ],
+   "maxF": 2,
+   "maxSelf": 2,
+   "bestWall": {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 1
+   },
+   "high": 0,
+   "exits": 1,
+   "wallsUsed": [
+    19,
+    28
+   ]
+  },
+  {
+   "key": "110-0",
+   "role": "risk",
+   "dU0": 37,
+   "dT0": 1,
+   "pU": [
+    20,
+    21
+   ],
+   "pT": [
+    1,
+    1
+   ],
+   "maxF": 2,
+   "maxSelf": 2,
+   "bestWall": {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 0
+   },
+   "high": 0,
+   "exits": 1,
+   "wallsUsed": [
+    33,
+    22
+   ]
+  },
+  {
+   "key": "110-1",
+   "role": "risk",
+   "dU0": 14,
+   "dT0": 2,
+   "pU": [
+    20,
+    24
+   ],
+   "pT": [
+    1,
+    1
+   ],
+   "maxF": 0,
+   "maxSelf": 0,
+   "bestWall": null,
+   "high": 0,
+   "exits": 1,
+   "wallsUsed": [
+    10,
+    10
+   ]
+  },
+  {
+   "key": "95-0",
+   "role": "risk",
+   "dU0": 38,
+   "dT0": 4,
+   "pU": [
+    20,
+    24
+   ],
+   "pT": [
+    1,
+    1
+   ],
+   "maxF": 2,
+   "maxSelf": 2,
+   "bestWall": {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 3
+   },
+   "high": 0,
+   "exits": 1,
+   "wallsUsed": [
+    36,
+    27
+   ]
+  },
+  {
+   "key": "95-1",
+   "role": "risk",
+   "dU0": 14,
+   "dT0": 1,
+   "pU": [
+    20,
+    24
+   ],
+   "pT": [
+    1,
+    1
+   ],
+   "maxF": 2,
+   "maxSelf": 2,
+   "bestWall": {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 0
+   },
+   "high": 0,
+   "exits": 1,
+   "wallsUsed": [
+    10,
+    13
+   ]
+  },
+  {
+   "key": "103-1",
+   "role": "risk",
+   "dU0": 17,
+   "dT0": 4,
+   "pU": [
+    20,
+    20
+   ],
+   "pT": [
+    1,
+    1
+   ],
+   "maxF": 0,
+   "maxSelf": 0,
+   "bestWall": null,
+   "high": 0,
+   "exits": 1,
+   "wallsUsed": [
+    9,
+    12
+   ]
+  },
+  {
+   "key": "111-1",
+   "role": "risk",
+   "dU0": 38,
+   "dT0": 6,
+   "pU": [
+    20,
+    24
+   ],
+   "pT": [
+    1,
+    1
+   ],
+   "maxF": 0,
+   "maxSelf": 0,
+   "bestWall": null,
+   "high": 0,
+   "exits": 1,
+   "wallsUsed": [
+    15,
+    51
+   ]
+  },
+  {
+   "key": "104-0",
+   "role": "control",
+   "dU0": 10,
+   "dT0": 12,
+   "pU": [
+    1,
+    1
+   ],
+   "pT": [
+    1,
+    1
+   ],
+   "maxF": 1,
+   "maxSelf": 1,
+   "bestWall": {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 0
+   },
+   "high": 0,
+   "exits": 10,
+   "wallsUsed": [
+    0,
+    0
+   ]
+  },
+  {
+   "key": "104-1",
+   "role": "control",
+   "dU0": 15,
+   "dT0": 11,
+   "pU": [
+    4,
+    4
+   ],
+   "pT": [
+    1,
+    1
+   ],
+   "maxF": 1,
+   "maxSelf": 1,
+   "bestWall": {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 0
+   },
+   "high": 0,
+   "exits": 9,
+   "wallsUsed": [
+    4,
+    3
+   ]
+  },
+  {
+   "key": "97-1",
+   "role": "control",
+   "dU0": 10,
+   "dT0": 8,
+   "pU": [
+    15,
+    15
+   ],
+   "pT": [
+    14,
+    14
+   ],
+   "maxF": 1,
+   "maxSelf": 1,
+   "bestWall": {
+    "type": "wall",
+    "kind": "v",
+    "c": 7,
+    "r": 7
+   },
+   "high": 0,
+   "exits": 7,
+   "wallsUsed": [
+    2,
+    4
+   ]
+  },
+  {
+   "key": "105-0",
+   "role": "control",
+   "dU0": 15,
+   "dT0": 7,
+   "pU": [
+    20,
+    24
+   ],
+   "pT": [
+    2,
+    2
+   ],
+   "maxF": 0,
+   "maxSelf": 0,
+   "bestWall": null,
+   "high": 0,
+   "exits": 1,
+   "wallsUsed": [
+    24,
+    7
+   ]
+  },
+  {
+   "key": "113-1",
+   "role": "control",
+   "dU0": 25,
+   "dT0": 8,
+   "pU": [
+    18,
+    18
+   ],
+   "pT": [
+    1,
+    1
+   ],
+   "maxF": 0,
+   "maxSelf": 0,
+   "bestWall": null,
+   "high": 0,
+   "exits": 1,
+   "wallsUsed": [
+    12,
+    29
+   ]
+  },
+  {
+   "key": "98-0",
+   "role": "control",
+   "dU0": 13,
+   "dT0": 6,
+   "pU": [
+    20,
+    24
+   ],
+   "pT": [
+    3,
+    3
+   ],
+   "maxF": 0,
+   "maxSelf": 0,
+   "bestWall": null,
+   "high": 0,
+   "exits": 1,
+   "wallsUsed": [
+    13,
+    11
+   ]
+  },
+  {
+   "key": "106-0",
+   "role": "control",
+   "dU0": 9,
+   "dT0": 4,
+   "pU": [
+    20,
+    24
+   ],
+   "pT": [
+    1,
+    1
+   ],
+   "maxF": 0,
+   "maxSelf": 0,
+   "bestWall": null,
+   "high": 0,
+   "exits": 1,
+   "wallsUsed": [
+    17,
+    13
+   ]
+  },
+  {
+   "key": "106-1",
+   "role": "control",
+   "dU0": 11,
+   "dT0": 12,
+   "pU": [
+    2,
+    2
+   ],
+   "pT": [
+    1,
+    1
+   ],
+   "maxF": 0,
+   "maxSelf": 0,
+   "bestWall": null,
+   "high": 0,
+   "exits": 10,
+   "wallsUsed": [
+    1,
+    0
+   ]
+  }
+ ],
+ "hash": "7bf96f407dffb43b"
+}
