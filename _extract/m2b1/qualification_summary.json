@@ -1,0 +1,159 @@
+{
+ "cases": 28,
+ "legacyMedianMs": 43,
+ "raceMedianMs": 45,
+ "costPct": 4.7,
+ "missedImmediate": 0,
+ "ruleCases": [
+  {
+   "key": "rule-first-can-only-draw",
+   "immediate": 0,
+   "action": {
+    "type": "move",
+    "dir": "up"
+   },
+   "race": "W"
+  },
+  {
+   "key": "rule-second-exit-wins",
+   "immediate": 1,
+   "action": {
+    "type": "move",
+    "dir": "up"
+   },
+   "race": "W"
+  },
+  {
+   "key": "rule-single-exit",
+   "immediate": null,
+   "action": {
+    "type": "move",
+    "dir": "up"
+   },
+   "race": "W"
+  },
+  {
+   "key": "rule-opponent-threat",
+   "immediate": null,
+   "action": {
+    "type": "wall",
+    "kind": "top",
+    "c": 6,
+    "r": 0
+   },
+   "race": "L"
+  }
+ ],
+ "parityCases": [
+  {
+   "key": "95-0",
+   "legacy": [
+    {
+     "d": 5,
+     "score": 5166,
+     "action": {
+      "type": "move",
+      "dir": "right"
+     }
+    },
+    {
+     "d": 6,
+     "score": -5194,
+     "action": {
+      "type": "move",
+      "dir": "up"
+     }
+    },
+    {
+     "d": 7,
+     "score": -5449,
+     "action": {
+      "type": "move",
+      "dir": "up"
+     }
+    }
+   ],
+   "race": [
+    {
+     "d": 5,
+     "score": -5461,
+     "action": {
+      "type": "move",
+      "dir": "right"
+     }
+    },
+    {
+     "d": 6,
+     "score": -5194,
+     "action": {
+      "type": "move",
+      "dir": "up"
+     }
+    },
+    {
+     "d": 7,
+     "score": -5486,
+     "action": {
+      "type": "move",
+      "dir": "up"
+     }
+    }
+   ]
+  },
+  {
+   "key": "106-0",
+   "legacy": [
+    {
+     "d": 5,
+     "score": -5660,
+     "action": {
+      "type": "move",
+      "dir": "left"
+     }
+    },
+    {
+     "d": 6,
+     "score": -5166,
+     "action": {
+      "type": "move",
+      "dir": "left"
+     }
+    },
+    {
+     "d": 7,
+     "score": 5146,
+     "action": {
+      "type": "move",
+      "dir": "left"
+     }
+    }
+   ],
+   "race": [
+    {
+     "d": 5,
+     "score": -5665,
+     "action": {
+      "type": "move",
+      "dir": "left"
+     }
+    },
+    {
+     "d": 6,
+     "score": -5155,
+     "action": {
+      "type": "move",
+      "dir": "left"
+     }
+    },
+    {
+     "d": 7,
+     "score": -5654,
+     "action": {
+      "type": "move",
+      "dir": "left"
+     }
+    }
+   ]
+  }
+ ]
+}
