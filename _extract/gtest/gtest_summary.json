@@ -1,0 +1,150 @@
+{
+ "counts": {
+  "G7": {
+   "total": 40,
+   "hell_win": 11,
+   "draw": 4,
+   "hell_loss": 14,
+   "unfinished": 11,
+   "completed": 29,
+   "completionRate": 0.725,
+   "winRate": 0.275,
+   "winRateCompleted": 0.3793,
+   "drawRate": 0.1,
+   "lossRate": 0.35,
+   "score": 0.325,
+   "reasons": {
+    "normal_terminal": 29,
+    "ply_cap": 11
+   },
+   "seats": {
+    "0": {
+     "win": 5,
+     "draw": 1,
+     "loss": 8,
+     "unfinished": 6
+    },
+    "1": {
+     "win": 6,
+     "draw": 3,
+     "loss": 6,
+     "unfinished": 5
+    }
+   }
+  },
+  "G9": {
+   "total": 40,
+   "hell_win": 13,
+   "draw": 5,
+   "hell_loss": 16,
+   "unfinished": 6,
+   "completed": 34,
+   "completionRate": 0.85,
+   "winRate": 0.325,
+   "winRateCompleted": 0.3824,
+   "drawRate": 0.125,
+   "lossRate": 0.4,
+   "score": 0.3875,
+   "reasons": {
+    "normal_terminal": 34,
+    "ply_cap": 6
+   },
+   "seats": {
+    "0": {
+     "win": 4,
+     "draw": 1,
+     "loss": 11,
+     "unfinished": 4
+    },
+    "1": {
+     "win": 9,
+     "draw": 4,
+     "loss": 5,
+     "unfinished": 2
+    }
+   }
+  }
+ },
+ "paired": {
+  "mean": 0.0625,
+  "ci": [
+   -0.0875,
+   0.2125
+  ],
+  "changedCategories": 23
+ },
+ "uSensitivity": [
+  {
+   "u": 0,
+   "mean": 0.0625
+  },
+  {
+   "u": 0.5,
+   "mean": 0
+  },
+  {
+   "u": 1,
+   "mean": -0.0625
+  }
+ ],
+ "transitions": {
+  "hell_win": {
+   "hell_win": 5,
+   "draw": 0,
+   "hell_loss": 4,
+   "unfinished": 2
+  },
+  "draw": {
+   "hell_win": 1,
+   "draw": 1,
+   "hell_loss": 2,
+   "unfinished": 0
+  },
+  "hell_loss": {
+   "hell_win": 6,
+   "draw": 1,
+   "hell_loss": 7,
+   "unfinished": 0
+  },
+  "unfinished": {
+   "hell_win": 1,
+   "draw": 3,
+   "hell_loss": 3,
+   "unfinished": 4
+  }
+ },
+ "timing": {
+  "G7": {
+   "extMax": 2911,
+   "extP99": 2911,
+   "over3000": 0,
+   "depthAvg": 6.7,
+   "nodesAvg": 6891,
+   "endgameMoves": 126
+  },
+  "G9": {
+   "extMax": 2947,
+   "extP99": 2942,
+   "over3000": 0,
+   "depthAvg": 7.89,
+   "nodesAvg": 17872,
+   "endgameMoves": 179
+  }
+ },
+ "gates": {
+  "relative": {
+   "winNotLower": true,
+   "lossAtLeastTwoBetter": false,
+   "riskNotUp": true,
+   "scoreNotLower": true,
+   "noOver": true
+  },
+  "absolute": {
+   "wins28": false,
+   "loss4": false,
+   "u0": false
+  },
+  "relativePass": false,
+  "absolutePass": false
+ }
+}
