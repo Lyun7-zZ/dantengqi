@@ -1,0 +1,28 @@
+{
+ "head": "d7cff361e3cebe390acac6c3ec6a16c6560289ed",
+ "wallLimit": [
+  null,
+  null
+ ],
+ "states": 2891,
+ "agg": {
+  "risk": {
+   "games": 17,
+   "decisions": 1146,
+   "zeroWallGames": 0,
+   "zeroWallStates": 0,
+   "minWalls": 103,
+   "smallStates": 3
+  },
+  "control": {
+   "games": 23,
+   "decisions": 1745,
+   "zeroWallGames": 0,
+   "zeroWallStates": 0,
+   "minWalls": 71,
+   "smallStates": 39
+  }
+ },
+ "f1Justified": false,
+ "note": "F1 资格要求至少 3 个独立风险开局存在可证明子空间；本审计只看墙耗尽/小状态覆盖，不等于可解。"
+}

@@ -1,0 +1,81 @@
+{
+  "schema": "dantengqi.v2.manifest.v1",
+  "createdAt": "2026-11-26",
+  "baseCommit": "d7cff36",
+  "frozenBaseline": "H1+C",
+  "configs": {
+    "H1+C": {
+      "timeMs": 3000,
+      "maxDepth": 12,
+      "endgameDepth": 12,
+      "routeWalls": 6,
+      "pathCache": true,
+      "evalRaceMode": "legacy",
+      "returnBuffer": 100,
+      "smartExit": true,
+      "usePlan": true,
+      "netWalls": true,
+      "avoidRepeat": true,
+      "repeatPenalty": 160,
+      "planMoves": true,
+      "planFallback": true,
+      "necessaryPathGuard": "soft"
+    },
+    "H0+C": {
+      "timeMs": 3000,
+      "maxDepth": 12,
+      "endgameDepth": 12,
+      "routeWalls": 3,
+      "pathCache": true,
+      "evalRaceMode": "legacy",
+      "returnBuffer": 100,
+      "smartExit": true
+    },
+    "fixedGrandmaster": {
+      "timeMs": 3000,
+      "maxDepth": 7,
+      "endgameDepth": 9,
+      "returnBuffer": 0,
+      "usePlan": true,
+      "netWalls": true,
+      "avoidRepeat": true,
+      "repeatPenalty": 160,
+      "planMoves": true,
+      "planFallback": true,
+      "necessaryPathGuard": "soft"
+    },
+    "hell28s": {
+      "timeMs": 28000,
+      "maxDepth": 12,
+      "endgameDepth": 12,
+      "routeWalls": 6,
+      "smartExit": true,
+      "unchanged": true
+    }
+  },
+  "openings": {
+    "used": "0-134",
+    "note": "0-54 M0/M1; 55-74 B2; 75-94 B2b; 95-114 B2b/M2a; 115-134 G-test。V2 实验须使用 135+ 全新开局。"
+  },
+  "history": {
+    "M0-E2": "docs/archive/宗师Plus/manifest.json",
+    "reports": 12,
+    "frozenTag": "grandmaster-plus-h1c-legacy-freeze-2026-11-26"
+  },
+  "f0Coverage": {
+    "wallLimit": "Infinity",
+    "statesAudited": 2891,
+    "zeroLegalWallStates": 0,
+    "minLegalWallsRisk": 103,
+    "minLegalWallsControl": 71,
+    "smallStatesRisk": 3,
+    "smallStatesControl": 39,
+    "f1Justified": false
+  },
+  "missingEvidence": [
+    "历史对局缺逐手候选/入搜/来源日志",
+    "缺多种子续局标签",
+    "缺统一外部计时与决策出口记录"
+  ],
+  "next": "V2-1 候选质量原型（需另行授权）"
+}
