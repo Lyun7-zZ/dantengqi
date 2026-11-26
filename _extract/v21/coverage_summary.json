@@ -5,23 +5,44 @@
    "states": 16,
    "valid": 16,
    "baselineInR": 15,
-   "baselineInTop6": 16,
-   "medianRank": 8
+   "medianStaticRank": 8,
+   "medianRefRank": 5,
+   "forcedBaseline": 9,
+   "tol": {
+    "0": 2,
+    "50": 15,
+    "100": 15,
+    "200": 15
+   }
   },
   "control": {
    "states": 8,
    "valid": 8,
    "baselineInR": 7,
-   "baselineInTop6": 8,
-   "medianRank": 5
+   "medianStaticRank": 5,
+   "medianRefRank": 6,
+   "forcedBaseline": 2,
+   "tol": {
+    "0": 2,
+    "50": 7,
+    "100": 7,
+    "200": 7
+   }
   },
   "boundary": {
    "states": 8,
    "valid": 8,
    "baselineInR": 0,
-   "baselineInTop6": 0,
-   "medianRank": null
+   "medianStaticRank": null,
+   "medianRefRank": null,
+   "forcedBaseline": 0,
+   "tol": {
+    "0": 0,
+    "50": 0,
+    "100": 0,
+    "200": 0
+   }
   }
  },
- "hash": "e54082b544ca139d"
+ "hash": "5aeb0209d3494ea5"
 }

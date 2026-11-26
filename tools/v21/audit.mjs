@@ -92,7 +92,8 @@ for (const c of cases) {
   l1.sort((x, y) => y.v - x.v);
   const best = l1[0]?.v ?? null;
   const top = l1.slice(0, 6);
-  if (c.actual && !top.some((x) => JSON.stringify(x.a) === JSON.stringify(c.actual))) {
+  const forced = !!(c.actual && !top.some((x) => JSON.stringify(x.a) === JSON.stringify(c.actual)));
+  if (forced) {
     const av = l1.find((x) => JSON.stringify(x.a) === JSON.stringify(c.actual));
     if (av) top.push(av);
   }
@@ -102,9 +103,14 @@ for (const c of cases) {
   const R = valid.filter((x) => x.v2 >= refBest - 100);
   const actualKey = JSON.stringify(c.actual);
   const inR = c.actual ? R.some((x) => JSON.stringify(x.a) === actualKey) : null;
-  const actualRank = c.actual ? l1.findIndex((x) => JSON.stringify(x.a) === actualKey) + 1 : null;
+  const staticRank = c.actual ? l1.findIndex((x) => JSON.stringify(x.a) === actualKey) + 1 : null;
+  const refSorted = [...valid].sort((x, y) => y.v2 - x.v2);
+  const refRank = c.actual ? refSorted.findIndex((x) => JSON.stringify(x.a) === actualKey) + 1 : null;
+  const actualL2 = c.actual ? (valid.find((x) => JSON.stringify(x.a) === actualKey)?.v2 ?? null) : null;
+  const tol = {};
+  for (const t of [0, 50, 100, 200]) tol[t] = c.actual ? valid.some((x) => JSON.stringify(x.a) === actualKey && x.v2 >= refBest - t) : null;
   perCase.push({ key: c.key, role: c.role, legal: acts.length, top: l1.length, valid: valid.length,
-    refBest, inR, actualRank, actualInTop6: c.actual ? top.some((x) => JSON.stringify(x.a) === actualKey) : null,
+    refBest, inR, staticRank, refRank, actualL2, forced, tol,
     R: R.map((x) => x.a) });
   for (const x of l2) rowsOut.push({ key: c.key, role: c.role, action: x.a, l1: x.v, l2: x.v2,
     inR: R.some((y) => JSON.stringify(y.a) === JSON.stringify(x.a)) });
@@ -114,9 +120,13 @@ disablePathCache();
 const summ = {};
 for (const role of ["risk", "control", "boundary"]) {
   const xs = perCase.filter((x) => x.role === role);
+  const med = (arr) => arr.length ? arr.slice().sort((a, b) => a - b)[Math.floor(arr.length / 2)] : null;
   summ[role] = { states: xs.length, valid: xs.filter((x) => x.valid > 0).length,
-    baselineInR: xs.filter((x) => x.inR === true).length, baselineInTop6: xs.filter((x) => x.actualInTop6 === true).length,
-    medianRank: xs.filter((x) => x.actualRank).map((x) => x.actualRank).sort((a, b) => a - b)[Math.floor(xs.length / 2)] || null };
+    baselineInR: xs.filter((x) => x.inR === true).length,
+    medianStaticRank: med(xs.filter((x) => x.staticRank).map((x) => x.staticRank)),
+    medianRefRank: med(xs.filter((x) => x.refRank).map((x) => x.refRank)),
+    forcedBaseline: xs.filter((x) => x.forced).length,
+    tol: Object.fromEntries([0, 50, 100, 200].map((t) => [t, xs.filter((x) => x.tol[t] === true).length])) };
 }
 const out = { cases: perCase.length, summary: summ, hash: createHash("sha256").update(JSON.stringify(perCase)).digest("hex").slice(0, 16) };
 writeFileSync(`${OUT}/coverage_summary.json`, JSON.stringify(out, null, 1));
