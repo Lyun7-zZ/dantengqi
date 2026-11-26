@@ -1,0 +1,77 @@
+{
+ "head": "ff18a37f3710b1ad933613ffe91d0aaf5f10c32b",
+ "change": {
+  "key": "112-0",
+  "legacy": {
+   "action": {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 9
+   },
+   "score": 5523,
+   "legal": true
+  },
+  "race": {
+   "action": {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 8
+   },
+   "score": 5549,
+   "legal": true
+  },
+  "sameValueClass": true,
+  "restored": true
+ },
+ "cost": {
+  "legacyMedianMs": 32,
+  "raceMedianMs": 41,
+  "legacyMedianNodes": 1443,
+  "raceMedianNodes": 1527,
+  "legacyPerNode": 0.0329,
+  "racePerNode": 0.034,
+  "overheadPct": 28.13
+ },
+ "restoreOk": true,
+ "protect": [
+  {
+   "key": "rule-first-draw",
+   "immediate": "draw",
+   "action": {
+    "type": "move",
+    "dir": "up"
+   },
+   "legal": true
+  },
+  {
+   "key": "rule-second-win",
+   "immediate": 1,
+   "action": {
+    "type": "move",
+    "dir": "up"
+   },
+   "legal": true
+  },
+  {
+   "key": "rule-threat",
+   "immediate": null,
+   "action": {
+    "type": "wall",
+    "kind": "top",
+    "c": 6,
+    "r": 0
+   },
+   "legal": true
+  }
+ ],
+ "files": {
+  "tools/m2b1/oracle.mjs": "b7396130a958d9b0ad7fd76e84904e11f20cbd6f1ecdc54e31851f4e07064a58",
+  "tools/m2b1/qualify.mjs": "25ba0698f9c190c48d1dea3f751fa40ef01b12ec311c88f5ff2122df353432a1",
+  "src/ai-master.js": "0281dfe9bdd79814837718bce41e29c68736d68d94b2f5111e9452cd2d8f725c",
+  "src/plus-config.js": "616414ff21ff02b7af2d8fb73a0e9eeedca6bd20adf227b4cf6f611842478a7c",
+  "_extract/m2b1/rule_oracle.json": "440c9077bfea798fd4187387fe1fbac7667e2177a1931a17456e1fa7f368d049",
+  "_extract/m2b1/eval_trace.jsonl": "3ef32319c6d78d176351e019ec49a10d90a5d9804faa2049b32e21ada0213942"
+ }
+}

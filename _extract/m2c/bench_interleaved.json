@@ -1,0 +1,1102 @@
+[
+ {
+  "key": "112-0",
+  "rep": 0,
+  "mode": "legacy",
+  "action": {
+   "type": "wall",
+   "kind": "v",
+   "c": 4,
+   "r": 9
+  },
+  "score": 5523,
+  "nodes": 930,
+  "wall": 43,
+  "restored": "legacy"
+ },
+ {
+  "key": "112-0",
+  "rep": 0,
+  "mode": "race",
+  "action": {
+   "type": "wall",
+   "kind": "v",
+   "c": 5,
+   "r": 8
+  },
+  "score": 5549,
+  "nodes": 1295,
+  "wall": 47,
+  "restored": "legacy"
+ },
+ {
+  "key": "112-0",
+  "rep": 1,
+  "mode": "race",
+  "action": {
+   "type": "wall",
+   "kind": "v",
+   "c": 5,
+   "r": 8
+  },
+  "score": 5549,
+  "nodes": 1295,
+  "wall": 45,
+  "restored": "legacy"
+ },
+ {
+  "key": "112-0",
+  "rep": 1,
+  "mode": "legacy",
+  "action": {
+   "type": "wall",
+   "kind": "v",
+   "c": 4,
+   "r": 9
+  },
+  "score": 5523,
+  "nodes": 930,
+  "wall": 33,
+  "restored": "legacy"
+ },
+ {
+  "key": "112-0",
+  "rep": 2,
+  "mode": "legacy",
+  "action": {
+   "type": "wall",
+   "kind": "v",
+   "c": 4,
+   "r": 9
+  },
+  "score": 5523,
+  "nodes": 930,
+  "wall": 32,
+  "restored": "legacy"
+ },
+ {
+  "key": "112-0",
+  "rep": 2,
+  "mode": "race",
+  "action": {
+   "type": "wall",
+   "kind": "v",
+   "c": 5,
+   "r": 8
+  },
+  "score": 5549,
+  "nodes": 1295,
+  "wall": 45,
+  "restored": "legacy"
+ },
+ {
+  "key": "112-0",
+  "rep": 3,
+  "mode": "race",
+  "action": {
+   "type": "wall",
+   "kind": "v",
+   "c": 5,
+   "r": 8
+  },
+  "score": 5549,
+  "nodes": 1295,
+  "wall": 44,
+  "restored": "legacy"
+ },
+ {
+  "key": "112-0",
+  "rep": 3,
+  "mode": "legacy",
+  "action": {
+   "type": "wall",
+   "kind": "v",
+   "c": 4,
+   "r": 9
+  },
+  "score": 5523,
+  "nodes": 930,
+  "wall": 32,
+  "restored": "legacy"
+ },
+ {
+  "key": "112-0",
+  "rep": 4,
+  "mode": "legacy",
+  "action": {
+   "type": "wall",
+   "kind": "v",
+   "c": 4,
+   "r": 9
+  },
+  "score": 5523,
+  "nodes": 930,
+  "wall": 35,
+  "restored": "legacy"
+ },
+ {
+  "key": "112-0",
+  "rep": 4,
+  "mode": "race",
+  "action": {
+   "type": "wall",
+   "kind": "v",
+   "c": 5,
+   "r": 8
+  },
+  "score": 5549,
+  "nodes": 1295,
+  "wall": 46,
+  "restored": "legacy"
+ },
+ {
+  "key": "95-0",
+  "rep": 0,
+  "mode": "legacy",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "score": -5194,
+  "nodes": 448,
+  "wall": 20,
+  "restored": "legacy"
+ },
+ {
+  "key": "95-0",
+  "rep": 0,
+  "mode": "race",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "score": -5194,
+  "nodes": 453,
+  "wall": 20,
+  "restored": "legacy"
+ },
+ {
+  "key": "95-0",
+  "rep": 1,
+  "mode": "race",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "score": -5194,
+  "nodes": 453,
+  "wall": 19,
+  "restored": "legacy"
+ },
+ {
+  "key": "95-0",
+  "rep": 1,
+  "mode": "legacy",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "score": -5194,
+  "nodes": 448,
+  "wall": 19,
+  "restored": "legacy"
+ },
+ {
+  "key": "95-0",
+  "rep": 2,
+  "mode": "legacy",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "score": -5194,
+  "nodes": 448,
+  "wall": 18,
+  "restored": "legacy"
+ },
+ {
+  "key": "95-0",
+  "rep": 2,
+  "mode": "race",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "score": -5194,
+  "nodes": 453,
+  "wall": 20,
+  "restored": "legacy"
+ },
+ {
+  "key": "95-0",
+  "rep": 3,
+  "mode": "race",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "score": -5194,
+  "nodes": 453,
+  "wall": 19,
+  "restored": "legacy"
+ },
+ {
+  "key": "95-0",
+  "rep": 3,
+  "mode": "legacy",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "score": -5194,
+  "nodes": 448,
+  "wall": 19,
+  "restored": "legacy"
+ },
+ {
+  "key": "95-0",
+  "rep": 4,
+  "mode": "legacy",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "score": -5194,
+  "nodes": 448,
+  "wall": 18,
+  "restored": "legacy"
+ },
+ {
+  "key": "95-0",
+  "rep": 4,
+  "mode": "race",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "score": -5194,
+  "nodes": 453,
+  "wall": 20,
+  "restored": "legacy"
+ },
+ {
+  "key": "106-0",
+  "rep": 0,
+  "mode": "legacy",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "score": 5698,
+  "nodes": 1480,
+  "wall": 46,
+  "restored": "legacy"
+ },
+ {
+  "key": "106-0",
+  "rep": 0,
+  "mode": "race",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "score": 5698,
+  "nodes": 1527,
+  "wall": 49,
+  "restored": "legacy"
+ },
+ {
+  "key": "106-0",
+  "rep": 1,
+  "mode": "race",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "score": 5698,
+  "nodes": 1527,
+  "wall": 50,
+  "restored": "legacy"
+ },
+ {
+  "key": "106-0",
+  "rep": 1,
+  "mode": "legacy",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "score": 5698,
+  "nodes": 1480,
+  "wall": 44,
+  "restored": "legacy"
+ },
+ {
+  "key": "106-0",
+  "rep": 2,
+  "mode": "legacy",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "score": 5698,
+  "nodes": 1480,
+  "wall": 44,
+  "restored": "legacy"
+ },
+ {
+  "key": "106-0",
+  "rep": 2,
+  "mode": "race",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "score": 5698,
+  "nodes": 1527,
+  "wall": 45,
+  "restored": "legacy"
+ },
+ {
+  "key": "106-0",
+  "rep": 3,
+  "mode": "race",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "score": 5698,
+  "nodes": 1527,
+  "wall": 48,
+  "restored": "legacy"
+ },
+ {
+  "key": "106-0",
+  "rep": 3,
+  "mode": "legacy",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "score": 5698,
+  "nodes": 1480,
+  "wall": 45,
+  "restored": "legacy"
+ },
+ {
+  "key": "106-0",
+  "rep": 4,
+  "mode": "legacy",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "score": 5698,
+  "nodes": 1480,
+  "wall": 45,
+  "restored": "legacy"
+ },
+ {
+  "key": "106-0",
+  "rep": 4,
+  "mode": "race",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "score": 5698,
+  "nodes": 1527,
+  "wall": 46,
+  "restored": "legacy"
+ },
+ {
+  "key": "96-0",
+  "rep": 0,
+  "mode": "legacy",
+  "action": {
+   "type": "wall",
+   "kind": "v",
+   "c": 2,
+   "r": 1
+  },
+  "score": -5201,
+  "nodes": 4100,
+  "wall": 78,
+  "restored": "legacy"
+ },
+ {
+  "key": "96-0",
+  "rep": 0,
+  "mode": "race",
+  "action": {
+   "type": "wall",
+   "kind": "v",
+   "c": 2,
+   "r": 1
+  },
+  "score": -5201,
+  "nodes": 4100,
+  "wall": 80,
+  "restored": "legacy"
+ },
+ {
+  "key": "96-0",
+  "rep": 1,
+  "mode": "race",
+  "action": {
+   "type": "wall",
+   "kind": "v",
+   "c": 2,
+   "r": 1
+  },
+  "score": -5201,
+  "nodes": 4100,
+  "wall": 86,
+  "restored": "legacy"
+ },
+ {
+  "key": "96-0",
+  "rep": 1,
+  "mode": "legacy",
+  "action": {
+   "type": "wall",
+   "kind": "v",
+   "c": 2,
+   "r": 1
+  },
+  "score": -5201,
+  "nodes": 4100,
+  "wall": 80,
+  "restored": "legacy"
+ },
+ {
+  "key": "96-0",
+  "rep": 2,
+  "mode": "legacy",
+  "action": {
+   "type": "wall",
+   "kind": "v",
+   "c": 2,
+   "r": 1
+  },
+  "score": -5201,
+  "nodes": 4100,
+  "wall": 77,
+  "restored": "legacy"
+ },
+ {
+  "key": "96-0",
+  "rep": 2,
+  "mode": "race",
+  "action": {
+   "type": "wall",
+   "kind": "v",
+   "c": 2,
+   "r": 1
+  },
+  "score": -5201,
+  "nodes": 4100,
+  "wall": 79,
+  "restored": "legacy"
+ },
+ {
+  "key": "96-0",
+  "rep": 3,
+  "mode": "race",
+  "action": {
+   "type": "wall",
+   "kind": "v",
+   "c": 2,
+   "r": 1
+  },
+  "score": -5201,
+  "nodes": 4100,
+  "wall": 80,
+  "restored": "legacy"
+ },
+ {
+  "key": "96-0",
+  "rep": 3,
+  "mode": "legacy",
+  "action": {
+   "type": "wall",
+   "kind": "v",
+   "c": 2,
+   "r": 1
+  },
+  "score": -5201,
+  "nodes": 4100,
+  "wall": 74,
+  "restored": "legacy"
+ },
+ {
+  "key": "96-0",
+  "rep": 4,
+  "mode": "legacy",
+  "action": {
+   "type": "wall",
+   "kind": "v",
+   "c": 2,
+   "r": 1
+  },
+  "score": -5201,
+  "nodes": 4100,
+  "wall": 78,
+  "restored": "legacy"
+ },
+ {
+  "key": "96-0",
+  "rep": 4,
+  "mode": "race",
+  "action": {
+   "type": "wall",
+   "kind": "v",
+   "c": 2,
+   "r": 1
+  },
+  "score": -5201,
+  "nodes": 4100,
+  "wall": 80,
+  "restored": "legacy"
+ },
+ {
+  "key": "113-0",
+  "rep": 0,
+  "mode": "legacy",
+  "action": {
+   "type": "wall",
+   "kind": "v",
+   "c": 7,
+   "r": 2
+  },
+  "score": -5323,
+  "nodes": 1186,
+  "wall": 39,
+  "restored": "legacy"
+ },
+ {
+  "key": "113-0",
+  "rep": 0,
+  "mode": "race",
+  "action": {
+   "type": "wall",
+   "kind": "v",
+   "c": 7,
+   "r": 2
+  },
+  "score": -5323,
+  "nodes": 1186,
+  "wall": 44,
+  "restored": "legacy"
+ },
+ {
+  "key": "113-0",
+  "rep": 1,
+  "mode": "race",
+  "action": {
+   "type": "wall",
+   "kind": "v",
+   "c": 7,
+   "r": 2
+  },
+  "score": -5323,
+  "nodes": 1186,
+  "wall": 41,
+  "restored": "legacy"
+ },
+ {
+  "key": "113-0",
+  "rep": 1,
+  "mode": "legacy",
+  "action": {
+   "type": "wall",
+   "kind": "v",
+   "c": 7,
+   "r": 2
+  },
+  "score": -5323,
+  "nodes": 1186,
+  "wall": 42,
+  "restored": "legacy"
+ },
+ {
+  "key": "113-0",
+  "rep": 2,
+  "mode": "legacy",
+  "action": {
+   "type": "wall",
+   "kind": "v",
+   "c": 7,
+   "r": 2
+  },
+  "score": -5323,
+  "nodes": 1186,
+  "wall": 42,
+  "restored": "legacy"
+ },
+ {
+  "key": "113-0",
+  "rep": 2,
+  "mode": "race",
+  "action": {
+   "type": "wall",
+   "kind": "v",
+   "c": 7,
+   "r": 2
+  },
+  "score": -5323,
+  "nodes": 1186,
+  "wall": 43,
+  "restored": "legacy"
+ },
+ {
+  "key": "113-0",
+  "rep": 3,
+  "mode": "race",
+  "action": {
+   "type": "wall",
+   "kind": "v",
+   "c": 7,
+   "r": 2
+  },
+  "score": -5323,
+  "nodes": 1186,
+  "wall": 45,
+  "restored": "legacy"
+ },
+ {
+  "key": "113-0",
+  "rep": 3,
+  "mode": "legacy",
+  "action": {
+   "type": "wall",
+   "kind": "v",
+   "c": 7,
+   "r": 2
+  },
+  "score": -5323,
+  "nodes": 1186,
+  "wall": 41,
+  "restored": "legacy"
+ },
+ {
+  "key": "113-0",
+  "rep": 4,
+  "mode": "legacy",
+  "action": {
+   "type": "wall",
+   "kind": "v",
+   "c": 7,
+   "r": 2
+  },
+  "score": -5323,
+  "nodes": 1186,
+  "wall": 40,
+  "restored": "legacy"
+ },
+ {
+  "key": "113-0",
+  "rep": 4,
+  "mode": "race",
+  "action": {
+   "type": "wall",
+   "kind": "v",
+   "c": 7,
+   "r": 2
+  },
+  "score": -5323,
+  "nodes": 1186,
+  "wall": 42,
+  "restored": "legacy"
+ },
+ {
+  "key": "rule-first-draw",
+  "rep": 0,
+  "mode": "legacy",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "score": 0,
+  "nodes": 767,
+  "wall": 11,
+  "restored": "legacy"
+ },
+ {
+  "key": "rule-first-draw",
+  "rep": 0,
+  "mode": "race",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "score": 0,
+  "nodes": 561,
+  "wall": 8,
+  "restored": "legacy"
+ },
+ {
+  "key": "rule-first-draw",
+  "rep": 1,
+  "mode": "race",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "score": 0,
+  "nodes": 561,
+  "wall": 7,
+  "restored": "legacy"
+ },
+ {
+  "key": "rule-first-draw",
+  "rep": 1,
+  "mode": "legacy",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "score": 0,
+  "nodes": 767,
+  "wall": 9,
+  "restored": "legacy"
+ },
+ {
+  "key": "rule-first-draw",
+  "rep": 2,
+  "mode": "legacy",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "score": 0,
+  "nodes": 767,
+  "wall": 9,
+  "restored": "legacy"
+ },
+ {
+  "key": "rule-first-draw",
+  "rep": 2,
+  "mode": "race",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "score": 0,
+  "nodes": 561,
+  "wall": 7,
+  "restored": "legacy"
+ },
+ {
+  "key": "rule-first-draw",
+  "rep": 3,
+  "mode": "race",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "score": 0,
+  "nodes": 561,
+  "wall": 8,
+  "restored": "legacy"
+ },
+ {
+  "key": "rule-first-draw",
+  "rep": 3,
+  "mode": "legacy",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "score": 0,
+  "nodes": 767,
+  "wall": 9,
+  "restored": "legacy"
+ },
+ {
+  "key": "rule-first-draw",
+  "rep": 4,
+  "mode": "legacy",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "score": 0,
+  "nodes": 767,
+  "wall": 9,
+  "restored": "legacy"
+ },
+ {
+  "key": "rule-first-draw",
+  "rep": 4,
+  "mode": "race",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "score": 0,
+  "nodes": 561,
+  "wall": 7,
+  "restored": "legacy"
+ },
+ {
+  "key": "rule-second-win",
+  "rep": 0,
+  "mode": "legacy",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "wall": 0,
+  "restored": "legacy"
+ },
+ {
+  "key": "rule-second-win",
+  "rep": 0,
+  "mode": "race",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "wall": 0,
+  "restored": "legacy"
+ },
+ {
+  "key": "rule-second-win",
+  "rep": 1,
+  "mode": "race",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "wall": 0,
+  "restored": "legacy"
+ },
+ {
+  "key": "rule-second-win",
+  "rep": 1,
+  "mode": "legacy",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "wall": 0,
+  "restored": "legacy"
+ },
+ {
+  "key": "rule-second-win",
+  "rep": 2,
+  "mode": "legacy",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "wall": 0,
+  "restored": "legacy"
+ },
+ {
+  "key": "rule-second-win",
+  "rep": 2,
+  "mode": "race",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "wall": 0,
+  "restored": "legacy"
+ },
+ {
+  "key": "rule-second-win",
+  "rep": 3,
+  "mode": "race",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "wall": 0,
+  "restored": "legacy"
+ },
+ {
+  "key": "rule-second-win",
+  "rep": 3,
+  "mode": "legacy",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "wall": 0,
+  "restored": "legacy"
+ },
+ {
+  "key": "rule-second-win",
+  "rep": 4,
+  "mode": "legacy",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "wall": 0,
+  "restored": "legacy"
+ },
+ {
+  "key": "rule-second-win",
+  "rep": 4,
+  "mode": "race",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  },
+  "wall": 0,
+  "restored": "legacy"
+ },
+ {
+  "key": "rule-threat",
+  "rep": 0,
+  "mode": "legacy",
+  "action": {
+   "type": "wall",
+   "kind": "top",
+   "c": 6,
+   "r": 0
+  },
+  "score": -5456,
+  "nodes": 1443,
+  "wall": 16,
+  "restored": "legacy"
+ },
+ {
+  "key": "rule-threat",
+  "rep": 0,
+  "mode": "race",
+  "action": {
+   "type": "wall",
+   "kind": "top",
+   "c": 6,
+   "r": 0
+  },
+  "score": -5456,
+  "nodes": 2015,
+  "wall": 24,
+  "restored": "legacy"
+ },
+ {
+  "key": "rule-threat",
+  "rep": 1,
+  "mode": "race",
+  "action": {
+   "type": "wall",
+   "kind": "top",
+   "c": 6,
+   "r": 0
+  },
+  "score": -5456,
+  "nodes": 2015,
+  "wall": 23,
+  "restored": "legacy"
+ },
+ {
+  "key": "rule-threat",
+  "rep": 1,
+  "mode": "legacy",
+  "action": {
+   "type": "wall",
+   "kind": "top",
+   "c": 6,
+   "r": 0
+  },
+  "score": -5456,
+  "nodes": 1443,
+  "wall": 18,
+  "restored": "legacy"
+ },
+ {
+  "key": "rule-threat",
+  "rep": 2,
+  "mode": "legacy",
+  "action": {
+   "type": "wall",
+   "kind": "top",
+   "c": 6,
+   "r": 0
+  },
+  "score": -5456,
+  "nodes": 1443,
+  "wall": 17,
+  "restored": "legacy"
+ },
+ {
+  "key": "rule-threat",
+  "rep": 2,
+  "mode": "race",
+  "action": {
+   "type": "wall",
+   "kind": "top",
+   "c": 6,
+   "r": 0
+  },
+  "score": -5456,
+  "nodes": 2015,
+  "wall": 23,
+  "restored": "legacy"
+ },
+ {
+  "key": "rule-threat",
+  "rep": 3,
+  "mode": "race",
+  "action": {
+   "type": "wall",
+   "kind": "top",
+   "c": 6,
+   "r": 0
+  },
+  "score": -5456,
+  "nodes": 2015,
+  "wall": 23,
+  "restored": "legacy"
+ },
+ {
+  "key": "rule-threat",
+  "rep": 3,
+  "mode": "legacy",
+  "action": {
+   "type": "wall",
+   "kind": "top",
+   "c": 6,
+   "r": 0
+  },
+  "score": -5456,
+  "nodes": 1443,
+  "wall": 16,
+  "restored": "legacy"
+ },
+ {
+  "key": "rule-threat",
+  "rep": 4,
+  "mode": "legacy",
+  "action": {
+   "type": "wall",
+   "kind": "top",
+   "c": 6,
+   "r": 0
+  },
+  "score": -5456,
+  "nodes": 1443,
+  "wall": 16,
+  "restored": "legacy"
+ },
+ {
+  "key": "rule-threat",
+  "rep": 4,
+  "mode": "race",
+  "action": {
+   "type": "wall",
+   "kind": "top",
+   "c": 6,
+   "r": 0
+  },
+  "score": -5456,
+  "nodes": 2015,
+  "wall": 22,
+  "restored": "legacy"
+ }
+]
