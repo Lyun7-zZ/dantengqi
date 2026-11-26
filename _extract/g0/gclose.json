@@ -1,0 +1,107 @@
+{
+ "head": "4654340836a72a7b1d99e5d5a6f5c7bd199db25f",
+ "medians": {
+  "legacyMs": 32,
+  "raceMs": 41,
+  "ratioOfMedians": 1.2813,
+  "medianOfStateRatios": 1.067,
+  "medianOfPairedRatios": 1.093,
+  "leaveOneOut112": 1.2105
+ },
+ "byState": {
+  "112-0": {
+   "legacyMs": 33,
+   "raceMs": 45,
+   "legacyNodes": 930,
+   "raceNodes": 1295,
+   "msRatio": 1.364,
+   "nodeRatio": 1.392,
+   "pairedMsRatioMedian": 1.364
+  },
+  "95-0": {
+   "legacyMs": 19,
+   "raceMs": 20,
+   "legacyNodes": 448,
+   "raceNodes": 453,
+   "msRatio": 1.053,
+   "nodeRatio": 1.011,
+   "pairedMsRatioMedian": 1
+  },
+  "106-0": {
+   "legacyMs": 45,
+   "raceMs": 48,
+   "legacyNodes": 1480,
+   "raceNodes": 1527,
+   "msRatio": 1.067,
+   "nodeRatio": 1.032,
+   "pairedMsRatioMedian": 1.065
+  },
+  "96-0": {
+   "legacyMs": 78,
+   "raceMs": 80,
+   "legacyNodes": 4100,
+   "raceNodes": 4100,
+   "msRatio": 1.026,
+   "nodeRatio": 1,
+   "pairedMsRatioMedian": 1.026
+  },
+  "113-0": {
+   "legacyMs": 41,
+   "raceMs": 43,
+   "legacyNodes": 1186,
+   "raceNodes": 1186,
+   "msRatio": 1.049,
+   "nodeRatio": 1,
+   "pairedMsRatioMedian": 1.05
+  },
+  "rule-first-draw": {
+   "legacyMs": 9,
+   "raceMs": 7,
+   "legacyNodes": 767,
+   "raceNodes": 561,
+   "msRatio": 0.778,
+   "nodeRatio": 0.731,
+   "pairedMsRatioMedian": 0.778
+  },
+  "rule-second-win": {
+   "legacyMs": 0,
+   "raceMs": 0,
+   "msRatio": null,
+   "nodeRatio": null,
+   "pairedMsRatioMedian": null
+  },
+  "rule-threat": {
+   "legacyMs": 16,
+   "raceMs": 23,
+   "legacyNodes": 1443,
+   "raceNodes": 2015,
+   "msRatio": 1.438,
+   "nodeRatio": 1.396,
+   "pairedMsRatioMedian": 1.375
+  }
+ },
+ "ruleCases": [
+  {
+   "name": "true-draw",
+   "static": "D",
+   "engine": "draw"
+  },
+  {
+   "name": "old-win",
+   "static": "W",
+   "engine": 0
+  },
+  {
+   "name": "second-win",
+   "static": "W",
+   "engine": 1
+  }
+ ],
+ "files": {
+  "src/ai-master.js": "0281dfe9bdd79814837718bce41e29c68736d68d94b2f5111e9452cd2d8f725c",
+  "src/path.js": "0c04a17332431842e3cb1ba72cff6c033daddf747fb5dcb45ff857acae5efbc5",
+  "src/rules.js": "d6e5afb0a50a1ef6af24caadb228ac6366de672f466695fc44f1dd170714dbdf",
+  "tools/m2c/close.mjs": "598bc631657a4c301df7ff29cce7f00524effca171f54674746ce67bc8711737",
+  "_extract/m2c/bench_interleaved.json": "6633adbf62c7fb6d8feee999b2f905f6083fa92d547b98a57c07bc3e14ad999b"
+ }
+}

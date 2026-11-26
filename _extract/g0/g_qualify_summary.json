@@ -1,0 +1,18 @@
+{
+ "G7+": {
+  "runs": 48,
+  "illegal": 0,
+  "maxTotal": 1480,
+  "over3000": 0,
+  "avgDepth": 6.33,
+  "avgNodes": 6340
+ },
+ "G9+": {
+  "runs": 48,
+  "illegal": 0,
+  "maxTotal": 2857,
+  "over3000": 0,
+  "avgDepth": 7.92,
+  "avgNodes": 22141
+ }
+}
