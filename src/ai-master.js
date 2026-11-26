@@ -164,6 +164,30 @@ function evalAI(state) {
   return -5400 + 14 * m + 26 * openPenalty + 5 * ways + 6 * near + doorstep;
 }
 
+/** 调试：返回 evalAI 的分项，不改变评估语义。 */
+export function debugEvalBreakdown(state) {
+  const me = state.turn;
+  const opp = 1 - me;
+  const dm = distanceOf(state, me);
+  const dop = distanceOf(state, opp);
+  const exits = countOpenExits(state);
+  const m = dop - dm;
+  const firstOnly = state.drawMode === "firstOnly";
+  const meIsFirst = state.firstPlayer === undefined ? true : state.firstPlayer === me;
+  const ways = pathCount(state, me, 20) - pathCount(state, opp, 20);
+  const near = nearExits(state, me) - nearExits(state, opp);
+  const doorstep = (dm === 1 ? 120 : 0) - (dop === 1 ? 120 : 0);
+  const openPenalty = 10 - exits;
+  const winning = m >= 2 || (firstOnly && !meIsFirst && m === 1);
+  const drawish = m === 1 && !winning;
+  return {
+    winner: state.winner, turn: me, dm, dop, m, exits, openPenalty,
+    firstOnly, meIsFirst, winning, drawish, ways, near, doorstep,
+    pathMe: pathCount(state, me, 20), pathOpp: pathCount(state, opp, 20),
+    eval: evalAI(state),
+  };
+}
+
 /** 走法生成：走子 + 对手最短路墙 + （根节点）全墙扫描的高收益墙 + 计划墙。 */
 function candidatesAI(state, opts = {}) {
   const me = state.turn;

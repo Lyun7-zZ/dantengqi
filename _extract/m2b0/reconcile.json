@@ -1,0 +1,9 @@
+{
+ "commonRisk": 13,
+ "commonLoss": 13,
+ "newRisk": 4,
+ "nonWinToRisk": 4,
+ "h0WinH1Risk": 3,
+ "h0DrawH1Risk": 1,
+ "h0RiskH1Win": 7
+}
