@@ -1,0 +1,170 @@
+{
+  "schema": "dantengqi.grandmasterPlus.archive.v1",
+  "frozenAt": "2026-11-26",
+  "branch": "grandmaster-plus",
+  "frozenCommit": "1b6a166",
+  "mainCommit": "0941e85",
+  "baseline": {
+    "id": "H1+C",
+    "description": "routeWalls=6，路径缓存开启，evalRaceMode=legacy，3,000ms + 100ms 返回缓冲，固定宗师结构（maxDepth=12，endgameDepth=12，smartExit=true）",
+    "config": {
+      "timeMs": 3000,
+      "maxDepth": 12,
+      "endgameDepth": 12,
+      "routeWalls": 6,
+      "pathCache": true,
+      "evalRaceMode": "legacy",
+      "returnBuffer": 100,
+      "usePlan": true,
+      "netWalls": true,
+      "avoidRepeat": true,
+      "repeatPenalty": 160,
+      "planMoves": true,
+      "planFallback": true,
+      "necessaryPathGuard": "soft",
+      "smartExit": true
+    },
+    "fallback": "H0+C（routeWalls=3，其余同 H1+C）"
+  },
+  "rounds": [
+    {
+      "id": "M0",
+      "title": "宗师+基线测量",
+      "commit": "4134567",
+      "reports": ["M0基线报告_2026-11-25.docx"],
+      "tools": ["tools/m0/"],
+      "data": ["_extract/m0/"],
+      "verdict": "建立 3s 组 G0/H0/H1 基线"
+    },
+    {
+      "id": "M1a",
+      "title": "固定状态与路径缓存资格",
+      "commit": "4134567",
+      "reports": ["宗师Plus_M0-close_M1a_M1b_综合报告_2026-11-25.docx"],
+      "tools": ["tools/m1a/"],
+      "data": ["_extract/m1a/"],
+      "verdict": "缓存收益成立，固定状态一致性通过"
+    },
+    {
+      "id": "M1b",
+      "title": "B1-close / B2 路径缓存实战",
+      "commit": "73fbe2a",
+      "reports": ["宗师Plus_B1close与B2综合报告_2026-11-25.docx"],
+      "tools": ["tools/m1b/", "tools/b2/"],
+      "data": ["_extract/m1b/", "_extract/b2/"],
+      "verdict": "缓存使 B2 配对 +0.25，未达 70/10"
+    },
+    {
+      "id": "B2-close",
+      "title": "B2 证据收口与 B2b",
+      "commit": "b7eb2f9",
+      "reports": ["宗师Plus_B2close与B2b综合报告_2026-11-26.docx"],
+      "tools": ["tools/b2close/", "tools/b2b/"],
+      "data": ["_extract/b2close/", "_extract/b2b/"],
+      "verdict": "H1+C 暂定领先 H0+C（+0.1125，区间跨零）"
+    },
+    {
+      "id": "M2a",
+      "title": "B2b-close 与失败分类",
+      "commit": "bc33124",
+      "reports": ["宗师Plus_B2bclose与M2a综合报告_2026-11-26.docx"],
+      "tools": ["tools/m2a/"],
+      "data": ["_extract/m2a/"],
+      "verdict": "14 共同失败 / 3 新增；分类仅描述性"
+    },
+    {
+      "id": "M2b-0",
+      "title": "失败机制诊断",
+      "commit": "67f75fb",
+      "reports": ["宗师Plus_M2b0诊断报告_2026-11-26.docx"],
+      "tools": ["tools/m2b0/"],
+      "data": ["_extract/m2b0/"],
+      "verdict": "固定深度奇偶翻转 3/28；E1 资格线索成立"
+    },
+    {
+      "id": "M2b-1 / E1a",
+      "title": "静态竞速评分资格",
+      "commit": "ff18a37",
+      "reports": ["宗师Plus_M2b1_E1a资格报告_2026-11-26.docx"],
+      "tools": ["tools/m2b1/"],
+      "data": ["_extract/m2b1/"],
+      "verdict": "oracle 1536/1536；成本 +4.7% 叶级，通过资格"
+    },
+    {
+      "id": "E1a-close",
+      "title": "E1a 成本收口",
+      "commit": "4654340",
+      "reports": ["宗师Plus_E1a_close中止报告_2026-11-26.docx"],
+      "tools": ["tools/m2c/"],
+      "data": ["_extract/m2c/"],
+      "verdict": "端到端 +28.1% > 10%，M2c 不启动"
+    },
+    {
+      "id": "G-close / G0",
+      "title": "深度路线资格",
+      "commit": "18db7c4",
+      "reports": ["宗师Plus_Gclose与G0qual报告_2026-11-26.docx"],
+      "tools": ["tools/g0/", "tools/gclose/"],
+      "data": ["_extract/g0/"],
+      "verdict": "G9+ 300 次压力 0 异常，可申请 G-test"
+    },
+    {
+      "id": "G-test",
+      "title": "G7+ vs G9+ 实战筛选",
+      "commit": "80970b0",
+      "reports": ["宗师Plus_Gtest报告_2026-11-26.docx"],
+      "tools": ["tools/gtest/"],
+      "data": ["_extract/gtest/"],
+      "verdict": "G9+ 未过相对门槛，停止加深路线"
+    },
+    {
+      "id": "T0",
+      "title": "即时战术事件筛选",
+      "commit": "951f9ad",
+      "reports": ["宗师Plus_Gtest_close与T0报告_2026-11-26.docx"],
+      "tools": ["tools/t0/"],
+      "data": ["_extract/t0/"],
+      "verdict": "0 漏胜/漏平；0 可避免即时败局；T1 不成立"
+    },
+    {
+      "id": "E2-0",
+      "title": "路径脆弱性审计",
+      "commit": "1b6a166",
+      "reports": ["宗师Plus_T0close与E2报告_2026-11-26.docx"],
+      "tools": ["tools/e2/"],
+      "data": ["_extract/e2/"],
+      "verdict": "无高冲击墙；E2-V 不成立；C/O 不可判定"
+    }
+  ],
+  "failedRoutes": [
+    "H0+C（部分场景弱于 H1+C，保留回退）",
+    "E1a 静态竞速评分（成本 +28.1%，未进入实战）",
+    "E1b 连续竞速（未授权，暂停）",
+    "G9+ 单纯加深（负局未降，停止）",
+    "T1 根动作即时防护（无可避免案例）",
+    "T2 保平审查（无漏平案例）",
+    "E2-V 路径脆弱性加权（无高冲击墙）"
+  ],
+  "reports": [
+    "宗师Plus_M0-close_M1a_M1b_综合报告_2026-11-25.docx",
+    "宗师Plus_B1close与B2综合报告_2026-11-25.docx",
+    "宗师Plus_B2close与B2b综合报告_2026-11-26.docx",
+    "宗师Plus_B2bclose与M2a综合报告_2026-11-26.docx",
+    "宗师Plus_M2b0诊断报告_2026-11-26.docx",
+    "宗师Plus_M2b1_E1a资格报告_2026-11-26.docx",
+    "宗师Plus_E1a_close中止报告_2026-11-26.docx",
+    "宗师Plus_Gclose与G0qual报告_2026-11-26.docx",
+    "宗师Plus_Gtest报告_2026-11-26.docx",
+    "宗师Plus_Gtest_close与T0报告_2026-11-26.docx",
+    "宗师Plus_T0close与E2报告_2026-11-26.docx",
+    "宗师Plus_第一阶段研发总结与第二代算法架构设计报告_2026-11-26.docx"
+  ],
+  "target": {
+    "timeMs": 3000,
+    "winRate": 0.70,
+    "lossRate": 0.10,
+    "unfinished": 0,
+    "illegal": 0,
+    "timeout": 0
+  }
+}
