@@ -1,0 +1,39 @@
+{
+ "arm": "H0C",
+ "routeWalls": 3,
+ "cache": true,
+ "shard": 1,
+ "shards": 8,
+ "sourceCommit": "e8eba0b582abab98ec3f901626239f1cb4ae3705",
+ "dirtyTracked": false,
+ "candCfg": {
+  "timeMs": 3000,
+  "maxDepth": 12,
+  "usePlan": true,
+  "netWalls": true,
+  "avoidRepeat": true,
+  "repeatPenalty": 160,
+  "planMoves": true,
+  "planFallback": true,
+  "necessaryPathGuard": "soft",
+  "endgameDepth": 12,
+  "routeWalls": 3,
+  "smartExit": true,
+  "returnBuffer": 100,
+  "pathCache": true
+ },
+ "oppCfg": {
+  "timeMs": 3000,
+  "maxDepth": 7,
+  "usePlan": true,
+  "netWalls": true,
+  "avoidRepeat": true,
+  "repeatPenalty": 160,
+  "planMoves": true,
+  "planFallback": true,
+  "necessaryPathGuard": "soft",
+  "endgameDepth": 9,
+  "returnBuffer": 0
+ },
+ "openingsHash": "0835820fa51bc3d154f18c03fca142c54a04c7d7c2823149b1c052bf259ff9a0"
+}

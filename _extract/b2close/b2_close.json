@@ -1,0 +1,174 @@
+{
+ "integrity": {
+  "problems": [],
+  "games": 80,
+  "openings": 20
+ },
+ "b2": {
+  "off": {
+   "total": 40,
+   "hell_win": 15,
+   "draw": 5,
+   "hell_loss": 14,
+   "unfinished": 6,
+   "completed": 34,
+   "completionRate": 0.85,
+   "winRate": 0.375,
+   "winRateCompleted": 0.4412,
+   "drawRate": 0.125,
+   "lossRate": 0.35,
+   "score": 0.4375,
+   "reasons": {
+    "normal_terminal": 34,
+    "ply_cap": 6
+   },
+   "seats": {
+    "0": {
+     "win": 7,
+     "draw": 3,
+     "loss": 6,
+     "unfinished": 4
+    },
+    "1": {
+     "win": 8,
+     "draw": 2,
+     "loss": 8,
+     "unfinished": 2
+    }
+   }
+  },
+  "on": {
+   "total": 40,
+   "hell_win": 26,
+   "draw": 3,
+   "hell_loss": 9,
+   "unfinished": 2,
+   "completed": 38,
+   "completionRate": 0.95,
+   "winRate": 0.65,
+   "winRateCompleted": 0.6842,
+   "drawRate": 0.075,
+   "lossRate": 0.225,
+   "score": 0.6875,
+   "reasons": {
+    "normal_terminal": 38,
+    "ply_cap": 2
+   },
+   "seats": {
+    "0": {
+     "win": 10,
+     "draw": 3,
+     "loss": 6,
+     "unfinished": 1
+    },
+    "1": {
+     "win": 16,
+     "draw": 0,
+     "loss": 3,
+     "unfinished": 1
+    }
+   }
+  },
+  "paired": {
+   "mean": 0.25,
+   "ci": [
+    0.0875,
+    0.4125
+   ],
+   "changedCategories": 22,
+   "changedScore": 18
+  },
+  "uSensitivity": [
+   {
+    "u": 0,
+    "mean": 0.25
+   },
+   {
+    "u": 0.5,
+    "mean": 0.2
+   },
+   {
+    "u": 1,
+    "mean": 0.15
+   }
+  ],
+  "transitions": {
+   "hell_win": {
+    "hell_win": 13,
+    "draw": 1,
+    "hell_loss": 1,
+    "unfinished": 0
+   },
+   "draw": {
+    "hell_win": 4,
+    "draw": 0,
+    "hell_loss": 0,
+    "unfinished": 1
+   },
+   "hell_loss": {
+    "hell_win": 8,
+    "draw": 2,
+    "hell_loss": 4,
+    "unfinished": 0
+   },
+   "unfinished": {
+    "hell_win": 1,
+    "draw": 0,
+    "hell_loss": 4,
+    "unfinished": 1
+   }
+  },
+  "seats": {
+   "off": {
+    "0": {
+     "win": 7,
+     "draw": 3,
+     "loss": 6,
+     "unfinished": 4
+    },
+    "1": {
+     "win": 8,
+     "draw": 2,
+     "loss": 8,
+     "unfinished": 2
+    }
+   },
+   "on": {
+    "0": {
+     "win": 10,
+     "draw": 3,
+     "loss": 6,
+     "unfinished": 1
+    },
+    "1": {
+     "win": 16,
+     "draw": 0,
+     "loss": 3,
+     "unfinished": 1
+    }
+   }
+  },
+  "illegal": 0,
+  "maxTimes": {
+   "off": 2941,
+   "on": 2932
+  }
+ },
+ "b0": {
+  "decisions": 18,
+  "hits": 46781279,
+  "misses": 16350452,
+  "aggregateHit": 0.741,
+  "avgHit": 0.7339,
+  "peakMax": 200000,
+  "peakAvg": 200000,
+  "residentAvg": 86136,
+  "distinctAvg": 614025,
+  "clears": 74
+ },
+ "collision": {
+  "rejected": true,
+  "hit": true,
+  "collisions": 1
+ }
+}
