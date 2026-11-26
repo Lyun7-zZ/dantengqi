@@ -1,0 +1,600 @@
+{
+ "integrity": {
+  "problems": [],
+  "games": 80,
+  "openings": [
+   95,
+   96,
+   97,
+   98,
+   99,
+   100,
+   101,
+   102,
+   103,
+   104,
+   105,
+   106,
+   107,
+   108,
+   109,
+   110,
+   111,
+   112,
+   113,
+   114
+  ],
+  "overlapWithB2": []
+ },
+ "config": [
+  {
+   "arm": "H0C",
+   "routeWalls": 3,
+   "pathCache": true,
+   "timeMs": 3000,
+   "returnBuffer": 100,
+   "sourceCommit": "e8eba0b582abab98ec3f901626239f1cb4ae3705",
+   "dirtyTracked": false
+  },
+  {
+   "arm": "H1C",
+   "routeWalls": 6,
+   "pathCache": true,
+   "timeMs": 3000,
+   "returnBuffer": 100,
+   "sourceCommit": "e8eba0b582abab98ec3f901626239f1cb4ae3705",
+   "dirtyTracked": false
+  }
+ ],
+ "summary": {
+  "H0C": {
+   "total": 40,
+   "hell_win": 17,
+   "draw": 2,
+   "hell_loss": 17,
+   "unfinished": 4,
+   "completed": 36,
+   "completionRate": 0.9,
+   "winRate": 0.425,
+   "winRateCompleted": 0.4722,
+   "drawRate": 0.05,
+   "lossRate": 0.425,
+   "score": 0.45,
+   "reasons": {
+    "normal_terminal": 36,
+    "ply_cap": 4
+   },
+   "seats": {
+    "0": {
+     "win": 10,
+     "draw": 1,
+     "loss": 7,
+     "unfinished": 2
+    },
+    "1": {
+     "win": 7,
+     "draw": 1,
+     "loss": 10,
+     "unfinished": 2
+    }
+   }
+  },
+  "H1C": {
+   "total": 40,
+   "hell_win": 22,
+   "draw": 1,
+   "hell_loss": 15,
+   "unfinished": 2,
+   "completed": 38,
+   "completionRate": 0.95,
+   "winRate": 0.55,
+   "winRateCompleted": 0.5789,
+   "drawRate": 0.025,
+   "lossRate": 0.375,
+   "score": 0.5625,
+   "reasons": {
+    "normal_terminal": 38,
+    "ply_cap": 2
+   },
+   "seats": {
+    "0": {
+     "win": 12,
+     "draw": 1,
+     "loss": 6,
+     "unfinished": 1
+    },
+    "1": {
+     "win": 10,
+     "draw": 0,
+     "loss": 9,
+     "unfinished": 1
+    }
+   }
+  }
+ },
+ "paired": {
+  "mean": 0.1125,
+  "u": [
+   {
+    "u": 0,
+    "mean": 0.1125
+   },
+   {
+    "u": 0.5,
+    "mean": 0.0875
+   },
+   {
+    "u": 1,
+    "mean": 0.0625
+   }
+  ],
+  "changedCategories": 13
+ },
+ "transitions": {
+  "hell_win": {
+   "hell_win": 14,
+   "draw": 0,
+   "hell_loss": 2,
+   "unfinished": 1
+  },
+  "draw": {
+   "hell_win": 1,
+   "draw": 0,
+   "hell_loss": 0,
+   "unfinished": 1
+  },
+  "hell_loss": {
+   "hell_win": 4,
+   "draw": 0,
+   "hell_loss": 13,
+   "unfinished": 0
+  },
+  "unfinished": {
+   "hell_win": 3,
+   "draw": 1,
+   "hell_loss": 0,
+   "unfinished": 0
+  }
+ },
+ "failures": [
+  {
+   "key": "96-0",
+   "openingId": 96,
+   "seat": 0,
+   "result": "hell_loss",
+   "h0": "hell_loss",
+   "common": true,
+   "kind": "负-收官/终局竞速",
+   "plies": 72,
+   "tMax": 2869,
+   "finalDist": [
+    2,
+    1
+   ],
+   "candDist": 2,
+   "oppDist": 1,
+   "exits": 1,
+   "repeated": 0,
+   "maxRep": 1,
+   "progressLast30": -7,
+   "evidence": "轨迹重放（无 AI 内部状态）"
+  },
+  {
+   "key": "96-1",
+   "openingId": 96,
+   "seat": 1,
+   "result": "hell_loss",
+   "h0": "hell_loss",
+   "common": true,
+   "kind": "负-中局被拉开",
+   "plies": 77,
+   "tMax": 2886,
+   "finalDist": [
+    1,
+    15
+   ],
+   "candDist": 15,
+   "oppDist": 1,
+   "exits": 1,
+   "repeated": 0,
+   "maxRep": 1,
+   "progressLast30": 4,
+   "evidence": "轨迹重放（无 AI 内部状态）"
+  },
+  {
+   "key": "112-0",
+   "openingId": 112,
+   "seat": 0,
+   "result": "unfinished",
+   "h0": "hell_win",
+   "common": false,
+   "kind": "未完成-上限",
+   "plies": 240,
+   "tMax": 2907,
+   "finalDist": [
+    7,
+    41
+   ],
+   "candDist": 7,
+   "oppDist": 41,
+   "exits": 1,
+   "repeated": 0,
+   "maxRep": 1,
+   "progressLast30": -5,
+   "evidence": "轨迹重放（无 AI 内部状态）"
+  },
+  {
+   "key": "112-1",
+   "openingId": 112,
+   "seat": 1,
+   "result": "hell_loss",
+   "h0": "hell_loss",
+   "common": true,
+   "kind": "负-战略/路径崩溃",
+   "plies": 239,
+   "tMax": 2882,
+   "finalDist": [
+    1,
+    20
+   ],
+   "candDist": 20,
+   "oppDist": 1,
+   "exits": 1,
+   "repeated": 0,
+   "maxRep": 1,
+   "progressLast30": -12,
+   "evidence": "轨迹重放（无 AI 内部状态）"
+  },
+  {
+   "key": "97-0",
+   "openingId": 97,
+   "seat": 0,
+   "result": "hell_loss",
+   "h0": "hell_loss",
+   "common": true,
+   "kind": "负-中局被拉开",
+   "plies": 76,
+   "tMax": 2879,
+   "finalDist": [
+    15,
+    1
+   ],
+   "candDist": 15,
+   "oppDist": 1,
+   "exits": 1,
+   "repeated": 0,
+   "maxRep": 1,
+   "progressLast30": 5,
+   "evidence": "轨迹重放（无 AI 内部状态）"
+  },
+  {
+   "key": "105-1",
+   "openingId": 105,
+   "seat": 1,
+   "result": "unfinished",
+   "h0": "draw",
+   "common": true,
+   "kind": "未完成-上限",
+   "plies": 240,
+   "tMax": 2895,
+   "finalDist": [
+    12,
+    2
+   ],
+   "candDist": 2,
+   "oppDist": 12,
+   "exits": 1,
+   "repeated": 0,
+   "maxRep": 1,
+   "progressLast30": -8,
+   "evidence": "轨迹重放（无 AI 内部状态）"
+  },
+  {
+   "key": "113-0",
+   "openingId": 113,
+   "seat": 0,
+   "result": "hell_loss",
+   "h0": "hell_win",
+   "common": false,
+   "kind": "负-战略/路径崩溃",
+   "plies": 158,
+   "tMax": 2871,
+   "finalDist": [
+    26,
+    1
+   ],
+   "candDist": 26,
+   "oppDist": 1,
+   "exits": 1,
+   "repeated": 0,
+   "maxRep": 1,
+   "progressLast30": -5,
+   "evidence": "轨迹重放（无 AI 内部状态）"
+  },
+  {
+   "key": "98-1",
+   "openingId": 98,
+   "seat": 1,
+   "result": "hell_loss",
+   "h0": "hell_loss",
+   "common": true,
+   "kind": "负-中局被拉开",
+   "plies": 81,
+   "tMax": 2892,
+   "finalDist": [
+    1,
+    12
+   ],
+   "candDist": 12,
+   "oppDist": 1,
+   "exits": 1,
+   "repeated": 0,
+   "maxRep": 1,
+   "progressLast30": -6,
+   "evidence": "轨迹重放（无 AI 内部状态）"
+  },
+  {
+   "key": "114-1",
+   "openingId": 114,
+   "seat": 1,
+   "result": "hell_loss",
+   "h0": "hell_loss",
+   "common": true,
+   "kind": "负-中局被拉开",
+   "plies": 161,
+   "tMax": 2857,
+   "finalDist": [
+    1,
+    14
+   ],
+   "candDist": 14,
+   "oppDist": 1,
+   "exits": 1,
+   "repeated": 0,
+   "maxRep": 1,
+   "progressLast30": -1,
+   "evidence": "轨迹重放（无 AI 内部状态）"
+  },
+  {
+   "key": "102-0",
+   "openingId": 102,
+   "seat": 0,
+   "result": "hell_loss",
+   "h0": "hell_loss",
+   "common": true,
+   "kind": "负-战略/路径崩溃",
+   "plies": 64,
+   "tMax": 2911,
+   "finalDist": [
+    16,
+    1
+   ],
+   "candDist": 16,
+   "oppDist": 1,
+   "exits": 1,
+   "repeated": 0,
+   "maxRep": 1,
+   "progressLast30": 8,
+   "evidence": "轨迹重放（无 AI 内部状态）"
+  },
+  {
+   "key": "102-1",
+   "openingId": 102,
+   "seat": 1,
+   "result": "hell_loss",
+   "h0": "hell_win",
+   "common": false,
+   "kind": "负-战略/路径崩溃",
+   "plies": 121,
+   "tMax": 2897,
+   "finalDist": [
+    1,
+    23
+   ],
+   "candDist": 23,
+   "oppDist": 1,
+   "exits": 1,
+   "repeated": 0,
+   "maxRep": 1,
+   "progressLast30": -9,
+   "evidence": "轨迹重放（无 AI 内部状态）"
+  },
+  {
+   "key": "110-0",
+   "openingId": 110,
+   "seat": 0,
+   "result": "hell_loss",
+   "h0": "hell_loss",
+   "common": true,
+   "kind": "负-战略/路径崩溃",
+   "plies": 170,
+   "tMax": 2894,
+   "finalDist": [
+    38,
+    1
+   ],
+   "candDist": 38,
+   "oppDist": 1,
+   "exits": 1,
+   "repeated": 0,
+   "maxRep": 1,
+   "progressLast30": 1,
+   "evidence": "轨迹重放（无 AI 内部状态）"
+  },
+  {
+   "key": "110-1",
+   "openingId": 110,
+   "seat": 1,
+   "result": "hell_loss",
+   "h0": "hell_loss",
+   "common": true,
+   "kind": "负-中局被拉开",
+   "plies": 77,
+   "tMax": 2895,
+   "finalDist": [
+    1,
+    12
+   ],
+   "candDist": 12,
+   "oppDist": 1,
+   "exits": 1,
+   "repeated": 0,
+   "maxRep": 1,
+   "progressLast30": -2,
+   "evidence": "轨迹重放（无 AI 内部状态）"
+  },
+  {
+   "key": "95-0",
+   "openingId": 95,
+   "seat": 0,
+   "result": "hell_loss",
+   "h0": "hell_loss",
+   "common": true,
+   "kind": "负-战略/路径崩溃",
+   "plies": 204,
+   "tMax": 2896,
+   "finalDist": [
+    34,
+    1
+   ],
+   "candDist": 34,
+   "oppDist": 1,
+   "exits": 1,
+   "repeated": 0,
+   "maxRep": 1,
+   "progressLast30": 3,
+   "evidence": "轨迹重放（无 AI 内部状态）"
+  },
+  {
+   "key": "95-1",
+   "openingId": 95,
+   "seat": 1,
+   "result": "hell_loss",
+   "h0": "hell_loss",
+   "common": true,
+   "kind": "负-中局被拉开",
+   "plies": 61,
+   "tMax": 2882,
+   "finalDist": [
+    1,
+    15
+   ],
+   "candDist": 15,
+   "oppDist": 1,
+   "exits": 1,
+   "repeated": 0,
+   "maxRep": 1,
+   "progressLast30": 0,
+   "evidence": "轨迹重放（无 AI 内部状态）"
+  },
+  {
+   "key": "103-1",
+   "openingId": 103,
+   "seat": 1,
+   "result": "hell_loss",
+   "h0": "hell_loss",
+   "common": true,
+   "kind": "负-中局被拉开",
+   "plies": 55,
+   "tMax": 2881,
+   "finalDist": [
+    1,
+    13
+   ],
+   "candDist": 13,
+   "oppDist": 1,
+   "exits": 1,
+   "repeated": 0,
+   "maxRep": 1,
+   "progressLast30": 0,
+   "evidence": "轨迹重放（无 AI 内部状态）"
+  },
+  {
+   "key": "111-1",
+   "openingId": 111,
+   "seat": 1,
+   "result": "hell_loss",
+   "h0": "hell_loss",
+   "common": true,
+   "kind": "负-战略/路径崩溃",
+   "plies": 205,
+   "tMax": 2861,
+   "finalDist": [
+    1,
+    32
+   ],
+   "candDist": 32,
+   "oppDist": 1,
+   "exits": 1,
+   "repeated": 0,
+   "maxRep": 1,
+   "progressLast30": -1,
+   "evidence": "轨迹重放（无 AI 内部状态）"
+  }
+ ],
+ "gains": [
+  {
+   "key": "105-0",
+   "h0": "hell_loss",
+   "h1": "hell_win"
+  },
+  {
+   "key": "106-0",
+   "h0": "hell_loss",
+   "h1": "hell_win"
+  },
+  {
+   "key": "99-1",
+   "h0": "hell_loss",
+   "h1": "hell_win"
+  },
+  {
+   "key": "107-1",
+   "h0": "unfinished",
+   "h1": "hell_win"
+  },
+  {
+   "key": "100-0",
+   "h0": "unfinished",
+   "h1": "hell_win"
+  },
+  {
+   "key": "100-1",
+   "h0": "hell_loss",
+   "h1": "hell_win"
+  },
+  {
+   "key": "108-1",
+   "h0": "unfinished",
+   "h1": "hell_win"
+  }
+ ],
+ "controls": [
+  {
+   "key": "104-0",
+   "plies": 97,
+   "depth": 8.53
+  },
+  {
+   "key": "104-1",
+   "plies": 102,
+   "depth": 9.1
+  },
+  {
+   "key": "97-1",
+   "plies": 56,
+   "depth": 8.25
+  },
+  {
+   "key": "105-0",
+   "plies": 143,
+   "depth": 8.01
+  }
+ ],
+ "typeCount": {
+  "负-收官/终局竞速": 1,
+  "负-中局被拉开": 7,
+  "未完成-上限": 2,
+  "负-战略/路径崩溃": 7
+ }
+}
