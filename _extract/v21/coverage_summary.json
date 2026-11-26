@@ -1,0 +1,27 @@
+{
+ "cases": 32,
+ "summary": {
+  "risk": {
+   "states": 16,
+   "valid": 16,
+   "baselineInR": 15,
+   "baselineInTop6": 16,
+   "medianRank": 8
+  },
+  "control": {
+   "states": 8,
+   "valid": 8,
+   "baselineInR": 7,
+   "baselineInTop6": 8,
+   "medianRank": 5
+  },
+  "boundary": {
+   "states": 8,
+   "valid": 8,
+   "baselineInR": 0,
+   "baselineInTop6": 0,
+   "medianRank": null
+  }
+ },
+ "hash": "e54082b544ca139d"
+}
