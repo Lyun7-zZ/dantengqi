@@ -1,0 +1,67 @@
+{
+ "gclose": {
+  "problems": [],
+  "games": 80,
+  "openings": [
+   120,
+   128,
+   121,
+   129,
+   122,
+   130,
+   115,
+   123,
+   131,
+   116,
+   124,
+   132,
+   117,
+   125,
+   133,
+   118,
+   126,
+   134,
+   119,
+   127
+  ],
+  "config": [
+   {
+    "arm": "G7",
+    "maxDepth": 7,
+    "endgameDepth": 9,
+    "buffer": 100,
+    "cache": false,
+    "evalmode": "legacy",
+    "sourceCommit": "18db7c4f073d8f45050ac05556f402af22090848"
+   },
+   {
+    "arm": "G9",
+    "maxDepth": 9,
+    "endgameDepth": 9,
+    "buffer": 100,
+    "cache": false,
+    "evalmode": "legacy",
+    "sourceCommit": "18db7c4f073d8f45050ac05556f402af22090848"
+   }
+  ],
+  "maxExt": {
+   "G7": 2911,
+   "G9": 2947
+  },
+  "over": {
+   "G7": 0,
+   "G9": 0
+  },
+  "dataHash": "bab4744f207ac815"
+ },
+ "summary": {
+  "events": 58,
+  "missedOwnWin": 0,
+  "missedOwnDraw": 0,
+  "avoidableLoss": 0,
+  "avoidableOpenings": [],
+  "unavoidableLoss": 15,
+  "leadNoProgress": 43,
+  "t1Qualified": false
+ }
+}
