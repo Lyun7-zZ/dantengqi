@@ -1,0 +1,40 @@
+{
+ "dev": {
+  "n": 24,
+  "illegal": 0,
+  "maxS1Ms": 2934,
+  "sources": {},
+  "protect": 0,
+  "avgM": {
+   "s0": 0.875,
+   "deep": 0.875,
+   "s1": 0.875
+  },
+  "avgRegret": {
+   "s0": 0,
+   "deep": 83332.5,
+   "s1": 83332.5
+  },
+  "winsM": 8
+ },
+ "hold": {
+  "n": 12,
+  "illegal": 0,
+  "maxS1Ms": 2923,
+  "sources": {},
+  "protect": 0,
+  "avgM": {
+   "s0": 5.083,
+   "deep": 5,
+   "s1": 5
+  },
+  "avgRegret": {
+   "s0": 0,
+   "deep": 0.083,
+   "s1": 0.083
+  },
+  "winsM": 3
+ },
+ "s1ProtectDev": 0,
+ "s1ProtectHold": 0
+}
