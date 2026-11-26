@@ -1,0 +1,128 @@
+{
+ "states": 24,
+ "categories": {
+  "historical-risk": {
+   "n": 8,
+   "s0Sources": {
+    "attack": 2,
+    "advance": 6
+   },
+   "h1Sources": {
+    "search": 7,
+    "guard": 1
+   },
+   "diff": [
+    0,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    1
+   ]
+  },
+  "historical-win": {
+   "n": 8,
+   "s0Sources": {
+    "advance": 4,
+    "attack": 4
+   },
+   "h1Sources": {
+    "search": 8
+   },
+   "diff": [
+    1,
+    2,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "protect-effective": {
+   "n": 1,
+   "s0Sources": {
+    "advance": 1
+   },
+   "h1Sources": {
+    "search": 1
+   },
+   "diff": [
+    1
+   ]
+  },
+  "complex": {
+   "n": 1,
+   "s0Sources": {
+    "advance": 1
+   },
+   "h1Sources": {
+    "search": 1
+   },
+   "diff": [
+    0
+   ]
+  },
+  "open": {
+   "n": 2,
+   "s0Sources": {
+    "advance": 2
+   },
+   "h1Sources": {
+    "search": 2
+   },
+   "diff": [
+    0,
+    0
+   ]
+  },
+  "attack": {
+   "n": 2,
+   "s0Sources": {
+    "attack": 2
+   },
+   "h1Sources": {
+    "search": 2
+   },
+   "diff": [
+    0,
+    0
+   ]
+  },
+  "protect-both": {
+   "n": 1,
+   "s0Sources": {
+    "advance": 1
+   },
+   "h1Sources": {
+    "search": 1
+   },
+   "diff": [
+    0
+   ]
+  },
+  "multi-step": {
+   "n": 1,
+   "s0Sources": {
+    "advance": 1
+   },
+   "h1Sources": {
+    "search": 1
+   },
+   "diff": [
+    0
+   ]
+  }
+ },
+ "illegal": 0,
+ "maxS0Ms": 184,
+ "maxH1Ms": 2859,
+ "s0Sources": {
+  "attack": 8,
+  "advance": 16
+ },
+ "avgDiffM": 0.375
+}
