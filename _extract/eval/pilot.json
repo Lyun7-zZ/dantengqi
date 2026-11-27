@@ -1,0 +1,3138 @@
+[
+ {
+  "gameId": "eval-8x8-hard-master-0-n",
+  "sizeKey": "8x8",
+  "cols": 8,
+  "rows": 8,
+  "cap": 240,
+  "combo": "hard-master",
+  "levels": [
+   "hard",
+   "master"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 7,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 3,
+    "r": 7
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "59a6d6d11c7e38509c0859569f09e9f7076b99261815158df798c54ea4111e37",
+  "firstPlayer": 0,
+  "seat0": "hard",
+  "seat1": "master"
+ },
+ {
+  "gameId": "eval-8x8-hard-master-0-s",
+  "sizeKey": "8x8",
+  "cols": 8,
+  "rows": 8,
+  "cap": 240,
+  "combo": "hard-master",
+  "levels": [
+   "master",
+   "hard"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 7,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 3,
+    "r": 7
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "59a6d6d11c7e38509c0859569f09e9f7076b99261815158df798c54ea4111e37",
+  "firstPlayer": 0,
+  "seat0": "master",
+  "seat1": "hard"
+ },
+ {
+  "gameId": "eval-8x8-hard-grandmaster-0-n",
+  "sizeKey": "8x8",
+  "cols": 8,
+  "rows": 8,
+  "cap": 240,
+  "combo": "hard-grandmaster",
+  "levels": [
+   "hard",
+   "grandmaster"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 7,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 3,
+    "r": 7
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "59a6d6d11c7e38509c0859569f09e9f7076b99261815158df798c54ea4111e37",
+  "firstPlayer": 0,
+  "seat0": "hard",
+  "seat1": "grandmaster"
+ },
+ {
+  "gameId": "eval-8x8-hard-grandmaster-0-s",
+  "sizeKey": "8x8",
+  "cols": 8,
+  "rows": 8,
+  "cap": 240,
+  "combo": "hard-grandmaster",
+  "levels": [
+   "grandmaster",
+   "hard"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 7,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 3,
+    "r": 7
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "59a6d6d11c7e38509c0859569f09e9f7076b99261815158df798c54ea4111e37",
+  "firstPlayer": 0,
+  "seat0": "grandmaster",
+  "seat1": "hard"
+ },
+ {
+  "gameId": "eval-8x8-hard-grandmasterPlus-0-n",
+  "sizeKey": "8x8",
+  "cols": 8,
+  "rows": 8,
+  "cap": 240,
+  "combo": "hard-grandmasterPlus",
+  "levels": [
+   "hard",
+   "grandmasterPlus"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 7,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 3,
+    "r": 7
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "59a6d6d11c7e38509c0859569f09e9f7076b99261815158df798c54ea4111e37",
+  "firstPlayer": 0,
+  "seat0": "hard",
+  "seat1": "grandmasterPlus"
+ },
+ {
+  "gameId": "eval-8x8-hard-grandmasterPlus-0-s",
+  "sizeKey": "8x8",
+  "cols": 8,
+  "rows": 8,
+  "cap": 240,
+  "combo": "hard-grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "hard"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 7,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 3,
+    "r": 7
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "59a6d6d11c7e38509c0859569f09e9f7076b99261815158df798c54ea4111e37",
+  "firstPlayer": 0,
+  "seat0": "grandmasterPlus",
+  "seat1": "hard"
+ },
+ {
+  "gameId": "eval-8x8-hard-hard-0-n",
+  "sizeKey": "8x8",
+  "cols": 8,
+  "rows": 8,
+  "cap": 240,
+  "combo": "hard-hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 7,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 3,
+    "r": 7
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "59a6d6d11c7e38509c0859569f09e9f7076b99261815158df798c54ea4111e37",
+  "firstPlayer": 0,
+  "seat0": "hard",
+  "seat1": "hard"
+ },
+ {
+  "gameId": "eval-8x8-hard-hard-0-s",
+  "sizeKey": "8x8",
+  "cols": 8,
+  "rows": 8,
+  "cap": 240,
+  "combo": "hard-hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 7,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 3,
+    "r": 7
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "59a6d6d11c7e38509c0859569f09e9f7076b99261815158df798c54ea4111e37",
+  "firstPlayer": 0,
+  "seat0": "hard",
+  "seat1": "hard"
+ },
+ {
+  "gameId": "eval-8x8-master-grandmaster-0-n",
+  "sizeKey": "8x8",
+  "cols": 8,
+  "rows": 8,
+  "cap": 240,
+  "combo": "master-grandmaster",
+  "levels": [
+   "master",
+   "grandmaster"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 7,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 3,
+    "r": 7
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "59a6d6d11c7e38509c0859569f09e9f7076b99261815158df798c54ea4111e37",
+  "firstPlayer": 0,
+  "seat0": "master",
+  "seat1": "grandmaster"
+ },
+ {
+  "gameId": "eval-8x8-master-grandmaster-0-s",
+  "sizeKey": "8x8",
+  "cols": 8,
+  "rows": 8,
+  "cap": 240,
+  "combo": "master-grandmaster",
+  "levels": [
+   "grandmaster",
+   "master"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 7,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 3,
+    "r": 7
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "59a6d6d11c7e38509c0859569f09e9f7076b99261815158df798c54ea4111e37",
+  "firstPlayer": 0,
+  "seat0": "grandmaster",
+  "seat1": "master"
+ },
+ {
+  "gameId": "eval-8x8-grandmaster-grandmasterPlus-0-n",
+  "sizeKey": "8x8",
+  "cols": 8,
+  "rows": 8,
+  "cap": 240,
+  "combo": "grandmaster-grandmasterPlus",
+  "levels": [
+   "grandmaster",
+   "grandmasterPlus"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 7,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 3,
+    "r": 7
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "59a6d6d11c7e38509c0859569f09e9f7076b99261815158df798c54ea4111e37",
+  "firstPlayer": 0,
+  "seat0": "grandmaster",
+  "seat1": "grandmasterPlus"
+ },
+ {
+  "gameId": "eval-8x8-grandmaster-grandmasterPlus-0-s",
+  "sizeKey": "8x8",
+  "cols": 8,
+  "rows": 8,
+  "cap": 240,
+  "combo": "grandmaster-grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmaster"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 7,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 3,
+    "r": 7
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "59a6d6d11c7e38509c0859569f09e9f7076b99261815158df798c54ea4111e37",
+  "firstPlayer": 0,
+  "seat0": "grandmasterPlus",
+  "seat1": "grandmaster"
+ },
+ {
+  "gameId": "eval-8x8-grandmasterPlus-grandmasterPlus-0-n",
+  "sizeKey": "8x8",
+  "cols": 8,
+  "rows": 8,
+  "cap": 240,
+  "combo": "grandmasterPlus-grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 7,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 3,
+    "r": 7
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "59a6d6d11c7e38509c0859569f09e9f7076b99261815158df798c54ea4111e37",
+  "firstPlayer": 0,
+  "seat0": "grandmasterPlus",
+  "seat1": "grandmasterPlus"
+ },
+ {
+  "gameId": "eval-8x8-grandmasterPlus-grandmasterPlus-0-s",
+  "sizeKey": "8x8",
+  "cols": 8,
+  "rows": 8,
+  "cap": 240,
+  "combo": "grandmasterPlus-grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 7,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 3,
+    "r": 7
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "59a6d6d11c7e38509c0859569f09e9f7076b99261815158df798c54ea4111e37",
+  "firstPlayer": 0,
+  "seat0": "grandmasterPlus",
+  "seat1": "grandmasterPlus"
+ },
+ {
+  "gameId": "eval-10x12-hard-master-0-n",
+  "sizeKey": "10x12",
+  "cols": 10,
+  "rows": 12,
+  "cap": 240,
+  "combo": "hard-master",
+  "levels": [
+   "hard",
+   "master"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 4
+   }
+  ],
+  "openingHash": "caba9bf981c96ca80480f8bff60d3d50bced24300ccfbd6dcbf871a0effc1d9c",
+  "firstPlayer": 0,
+  "seat0": "hard",
+  "seat1": "master"
+ },
+ {
+  "gameId": "eval-10x12-hard-master-0-s",
+  "sizeKey": "10x12",
+  "cols": 10,
+  "rows": 12,
+  "cap": 240,
+  "combo": "hard-master",
+  "levels": [
+   "master",
+   "hard"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 4
+   }
+  ],
+  "openingHash": "caba9bf981c96ca80480f8bff60d3d50bced24300ccfbd6dcbf871a0effc1d9c",
+  "firstPlayer": 0,
+  "seat0": "master",
+  "seat1": "hard"
+ },
+ {
+  "gameId": "eval-10x12-hard-grandmaster-0-n",
+  "sizeKey": "10x12",
+  "cols": 10,
+  "rows": 12,
+  "cap": 240,
+  "combo": "hard-grandmaster",
+  "levels": [
+   "hard",
+   "grandmaster"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 4
+   }
+  ],
+  "openingHash": "caba9bf981c96ca80480f8bff60d3d50bced24300ccfbd6dcbf871a0effc1d9c",
+  "firstPlayer": 0,
+  "seat0": "hard",
+  "seat1": "grandmaster"
+ },
+ {
+  "gameId": "eval-10x12-hard-grandmaster-0-s",
+  "sizeKey": "10x12",
+  "cols": 10,
+  "rows": 12,
+  "cap": 240,
+  "combo": "hard-grandmaster",
+  "levels": [
+   "grandmaster",
+   "hard"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 4
+   }
+  ],
+  "openingHash": "caba9bf981c96ca80480f8bff60d3d50bced24300ccfbd6dcbf871a0effc1d9c",
+  "firstPlayer": 0,
+  "seat0": "grandmaster",
+  "seat1": "hard"
+ },
+ {
+  "gameId": "eval-10x12-hard-grandmasterPlus-0-n",
+  "sizeKey": "10x12",
+  "cols": 10,
+  "rows": 12,
+  "cap": 240,
+  "combo": "hard-grandmasterPlus",
+  "levels": [
+   "hard",
+   "grandmasterPlus"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 4
+   }
+  ],
+  "openingHash": "caba9bf981c96ca80480f8bff60d3d50bced24300ccfbd6dcbf871a0effc1d9c",
+  "firstPlayer": 0,
+  "seat0": "hard",
+  "seat1": "grandmasterPlus"
+ },
+ {
+  "gameId": "eval-10x12-hard-grandmasterPlus-0-s",
+  "sizeKey": "10x12",
+  "cols": 10,
+  "rows": 12,
+  "cap": 240,
+  "combo": "hard-grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "hard"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 4
+   }
+  ],
+  "openingHash": "caba9bf981c96ca80480f8bff60d3d50bced24300ccfbd6dcbf871a0effc1d9c",
+  "firstPlayer": 0,
+  "seat0": "grandmasterPlus",
+  "seat1": "hard"
+ },
+ {
+  "gameId": "eval-10x12-hard-hard-0-n",
+  "sizeKey": "10x12",
+  "cols": 10,
+  "rows": 12,
+  "cap": 240,
+  "combo": "hard-hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 4
+   }
+  ],
+  "openingHash": "caba9bf981c96ca80480f8bff60d3d50bced24300ccfbd6dcbf871a0effc1d9c",
+  "firstPlayer": 0,
+  "seat0": "hard",
+  "seat1": "hard"
+ },
+ {
+  "gameId": "eval-10x12-hard-hard-0-s",
+  "sizeKey": "10x12",
+  "cols": 10,
+  "rows": 12,
+  "cap": 240,
+  "combo": "hard-hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 4
+   }
+  ],
+  "openingHash": "caba9bf981c96ca80480f8bff60d3d50bced24300ccfbd6dcbf871a0effc1d9c",
+  "firstPlayer": 0,
+  "seat0": "hard",
+  "seat1": "hard"
+ },
+ {
+  "gameId": "eval-10x12-master-grandmaster-0-n",
+  "sizeKey": "10x12",
+  "cols": 10,
+  "rows": 12,
+  "cap": 240,
+  "combo": "master-grandmaster",
+  "levels": [
+   "master",
+   "grandmaster"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 4
+   }
+  ],
+  "openingHash": "caba9bf981c96ca80480f8bff60d3d50bced24300ccfbd6dcbf871a0effc1d9c",
+  "firstPlayer": 0,
+  "seat0": "master",
+  "seat1": "grandmaster"
+ },
+ {
+  "gameId": "eval-10x12-master-grandmaster-0-s",
+  "sizeKey": "10x12",
+  "cols": 10,
+  "rows": 12,
+  "cap": 240,
+  "combo": "master-grandmaster",
+  "levels": [
+   "grandmaster",
+   "master"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 4
+   }
+  ],
+  "openingHash": "caba9bf981c96ca80480f8bff60d3d50bced24300ccfbd6dcbf871a0effc1d9c",
+  "firstPlayer": 0,
+  "seat0": "grandmaster",
+  "seat1": "master"
+ },
+ {
+  "gameId": "eval-10x12-grandmaster-grandmasterPlus-0-n",
+  "sizeKey": "10x12",
+  "cols": 10,
+  "rows": 12,
+  "cap": 240,
+  "combo": "grandmaster-grandmasterPlus",
+  "levels": [
+   "grandmaster",
+   "grandmasterPlus"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 4
+   }
+  ],
+  "openingHash": "caba9bf981c96ca80480f8bff60d3d50bced24300ccfbd6dcbf871a0effc1d9c",
+  "firstPlayer": 0,
+  "seat0": "grandmaster",
+  "seat1": "grandmasterPlus"
+ },
+ {
+  "gameId": "eval-10x12-grandmaster-grandmasterPlus-0-s",
+  "sizeKey": "10x12",
+  "cols": 10,
+  "rows": 12,
+  "cap": 240,
+  "combo": "grandmaster-grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmaster"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 4
+   }
+  ],
+  "openingHash": "caba9bf981c96ca80480f8bff60d3d50bced24300ccfbd6dcbf871a0effc1d9c",
+  "firstPlayer": 0,
+  "seat0": "grandmasterPlus",
+  "seat1": "grandmaster"
+ },
+ {
+  "gameId": "eval-10x12-grandmasterPlus-grandmasterPlus-0-n",
+  "sizeKey": "10x12",
+  "cols": 10,
+  "rows": 12,
+  "cap": 240,
+  "combo": "grandmasterPlus-grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 4
+   }
+  ],
+  "openingHash": "caba9bf981c96ca80480f8bff60d3d50bced24300ccfbd6dcbf871a0effc1d9c",
+  "firstPlayer": 0,
+  "seat0": "grandmasterPlus",
+  "seat1": "grandmasterPlus"
+ },
+ {
+  "gameId": "eval-10x12-grandmasterPlus-grandmasterPlus-0-s",
+  "sizeKey": "10x12",
+  "cols": 10,
+  "rows": 12,
+  "cap": 240,
+  "combo": "grandmasterPlus-grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 4
+   }
+  ],
+  "openingHash": "caba9bf981c96ca80480f8bff60d3d50bced24300ccfbd6dcbf871a0effc1d9c",
+  "firstPlayer": 0,
+  "seat0": "grandmasterPlus",
+  "seat1": "grandmasterPlus"
+ },
+ {
+  "gameId": "eval-12x12-hard-master-0-n",
+  "sizeKey": "12x12",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360,
+  "combo": "hard-master",
+  "levels": [
+   "hard",
+   "master"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 7,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "64d8dfa688efe3cd671c27856bd41c05af38d6ac6ce1172af322e55fda6eb0c6",
+  "firstPlayer": 0,
+  "seat0": "hard",
+  "seat1": "master"
+ },
+ {
+  "gameId": "eval-12x12-hard-master-0-s",
+  "sizeKey": "12x12",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360,
+  "combo": "hard-master",
+  "levels": [
+   "master",
+   "hard"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 7,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "64d8dfa688efe3cd671c27856bd41c05af38d6ac6ce1172af322e55fda6eb0c6",
+  "firstPlayer": 0,
+  "seat0": "master",
+  "seat1": "hard"
+ },
+ {
+  "gameId": "eval-12x12-hard-grandmaster-0-n",
+  "sizeKey": "12x12",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360,
+  "combo": "hard-grandmaster",
+  "levels": [
+   "hard",
+   "grandmaster"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 7,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "64d8dfa688efe3cd671c27856bd41c05af38d6ac6ce1172af322e55fda6eb0c6",
+  "firstPlayer": 0,
+  "seat0": "hard",
+  "seat1": "grandmaster"
+ },
+ {
+  "gameId": "eval-12x12-hard-grandmaster-0-s",
+  "sizeKey": "12x12",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360,
+  "combo": "hard-grandmaster",
+  "levels": [
+   "grandmaster",
+   "hard"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 7,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "64d8dfa688efe3cd671c27856bd41c05af38d6ac6ce1172af322e55fda6eb0c6",
+  "firstPlayer": 0,
+  "seat0": "grandmaster",
+  "seat1": "hard"
+ },
+ {
+  "gameId": "eval-12x12-hard-grandmasterPlus-0-n",
+  "sizeKey": "12x12",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360,
+  "combo": "hard-grandmasterPlus",
+  "levels": [
+   "hard",
+   "grandmasterPlus"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 7,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "64d8dfa688efe3cd671c27856bd41c05af38d6ac6ce1172af322e55fda6eb0c6",
+  "firstPlayer": 0,
+  "seat0": "hard",
+  "seat1": "grandmasterPlus"
+ },
+ {
+  "gameId": "eval-12x12-hard-grandmasterPlus-0-s",
+  "sizeKey": "12x12",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360,
+  "combo": "hard-grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "hard"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 7,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "64d8dfa688efe3cd671c27856bd41c05af38d6ac6ce1172af322e55fda6eb0c6",
+  "firstPlayer": 0,
+  "seat0": "grandmasterPlus",
+  "seat1": "hard"
+ },
+ {
+  "gameId": "eval-12x12-hard-hard-0-n",
+  "sizeKey": "12x12",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360,
+  "combo": "hard-hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 7,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "64d8dfa688efe3cd671c27856bd41c05af38d6ac6ce1172af322e55fda6eb0c6",
+  "firstPlayer": 0,
+  "seat0": "hard",
+  "seat1": "hard"
+ },
+ {
+  "gameId": "eval-12x12-hard-hard-0-s",
+  "sizeKey": "12x12",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360,
+  "combo": "hard-hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 7,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "64d8dfa688efe3cd671c27856bd41c05af38d6ac6ce1172af322e55fda6eb0c6",
+  "firstPlayer": 0,
+  "seat0": "hard",
+  "seat1": "hard"
+ },
+ {
+  "gameId": "eval-12x12-master-grandmaster-0-n",
+  "sizeKey": "12x12",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360,
+  "combo": "master-grandmaster",
+  "levels": [
+   "master",
+   "grandmaster"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 7,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "64d8dfa688efe3cd671c27856bd41c05af38d6ac6ce1172af322e55fda6eb0c6",
+  "firstPlayer": 0,
+  "seat0": "master",
+  "seat1": "grandmaster"
+ },
+ {
+  "gameId": "eval-12x12-master-grandmaster-0-s",
+  "sizeKey": "12x12",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360,
+  "combo": "master-grandmaster",
+  "levels": [
+   "grandmaster",
+   "master"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 7,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "64d8dfa688efe3cd671c27856bd41c05af38d6ac6ce1172af322e55fda6eb0c6",
+  "firstPlayer": 0,
+  "seat0": "grandmaster",
+  "seat1": "master"
+ },
+ {
+  "gameId": "eval-12x12-grandmaster-grandmasterPlus-0-n",
+  "sizeKey": "12x12",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360,
+  "combo": "grandmaster-grandmasterPlus",
+  "levels": [
+   "grandmaster",
+   "grandmasterPlus"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 7,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "64d8dfa688efe3cd671c27856bd41c05af38d6ac6ce1172af322e55fda6eb0c6",
+  "firstPlayer": 0,
+  "seat0": "grandmaster",
+  "seat1": "grandmasterPlus"
+ },
+ {
+  "gameId": "eval-12x12-grandmaster-grandmasterPlus-0-s",
+  "sizeKey": "12x12",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360,
+  "combo": "grandmaster-grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmaster"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 7,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "64d8dfa688efe3cd671c27856bd41c05af38d6ac6ce1172af322e55fda6eb0c6",
+  "firstPlayer": 0,
+  "seat0": "grandmasterPlus",
+  "seat1": "grandmaster"
+ },
+ {
+  "gameId": "eval-12x12-grandmasterPlus-grandmasterPlus-0-n",
+  "sizeKey": "12x12",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360,
+  "combo": "grandmasterPlus-grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 7,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "64d8dfa688efe3cd671c27856bd41c05af38d6ac6ce1172af322e55fda6eb0c6",
+  "firstPlayer": 0,
+  "seat0": "grandmasterPlus",
+  "seat1": "grandmasterPlus"
+ },
+ {
+  "gameId": "eval-12x12-grandmasterPlus-grandmasterPlus-0-s",
+  "sizeKey": "12x12",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360,
+  "combo": "grandmasterPlus-grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 7,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "64d8dfa688efe3cd671c27856bd41c05af38d6ac6ce1172af322e55fda6eb0c6",
+  "firstPlayer": 0,
+  "seat0": "grandmasterPlus",
+  "seat1": "grandmasterPlus"
+ },
+ {
+  "gameId": "eval-18x18-hard-master-0-n",
+  "sizeKey": "18x18",
+  "cols": 18,
+  "rows": 18,
+  "cap": 600,
+  "combo": "hard-master",
+  "levels": [
+   "hard",
+   "master"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 14,
+    "r": 15
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 11,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 10,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 14
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "1af0d00f46e98d3e4fa69cbd02aa29598e078d53352acdc6161fdfe34876deb0",
+  "firstPlayer": 0,
+  "seat0": "hard",
+  "seat1": "master"
+ },
+ {
+  "gameId": "eval-18x18-hard-master-0-s",
+  "sizeKey": "18x18",
+  "cols": 18,
+  "rows": 18,
+  "cap": 600,
+  "combo": "hard-master",
+  "levels": [
+   "master",
+   "hard"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 14,
+    "r": 15
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 11,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 10,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 14
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "1af0d00f46e98d3e4fa69cbd02aa29598e078d53352acdc6161fdfe34876deb0",
+  "firstPlayer": 0,
+  "seat0": "master",
+  "seat1": "hard"
+ },
+ {
+  "gameId": "eval-18x18-hard-grandmaster-0-n",
+  "sizeKey": "18x18",
+  "cols": 18,
+  "rows": 18,
+  "cap": 600,
+  "combo": "hard-grandmaster",
+  "levels": [
+   "hard",
+   "grandmaster"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 14,
+    "r": 15
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 11,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 10,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 14
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "1af0d00f46e98d3e4fa69cbd02aa29598e078d53352acdc6161fdfe34876deb0",
+  "firstPlayer": 0,
+  "seat0": "hard",
+  "seat1": "grandmaster"
+ },
+ {
+  "gameId": "eval-18x18-hard-grandmaster-0-s",
+  "sizeKey": "18x18",
+  "cols": 18,
+  "rows": 18,
+  "cap": 600,
+  "combo": "hard-grandmaster",
+  "levels": [
+   "grandmaster",
+   "hard"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 14,
+    "r": 15
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 11,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 10,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 14
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "1af0d00f46e98d3e4fa69cbd02aa29598e078d53352acdc6161fdfe34876deb0",
+  "firstPlayer": 0,
+  "seat0": "grandmaster",
+  "seat1": "hard"
+ },
+ {
+  "gameId": "eval-18x18-hard-grandmasterPlus-0-n",
+  "sizeKey": "18x18",
+  "cols": 18,
+  "rows": 18,
+  "cap": 600,
+  "combo": "hard-grandmasterPlus",
+  "levels": [
+   "hard",
+   "grandmasterPlus"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 14,
+    "r": 15
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 11,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 10,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 14
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "1af0d00f46e98d3e4fa69cbd02aa29598e078d53352acdc6161fdfe34876deb0",
+  "firstPlayer": 0,
+  "seat0": "hard",
+  "seat1": "grandmasterPlus"
+ },
+ {
+  "gameId": "eval-18x18-hard-grandmasterPlus-0-s",
+  "sizeKey": "18x18",
+  "cols": 18,
+  "rows": 18,
+  "cap": 600,
+  "combo": "hard-grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "hard"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 14,
+    "r": 15
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 11,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 10,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 14
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "1af0d00f46e98d3e4fa69cbd02aa29598e078d53352acdc6161fdfe34876deb0",
+  "firstPlayer": 0,
+  "seat0": "grandmasterPlus",
+  "seat1": "hard"
+ },
+ {
+  "gameId": "eval-18x18-hard-hard-0-n",
+  "sizeKey": "18x18",
+  "cols": 18,
+  "rows": 18,
+  "cap": 600,
+  "combo": "hard-hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 14,
+    "r": 15
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 11,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 10,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 14
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "1af0d00f46e98d3e4fa69cbd02aa29598e078d53352acdc6161fdfe34876deb0",
+  "firstPlayer": 0,
+  "seat0": "hard",
+  "seat1": "hard"
+ },
+ {
+  "gameId": "eval-18x18-hard-hard-0-s",
+  "sizeKey": "18x18",
+  "cols": 18,
+  "rows": 18,
+  "cap": 600,
+  "combo": "hard-hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 14,
+    "r": 15
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 11,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 10,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 14
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "1af0d00f46e98d3e4fa69cbd02aa29598e078d53352acdc6161fdfe34876deb0",
+  "firstPlayer": 0,
+  "seat0": "hard",
+  "seat1": "hard"
+ },
+ {
+  "gameId": "eval-18x18-master-grandmaster-0-n",
+  "sizeKey": "18x18",
+  "cols": 18,
+  "rows": 18,
+  "cap": 600,
+  "combo": "master-grandmaster",
+  "levels": [
+   "master",
+   "grandmaster"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 14,
+    "r": 15
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 11,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 10,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 14
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "1af0d00f46e98d3e4fa69cbd02aa29598e078d53352acdc6161fdfe34876deb0",
+  "firstPlayer": 0,
+  "seat0": "master",
+  "seat1": "grandmaster"
+ },
+ {
+  "gameId": "eval-18x18-master-grandmaster-0-s",
+  "sizeKey": "18x18",
+  "cols": 18,
+  "rows": 18,
+  "cap": 600,
+  "combo": "master-grandmaster",
+  "levels": [
+   "grandmaster",
+   "master"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 14,
+    "r": 15
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 11,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 10,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 14
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "1af0d00f46e98d3e4fa69cbd02aa29598e078d53352acdc6161fdfe34876deb0",
+  "firstPlayer": 0,
+  "seat0": "grandmaster",
+  "seat1": "master"
+ },
+ {
+  "gameId": "eval-18x18-grandmaster-grandmasterPlus-0-n",
+  "sizeKey": "18x18",
+  "cols": 18,
+  "rows": 18,
+  "cap": 600,
+  "combo": "grandmaster-grandmasterPlus",
+  "levels": [
+   "grandmaster",
+   "grandmasterPlus"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 14,
+    "r": 15
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 11,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 10,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 14
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "1af0d00f46e98d3e4fa69cbd02aa29598e078d53352acdc6161fdfe34876deb0",
+  "firstPlayer": 0,
+  "seat0": "grandmaster",
+  "seat1": "grandmasterPlus"
+ },
+ {
+  "gameId": "eval-18x18-grandmaster-grandmasterPlus-0-s",
+  "sizeKey": "18x18",
+  "cols": 18,
+  "rows": 18,
+  "cap": 600,
+  "combo": "grandmaster-grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmaster"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 14,
+    "r": 15
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 11,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 10,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 14
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "1af0d00f46e98d3e4fa69cbd02aa29598e078d53352acdc6161fdfe34876deb0",
+  "firstPlayer": 0,
+  "seat0": "grandmasterPlus",
+  "seat1": "grandmaster"
+ },
+ {
+  "gameId": "eval-18x18-grandmasterPlus-grandmasterPlus-0-n",
+  "sizeKey": "18x18",
+  "cols": 18,
+  "rows": 18,
+  "cap": 600,
+  "combo": "grandmasterPlus-grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 14,
+    "r": 15
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 11,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 10,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 14
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "1af0d00f46e98d3e4fa69cbd02aa29598e078d53352acdc6161fdfe34876deb0",
+  "firstPlayer": 0,
+  "seat0": "grandmasterPlus",
+  "seat1": "grandmasterPlus"
+ },
+ {
+  "gameId": "eval-18x18-grandmasterPlus-grandmasterPlus-0-s",
+  "sizeKey": "18x18",
+  "cols": 18,
+  "rows": 18,
+  "cap": 600,
+  "combo": "grandmasterPlus-grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "family": 0,
+  "public": true,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 14,
+    "r": 15
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 11,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 10,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 14
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 4,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 3
+   }
+  ],
+  "openingHash": "1af0d00f46e98d3e4fa69cbd02aa29598e078d53352acdc6161fdfe34876deb0",
+  "firstPlayer": 0,
+  "seat0": "grandmasterPlus",
+  "seat1": "grandmasterPlus"
+ }
+]

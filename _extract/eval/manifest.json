@@ -1,0 +1,65 @@
+{
+ "schema": "bs-eval-v1",
+ "createdAt": "2026-11-27T17:22:06.530Z",
+ "commit": "c79ba127cdcf033eb149dbba9d3b6dff2e631e20",
+ "sizes": [
+  [
+   8,
+   8
+  ],
+  [
+   10,
+   12
+  ],
+  [
+   12,
+   12
+  ],
+  [
+   18,
+   18
+  ]
+ ],
+ "combos": [
+  [
+   "hard",
+   "master"
+  ],
+  [
+   "hard",
+   "grandmaster"
+  ],
+  [
+   "hard",
+   "grandmasterPlus"
+  ],
+  [
+   "hard",
+   "hard"
+  ],
+  [
+   "master",
+   "grandmaster"
+  ],
+  [
+   "grandmaster",
+   "grandmasterPlus"
+  ],
+  [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ]
+ ],
+ "caps": {
+  "8x8": 240,
+  "10x12": 240,
+  "12x12": 360,
+  "18x18": 600
+ },
+ "total": 560,
+ "pilot": 56,
+ "openingFamilies": 10,
+ "publicFamilies": 5,
+ "scheduleHash": "81359bf5f14c4d6763e42032a92be06a67519abefe87d85c7847b07196708f9f",
+ "pilotHash": "723b4876023cec08ef190ada4cd7f76686ecc82a2e0b6af3f9b243d16feed59d"
+}
