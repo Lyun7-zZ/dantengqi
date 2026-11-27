@@ -1552,7 +1552,7 @@ html[data-play="async"] .slot.reject .bar {
   <script>
 (function () {
 "use strict";
-globalThis.__DANTENG_WORKER_SRC__ = "(function(){\"use strict\";\n/* ===== src/config.js ===== */\n/**\n * 对局参数集中配置。\n * 规则书第 7、8 节中的“可配置项”集中在这里，界面与内核都从这里取。\n */\nconst GAME_CONFIG = {\n  perMove: 30,     // 每步基础时间（秒）\n  bank: 300,       // 每人时间库（秒）\n  undoLimit: 3,    // 每人悔棋次数\n  aiDelay: 450,    // 电脑落子前的思考停顿（毫秒），纯观感\n  diceDelay: 700,  // 掷骰动画时长（毫秒）\n};\n\n/* ===== src/board.js ===== */\n/**\n * 棋盘常量与坐标编码。\n *\n * 坐标系：列 c ∈ [0, 9] 对应 A–J；行 r ∈ [0, 11] 对应 1–12，r=0 是最靠近终点线的一行。\n * 墙位共 228 个：\n *   - 竖墙 9 × 12 = 108（分隔相邻两列，位于 c 与 c+1 之间）\n *   - 横墙 10 × 11 = 110（分隔相邻两行，位于 r 与 r+1 之间）\n *   - 上端 10 段（每列 1 段，封住该列的出口）\n */\n\nconst COLS = 10;\nconst ROWS = 12;\n\nconst V_COUNT = COLS - 1; // 9  条内部竖线\nconst H_COUNT = ROWS - 1; // 11 条内部横线\nconst TOP_COUNT = COLS;   // 10 段终点线\n\nconst WALL_SLOTS = V_COUNT * ROWS + H_COUNT * COLS + TOP_COUNT; // 228\n\nconst COL_NAMES = \"ABCDEFGHIJ\";\n\n/** 竖墙：位于第 c 列与第 c+1 列之间、第 r 行。c ∈ [0,8]，r ∈ [0,11]。 */\nfunction vIndex(c, r) {\n  return c * ROWS + r;\n}\n\n/** 横墙：位于第 c 列、第 r 行与第 r+1 行之间。c ∈ [0,9]，r ∈ [0,10]。 */\nfunction hIndex(c, r) {\n  return c * H_COUNT + r;\n}\n\n/** 上端墙：封住第 c 列的出口。 */\nfunction topIndex(c) {\n  return c;\n}\n\nfunction colName(c) {\n  return COL_NAMES[c];\n}\n\nfunction rowName(r) {\n  return String(r + 1);\n}\n\n/**\n * 墙的名称（与规则书 1.3 一致）。\n * 竖墙 A-9-10；横墙 A-B-10；上端墙 A-0。\n */\nfunction wallName(kind, c, r) {\n  if (kind === \"v\") return `${colName(c)}-${colName(c + 1)}-${rowName(r)}`;\n  if (kind === \"h\") return `${colName(c)}-${rowName(r)}-${rowName(r + 1)}`;\n  if (kind === \"top\") return `${colName(c)}-0`;\n  throw new Error(`unknown wall kind: ${kind}`);\n}\n\n/** 把 (kind,c,r) 映射为 0..227 的全局序号，便于统计与快照。 */\nfunction wallSlot(kind, c, r) {\n  if (kind === \"v\") return vIndex(c, r);\n  if (kind === \"h\") return V_COUNT * ROWS + hIndex(c, r);\n  if (kind === \"top\") return V_COUNT * ROWS + H_COUNT * COLS + topIndex(c);\n  throw new Error(`unknown wall kind: ${kind}`);\n}\n\n/** 枚举全部 228 个墙位，用于生成候选与测试。 */\nfunction allWallSlots() {\n  const out = [];\n  for (let c = 0; c < V_COUNT; c++) {\n    for (let r = 0; r < ROWS; r++) out.push({ kind: \"v\", c, r });\n  }\n  for (let c = 0; c < COLS; c++) {\n    for (let r = 0; r < H_COUNT; r++) out.push({ kind: \"h\", c, r });\n  }\n  for (let c = 0; c < TOP_COUNT; c++) out.push({ kind: \"top\", c, r: 0 });\n  return out;\n}\n\n/* ===== src/metrics.js ===== */\n// 轻量诊断计数：默认关闭，开启时只做计数与耗时累计。\nconst M = {\n  on: false,\n  pathCalls: 0,\n  pathMs: 0,\n  legalCalls: 0,\n  legalMs: 0,\n  applyCalls: 0,\n  applyMs: 0,\n};\n\nfunction resetMetrics() {\n  M.pathCalls = 0;\n  M.pathMs = 0;\n  M.legalCalls = 0;\n  M.legalMs = 0;\n  M.applyCalls = 0;\n  M.applyMs = 0;\n}\n\nfunction snapshot() {\n  return {\n    pathCalls: M.pathCalls,\n    pathMs: Number(M.pathMs.toFixed(2)),\n    legalCalls: M.legalCalls,\n    legalMs: Number(M.legalMs.toFixed(2)),\n    applyCalls: M.applyCalls,\n    applyMs: Number(M.applyMs.toFixed(2)),\n  };\n}\n\nfunction now() {\n  return globalThis.performance?.now ? globalThis.performance.now() : Date.now();\n}\n\n/* ===== src/path-cache.js ===== */\n// 路径查询缓存（实验开关，默认关闭）。\n// 键 = 52 位墙哈希 + 起点 + 类型；另存 32 位独立签名用于命中核对（合计 84 位身份）。\n\nconst PC = {\n  on: false,\n  max: 200000,\n  map: new Map(),\n  entries: 0,\n  peak: 0,\n  hits: 0,\n  misses: 0,\n  clears: 0,\n  collisions: 0,\n  audit: false,\n  distinct: null,\n};\n\nconst hashCache = new WeakMap();\n\nfunction wallHash(state) {\n  let cached = hashCache.get(state);\n  if (cached) return cached;\n  let a = 0x9e3779b9;\n  let b = 0x85ebca6b;\n  let c = 0xc2b2ae35;\n  const v = state.vWall, hh = state.hWall, t = state.topWall;\n  for (let i = 0; i < v.length; i++) {\n    a = Math.imul(a ^ v[i], 0x01000193);\n    b = Math.imul(b ^ v[i], 0x85ebca6b);\n    c = Math.imul(c ^ v[i], 0x27d4eb2f);\n  }\n  for (let i = 0; i < hh.length; i++) {\n    a = Math.imul(a ^ hh[i], 0x01000193);\n    b = Math.imul(b ^ hh[i], 0x85ebca6b);\n    c = Math.imul(c ^ hh[i], 0x27d4eb2f);\n  }\n  for (let i = 0; i < t.length; i++) {\n    a = Math.imul(a ^ t[i], 0x01000193);\n    b = Math.imul(b ^ t[i], 0x85ebca6b);\n    c = Math.imul(c ^ t[i], 0x27d4eb2f);\n  }\n  cached = {\n    h: (a >>> 0) * 67108864 + (b >>> 0) % 67108864,\n    sig: c >>> 0,\n  };\n  hashCache.set(state, cached);\n  return cached;\n}\n\nfunction enablePathCache(max = 200000, audit = false) {\n  PC.on = true;\n  PC.max = max;\n  PC.hits = 0;\n  PC.misses = 0;\n  PC.clears = 0;\n  PC.collisions = 0;\n  PC.entries = 0;\n  PC.peak = 0;\n  PC.audit = audit;\n  PC.distinct = audit ? new Set() : null;\n  PC.map.clear();\n}\n\nfunction disablePathCache() {\n  PC.on = false;\n}\n\nfunction cacheStats() {\n  const total = PC.hits + PC.misses;\n  return {\n    hits: PC.hits,\n    misses: PC.misses,\n    hitRate: total ? Number((PC.hits / total).toFixed(4)) : 0,\n    uniqueKeys: PC.entries,\n    peak: PC.peak,\n    distinct: PC.distinct ? PC.distinct.size : null,\n    clears: PC.clears,\n    collisions: PC.collisions,\n  };\n}\n\nfunction cacheGet(h, pk, sig) {\n  const inner = PC.map.get(h);\n  if (!inner) return undefined;\n  const e = inner.get(pk);\n  if (!e) return undefined;\n  if (e.sig !== sig) {\n    PC.collisions++;\n    return undefined;\n  }\n  return e.v;\n}\n\nfunction cacheSet(h, pk, sig, v) {\n  if (PC.entries >= PC.max) {\n    PC.map.clear();\n    PC.entries = 0;\n    PC.clears++;\n  }\n  let inner = PC.map.get(h);\n  if (!inner) {\n    inner = new Map();\n    PC.map.set(h, inner);\n  }\n  if (!inner.has(pk)) {\n    PC.entries++;\n    if (PC.entries > PC.peak) PC.peak = PC.entries;\n  }\n  inner.set(pk, { sig, v });\n  if (PC.distinct) PC.distinct.add(h + \":\" + pk);\n}\n\n/* ===== src/path.js ===== */\n/**\n * 寻路：到终点的最短路。\n *\n * “终点”定义为某种虚拟出口：棋子位于第 1 行（r=0），且该列上端没有墙，\n * 再向上走一步即越线。因此到终点的步数 = 到某个可出线格子的步数 + 1。\n */\n\n\nconst SIZE = COLS * ROWS;\nconst key = (c, r) => r * COLS + c;\n\n/**\n * 从 (c0,r0) 出发，返回到达终点所需步数；无路可走时返回 Infinity。\n */\nfunction distanceToGoalImpl(state, c0, r0) {\n  const { vWall, hWall, topWall } = state;\n  const dist = new Int16Array(SIZE).fill(-1);\n  const q = new Int16Array(SIZE * 2);\n  let head = 0;\n  let tail = 0;\n\n  q[tail++] = c0;\n  q[tail++] = r0;\n  dist[key(c0, r0)] = 0;\n\n  while (head < tail) {\n    const c = q[head++];\n    const r = q[head++];\n    const d = dist[key(c, r)];\n\n    if (r === 0 && topWall[c] === 0) return d + 1;\n\n    if (r > 0 && hWall[c * H_COUNT + (r - 1)] === 0) {\n      const k = key(c, r - 1);\n      if (dist[k] < 0) {\n        dist[k] = d + 1;\n        q[tail++] = c;\n        q[tail++] = r - 1;\n      }\n    }\n    if (r < ROWS - 1 && hWall[c * H_COUNT + r] === 0) {\n      const k = key(c, r + 1);\n      if (dist[k] < 0) {\n        dist[k] = d + 1;\n        q[tail++] = c;\n        q[tail++] = r + 1;\n      }\n    }\n    if (c > 0 && vWall[(c - 1) * ROWS + r] === 0) {\n      const k = key(c - 1, r);\n      if (dist[k] < 0) {\n        dist[k] = d + 1;\n        q[tail++] = c - 1;\n        q[tail++] = r;\n      }\n    }\n    if (c < COLS - 1 && vWall[c * ROWS + r] === 0) {\n      const k = key(c + 1, r);\n      if (dist[k] < 0) {\n        dist[k] = d + 1;\n        q[tail++] = c + 1;\n        q[tail++] = r;\n      }\n    }\n  }\n  return Infinity;\n}\n\nfunction hasPathImpl(state, c, r) {\n  return Number.isFinite(distanceToGoal(state, c, r));\n}\n\n/**\n * 最短路经过的边（用于 AI 生成“堵路”候选）。\n * 返回 [{ kind, c, r }]，即路径上每一段可被封锁的墙位。\n */\nfunction shortestPathWalls(state, c0, r0) {\n  const { vWall, hWall, topWall } = state;\n  const dist = new Int16Array(SIZE).fill(-1);\n  const prev = new Int16Array(SIZE).fill(-1);\n  const q = new Int16Array(SIZE * 2);\n  let head = 0;\n  let tail = 0;\n  q[tail++] = c0;\n  q[tail++] = r0;\n  dist[key(c0, r0)] = 0;\n\n  let goalIdx = -1;\n  while (head < tail) {\n    const c = q[head++];\n    const r = q[head++];\n    const d = dist[key(c, r)];\n    if (r === 0 && topWall[c] === 0) {\n      goalIdx = key(c, r);\n      break;\n    }\n    const relax = (nc, nr) => {\n      const k = key(nc, nr);\n      if (dist[k] < 0) {\n        dist[k] = d + 1;\n        prev[k] = key(c, r);\n        q[tail++] = nc;\n        q[tail++] = nr;\n      }\n    };\n    if (r > 0 && hWall[c * H_COUNT + (r - 1)] === 0) relax(c, r - 1);\n    if (r < ROWS - 1 && hWall[c * H_COUNT + r] === 0) relax(c, r + 1);\n    if (c > 0 && vWall[(c - 1) * ROWS + r] === 0) relax(c - 1, r);\n    if (c < COLS - 1 && vWall[c * ROWS + r] === 0) relax(c + 1, r);\n  }\n\n  if (goalIdx < 0) return [];\n\n  const cells = [];\n  let cur = goalIdx;\n  while (cur >= 0) {\n    cells.push(cur);\n    cur = prev[cur];\n  }\n  cells.reverse();\n\n  const walls = [];\n  for (let i = 1; i < cells.length; i++) {\n    const a = cells[i - 1];\n    const b = cells[i];\n    const ac = a % COLS, ar = Math.floor(a / COLS);\n    const bc = b % COLS, br = Math.floor(b / COLS);\n    if (ar === br) {\n      const left = Math.min(ac, bc);\n      walls.push({ kind: \"v\", c: left, r: ar });\n    } else {\n      const top = Math.min(ar, br);\n      walls.push({ kind: \"h\", c: ac, r: top });\n    }\n  }\n  // 终点线上方的那一段\n  const last = cells[cells.length - 1];\n  const lc = last % COLS;\n  walls.push({ kind: \"top\", c: lc, r: 0 });\n  return walls;\n}\n\n\nfunction distanceToGoal(state, c0, r0) {\n  const tracing = M.on;\n  if (!PC.on && !tracing) return distanceToGoalImpl(state, c0, r0);\n  const t = tracing ? now() : 0;\n  if (tracing) M.pathCalls++;\n  let out;\n  if (PC.on) {\n    const { h, sig } = wallHash(state);\n    const pk = (c0 * 12 + r0) * 2;\n    const hit = cacheGet(h, pk, sig);\n    if (hit !== undefined) {\n      PC.hits++;\n      out = hit;\n    } else {\n      PC.misses++;\n      out = distanceToGoalImpl(state, c0, r0);\n      cacheSet(h, pk, sig, out);\n    }\n  } else {\n    out = distanceToGoalImpl(state, c0, r0);\n  }\n  if (tracing) M.pathMs += now() - t;\n  return out;\n}\n\nfunction hasPath(state, c, r) {\n  const tracing = M.on;\n  if (!PC.on && !tracing) return hasPathImpl(state, c, r);\n  const t = tracing ? now() : 0;\n  if (tracing) M.pathCalls++;\n  let out;\n  if (PC.on) {\n    const { h, sig } = wallHash(state);\n    const pk = (c * 12 + r) * 2 + 1;\n    const hit = cacheGet(h, pk, sig);\n    if (hit !== undefined) {\n      PC.hits++;\n      out = hit;\n    } else {\n      PC.misses++;\n      out = hasPathImpl(state, c, r);\n      cacheSet(h, pk, sig, out);\n    }\n  } else {\n    out = hasPathImpl(state, c, r);\n  }\n  if (tracing) M.pathMs += now() - t;\n  return out;\n}\n\n/* ===== src/rules.js ===== */\n/**\n * 规则内核：状态、行动、合法性、判定。\n *\n * 纯函数式：applyAction 不修改传入状态，返回新状态；非法行动返回 { ok:false, error }。\n */\n\n\nconst DIRS = [\"up\", \"down\", \"left\", \"right\"];\n\nfunction createState(firstPlayer = 0, { tolerance = 1, wallLimit = Infinity, drawMode = \"firstOnly\" } = {}) {\n  return {\n    vWall: new Uint8Array(V_COUNT * ROWS),\n    hWall: new Uint8Array(H_COUNT * COLS),\n    topWall: new Uint8Array(TOP_COUNT),\n    players: [\n      { c: 0, r: ROWS - 1 },\n      { c: COLS - 1, r: ROWS - 1 },\n    ],\n    turn: firstPlayer,\n    firstPlayer,\n    drawMode,\n    tolerance,\n    wallLimit: Array.isArray(wallLimit) ? [wallLimit[0], wallLimit[1]] : [wallLimit, wallLimit],\n    wallsUsed: [0, 0],\n    plies: 0,\n    wallsPlaced: 0,\n    winner: null, // null | 0 | 1 | \"draw\"\n  };\n}\n\nfunction cloneState(s) {\n  return {\n    vWall: s.vWall.slice(),\n    hWall: s.hWall.slice(),\n    topWall: s.topWall.slice(),\n    players: s.players.map((p) => ({ c: p.c, r: p.r })),\n    turn: s.turn,\n    firstPlayer: s.firstPlayer,\n    drawMode: s.drawMode,\n    tolerance: s.tolerance,\n    wallLimit: s.wallLimit.slice(),\n    wallsUsed: s.wallsUsed.slice(),\n    plies: s.plies,\n    wallsPlaced: s.wallsPlaced,\n    winner: s.winner,\n  };\n}\n\n/**\n * 修复外部读入的状态：JSON 往返会把 Infinity 变成 null、Uint8Array 变成普通对象，\n * 旧存档也可能缺字段。只补默认值，不改变已有合法值。\n */\nfunction normalizeState(state) {\n  if (!state || typeof state !== \"object\") return state;\n  const u8 = (v, n) => {\n    if (v instanceof Uint8Array && v.length === n) return v;\n    return Uint8Array.from({ length: n }, (_, i) => Number(v?.[i]) || 0);\n  };\n  state.vWall = u8(state.vWall, V_COUNT * ROWS);\n  state.hWall = u8(state.hWall, H_COUNT * COLS);\n  state.topWall = u8(state.topWall, TOP_COUNT);\n  const lim = Array.isArray(state.wallLimit) ? state.wallLimit : [state.wallLimit, state.wallLimit];\n  state.wallLimit = [0, 1].map((i) => (typeof lim[i] === \"number\" && Number.isFinite(lim[i]) ? lim[i] : Infinity));\n  if (!Array.isArray(state.wallsUsed)) state.wallsUsed = [0, 0];\n  else state.wallsUsed = [Number(state.wallsUsed[0]) || 0, Number(state.wallsUsed[1]) || 0];\n  state.tolerance = Number.isFinite(state.tolerance) ? state.tolerance : 1;\n  if (typeof state.drawMode !== \"string\" || !state.drawMode) state.drawMode = \"firstOnly\";\n  if (state.turn !== 0 && state.turn !== 1) state.turn = state.firstPlayer === 1 ? 1 : 0;\n  if (state.firstPlayer !== 0 && state.firstPlayer !== 1) state.firstPlayer = state.turn;\n  if (!Array.isArray(state.players) || state.players.length !== 2) {\n    state.players = [{ c: 0, r: ROWS - 1 }, { c: COLS - 1, r: ROWS - 1 }];\n  } else {\n    state.players = state.players.map((p) => ({ c: Number(p?.c) || 0, r: Number(p?.r) || 0 }));\n  }\n  state.plies = Number.isFinite(state.plies) ? state.plies : 0;\n  state.wallsPlaced = Number.isFinite(state.wallsPlaced) ? state.wallsPlaced : 0;\n  if (state.winner === undefined) state.winner = null;\n  return state;\n}\n\nfunction wallPlaced(s, kind, c, r) {  if (kind === \"v\") return s.vWall[vIndex(c, r)] === 1;\n  if (kind === \"h\") return s.hWall[hIndex(c, r)] === 1;\n  if (kind === \"top\") return s.topWall[topIndex(c)] === 1;\n  throw new Error(`unknown wall kind: ${kind}`);\n}\n\nfunction setWall(s, kind, c, r) {\n  if (kind === \"v\") s.vWall[vIndex(c, r)] = 1;\n  else if (kind === \"h\") s.hWall[hIndex(c, r)] = 1;\n  else if (kind === \"top\") s.topWall[topIndex(c)] = 1;\n  else throw new Error(`unknown wall kind: ${kind}`);\n}\n\n/** 墙位是否在合法范围内。 */\nfunction wallInBounds(kind, c, r) {\n  if (kind === \"v\") return c >= 0 && c < V_COUNT && r >= 0 && r < ROWS;\n  if (kind === \"h\") return c >= 0 && c < COLS && r >= 0 && r < H_COUNT;\n  if (kind === \"top\") return c >= 0 && c < TOP_COUNT && r === 0;\n  return false;\n}\n\n/**\n * 从 (c,r) 沿 dir 走一步的结果。\n * 返回 { c, r } | { exit:true } | null（不可走）。\n */\nfunction stepTarget(state, c, r, dir) {\n  const { vWall, hWall, topWall } = state;\n  if (dir === \"up\") {\n    if (r === 0) return topWall[c] === 0 ? { exit: true } : null;\n    return hWall[c * H_COUNT + (r - 1)] === 0 ? { c, r: r - 1 } : null;\n  }\n  if (dir === \"down\") {\n    if (r === ROWS - 1) return null;\n    return hWall[c * H_COUNT + r] === 0 ? { c, r: r + 1 } : null;\n  }\n  if (dir === \"left\") {\n    if (c === 0) return null;\n    return vWall[(c - 1) * ROWS + r] === 0 ? { c: c - 1, r } : null;\n  }\n  if (dir === \"right\") {\n    if (c === COLS - 1) return null;\n    return vWall[c * ROWS + r] === 0 ? { c: c + 1, r } : null;\n  }\n  return null;\n}\n\nfunction legalDirs(state, c, r) {\n  return DIRS.filter((d) => stepTarget(state, c, r, d) !== null);\n}\n\n/**\n * 行动是否合法。不修改状态。\n * 返回 { ok:true } 或 { ok:false, error }。\n */\nfunction validateActionImpl(state, action) {\n  if (state.winner !== null) return { ok: false, error: \"game-over\" };\n\n  if (action.type === \"move\") {\n    const p = state.players[state.turn];\n    if (!DIRS.includes(action.dir)) return { ok: false, error: \"bad-action\" };\n    const t = stepTarget(state, p.c, p.r, action.dir);\n    if (!t) return { ok: false, error: \"blocked\" };\n    return { ok: true };\n  }\n\n  if (action.type === \"wall\") {\n    const { kind, c, r } = action;\n    if (state.wallsUsed[state.turn] >= state.wallLimit[state.turn]) {\n      return { ok: false, error: \"no-walls\" };\n    }\n    if (!wallInBounds(kind, c, r)) return { ok: false, error: \"out-of-bounds\" };\n    if (wallPlaced(state, kind, c, r)) return { ok: false, error: \"occupied\" };\n\n    const probe = cloneState(state);\n    setWall(probe, kind, c, r);\n    for (const pl of probe.players) {\n      if (!hasPath(probe, pl.c, pl.r)) return { ok: false, error: \"blocks-path\" };\n    }\n    return { ok: true };\n  }\n\n  return { ok: false, error: \"bad-action\" };\n}\n\n/**\n * 执行行动，返回新状态。\n * 事件类型：move / exit / wall；若一方越线，winner 已确定（0 | 1 | \"draw\"）。\n */\nfunction applyActionImpl(state, action) {\n  const check = validateAction(state, action);\n  if (!check.ok) return { ok: false, error: check.error };\n\n  const next = cloneState(state);\n  const p = state.turn;\n  let event;\n\n  if (action.type === \"move\") {\n    const me = next.players[p];\n    const t = stepTarget(state, me.c, me.r, action.dir);\n    if (t.exit) {\n      const opp = next.players[1 - p];\n      const oppDist = distanceToGoal(next, opp.c, opp.r);\n      const withinTolerance = oppDist <= next.tolerance;\n      const draw = next.drawMode === \"firstOnly\"\n        ? (p === next.firstPlayer && withinTolerance)\n        : withinTolerance;\n      next.winner = draw ? \"draw\" : p;\n      event = { type: \"exit\", player: p, draw, oppDist };\n    } else {\n      me.c = t.c;\n      me.r = t.r;\n      event = { type: \"move\", player: p, c: t.c, r: t.r };\n    }\n  } else {\n    setWall(next, action.kind, action.c, action.r);\n    next.wallsUsed[p] += 1;\n    next.wallsPlaced += 1;\n    event = { type: \"wall\", player: p, kind: action.kind, c: action.c, r: action.r };\n  }\n\n  next.turn = 1 - p;\n  next.plies += 1;\n  return { ok: true, state: next, event };\n}\n\n/** 枚举全部合法行动（主要用于随机 AI 与测试）。 */\nfunction legalActions(state) {\n  if (state.winner !== null) return [];\n  const out = [];\n  const p = state.players[state.turn];\n  for (const dir of legalDirs(state, p.c, p.r)) {\n    out.push({ type: \"move\", dir });\n  }\n  if (state.wallsUsed[state.turn] >= state.wallLimit[state.turn]) {\n    return out;\n  }\n  for (let c = 0; c < V_COUNT; c++) {\n    for (let r = 0; r < ROWS; r++) {\n      if (!wallPlaced(state, \"v\", c, r)) out.push({ type: \"wall\", kind: \"v\", c, r });\n    }\n  }\n  for (let c = 0; c < COLS; c++) {\n    for (let r = 0; r < H_COUNT; r++) {\n      if (!wallPlaced(state, \"h\", c, r)) out.push({ type: \"wall\", kind: \"h\", c, r });\n    }\n  }\n  for (let c = 0; c < TOP_COUNT; c++) {\n    if (!wallPlaced(state, \"top\", c, 0)) out.push({ type: \"wall\", kind: \"top\", c, r: 0 });\n  }\n  return out;\n}\n\nfunction distanceOf(state, player) {\n  const p = state.players[player];\n  return distanceToGoal(state, p.c, p.r);\n}\n\n/**\n * 兜底走子：BFS 最短路，同长度时优先向上。\n * （开启“超时系统代走”时调用；关闭时超时判负。）\n * 依赖 DIRS 的顺序（up 在最前），只在严格更短时替换，从而保证同长优先“上”。\n */\nfunction autoMove(state) {\n  const p = state.players[state.turn];\n  let best = null;\n  let bestDist = Infinity;\n  for (const dir of DIRS) {\n    const t = stepTarget(state, p.c, p.r, dir);\n    if (!t) continue;\n    if (t.exit) return { type: \"move\", dir };\n    const d = distanceToGoal(state, t.c, t.r);\n    if (d < bestDist) {\n      bestDist = d;\n      best = { type: \"move\", dir };\n    }\n  }\n  return best;\n}\n\n\nfunction validateAction(state, action) {\n  if (!M.on) return validateActionImpl(state, action);\n  const t = now();\n  M.legalCalls++;\n  const out = validateActionImpl(state, action);\n  M.legalMs += now() - t;\n  return out;\n}\n\nfunction applyAction(state, action) {\n  if (!M.on) return applyActionImpl(state, action);\n  const t = now();\n  M.applyCalls++;\n  const out = applyActionImpl(state, action);\n  M.applyMs += now() - t;\n  return out;\n}\n\n/* ===== src/ai-random.js ===== */\n/**\n * 随机与随机数工具：被 ai.js 与 ai-master.js 共用，避免循环依赖。\n */\n\n\nfunction makeRng(seed) {\n  let a = seed >>> 0;\n  return function rng() {\n    a |= 0;\n    a = (a + 0x6d2b79f5) | 0;\n    let t = Math.imul(a ^ (a >>> 15), 1 | a);\n    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;\n    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;\n  };\n}\n\nfunction randomAI(state, rng) {\n  const actions = legalActions(state);\n  // 随机墙可能封死通路，需要按规则校验；连续命中非法时退化为走子。\n  for (let i = 0; i < 200; i++) {\n    const a = actions[Math.floor(rng() * actions.length)];\n    if (a.type === \"move\") return a;\n    if (validateAction(state, a).ok) return a;\n  }\n  const p = state.players[state.turn];\n  const dirs = legalDirs(state, p.c, p.r);\n  return { type: \"move\", dir: dirs[Math.floor(rng() * dirs.length)] };\n}\n\n/* ===== src/ai-master.js ===== */\n/**\n * 大师 AI：迭代加深 αβ + 结构评估 + 锁路计划层。\n * 移植自朋友的分支（ai2.js），仅补上模块 import 与 path 内部常量。\n */\n\n\nconst AI2_SIZE = COLS * ROWS;\n\n// 评估竞速模式：legacy（默认）/ race（E1a 实验）。\nlet evalRaceMode = \"legacy\";\nfunction setEvalRaceMode(mode) { evalRaceMode = mode; }\nfunction getEvalRaceMode() { return evalRaceMode; }\n\n/**\n * 越线结果：返回 { action, winner } 或 null。\n * winner 可能是本方（赢）、\"draw\"（平）或对方。\n * 注意：能越线不等于能赢——规则 1.3 下可能是平局。\n */\nfunction exitAction(state) {\n  const p = state.players[state.turn];\n  if (p.r !== 0) return null;\n  const t = stepTarget(state, p.c, p.r, \"up\");\n  if (!t || !t.exit) return null;\n  const r = applyAction(state, { type: \"move\", dir: \"up\" });\n  if (!r.ok) return null;\n  return { action: { type: \"move\", dir: \"up\" }, winner: r.state.winner };\n}\nconst ai2Key = (c, r) => r * COLS + c;\n\n/**\n * 强 AI：迭代加深 αβ + 结构评估 + 锁路计划层。\n * 纯逻辑，不依赖 DOM，便于自对弈测试。\n */\n\nconst AI_WIN = 1e9;\n\nfunction aiNow() {\n  return typeof performance !== \"undefined\" && performance.now ? performance.now() : Date.now();\n}\n\nfunction marginFor(state, p) {\n  return distanceOf(state, 1 - p) - distanceOf(state, p);\n}\n\nfunction countOpenExits(state) {\n  let n = 0;\n  for (let c = 0; c < COLS; c++) if (state.topWall[c] === 0) n++;\n  return n;\n}\n\n/** 到终点的最短路条数（截断），衡量备选路是否被砍光。 */\nfunction pathCount(state, p, cap = 24) {\n  const { vWall, hWall, topWall } = state;\n  const pl = state.players[p];\n  const dist = new Int16Array(AI2_SIZE).fill(-1);\n  const ways = new Int16Array(AI2_SIZE);\n  const q = new Int16Array(AI2_SIZE * 2);\n  let head = 0;\n  let tail = 0;\n  const sk = ai2Key(pl.c, pl.r);\n  dist[sk] = 0;\n  ways[sk] = 1;\n  q[tail++] = pl.c;\n  q[tail++] = pl.r;\n  while (head < tail) {\n    const c = q[head++];\n    const r = q[head++];\n    const k = ai2Key(c, r);\n    const d = dist[k];\n    const w = ways[k];\n    const relax = (nc, nr) => {\n      const nk = ai2Key(nc, nr);\n      if (dist[nk] < 0) {\n        dist[nk] = d + 1;\n        ways[nk] = w;\n        q[tail++] = nc;\n        q[tail++] = nr;\n      } else if (dist[nk] === d + 1) {\n        ways[nk] = Math.min(cap, ways[nk] + w);\n      }\n    };\n    if (r > 0 && hWall[c * H_COUNT + (r - 1)] === 0) relax(c, r - 1);\n    if (r < ROWS - 1 && hWall[c * H_COUNT + r] === 0) relax(c, r + 1);\n    if (c > 0 && vWall[(c - 1) * ROWS + r] === 0) relax(c - 1, r);\n    if (c < COLS - 1 && vWall[c * ROWS + r] === 0) relax(c + 1, r);\n  }\n  let gd = Infinity;\n  for (let c = 0; c < COLS; c++) {\n    if (topWall[c] !== 0) continue;\n    const d = dist[ai2Key(c, 0)];\n    if (d >= 0 && d + 1 < gd) gd = d + 1;\n  }\n  if (!Number.isFinite(gd)) return 0;\n  let count = 0;\n  for (let c = 0; c < COLS; c++) {\n    if (topWall[c] !== 0) continue;\n    const d = dist[ai2Key(c, 0)];\n    if (d + 1 === gd) count += ways[ai2Key(c, 0)];\n  }\n  return Math.min(cap, count);\n}\n\n/** 结构评估：胜势奖励“更快到达”，并把“出口被关光”视为平局。 */\n/** p 附近（列差 ≤3）仍开放的出口数量。 */\nfunction nearExits(state, p) {\n  const pc = state.players[p].c;\n  let n = 0;\n  for (let c = 0; c < COLS; c++) {\n    if (state.topWall[c] === 0 && Math.abs(c - pc) <= 3) n++;\n  }\n  return n;\n}\n\n/**\n * 局面评估（站在 state.turn 的角度）。\n *\n * v2 相比 v1：\n *   - 领先时用连续的速度项代替粗糙的分档，引导搜索找更快的赢法；\n *   - 所有区间都计入「最短路条数」与「近端出口」两个结构项，\n *     因为残局里“能封我几条路”比“我还差几步”更能决定胜负；\n *   - 显式惩罚对手站在终点线（下一步就能出）的局面。\n */\n/** 静态竞速：双方沿最短路走子、不加墙时的 W/D/L（M=state.turn 视角）。 */\nfunction staticRaceResult(state) {\n  const me = state.turn;\n  const opp = 1 - me;\n  const dM = distanceOf(state, me);\n  const dO = distanceOf(state, opp);\n  if (!Number.isFinite(dM) || !Number.isFinite(dO) || dM <= 0 || dO <= 0) return null;\n  const m = dO - dM;\n  let p, r;\n  if (m >= 0) { p = me; r = m + 1; }\n  else { p = opp; r = -m; }\n  const firstOnly = state.drawMode === \"firstOnly\";\n  const pIsFirst = state.firstPlayer === undefined ? true : state.firstPlayer === p;\n  const draw = firstOnly ? (pIsFirst && r <= state.tolerance) : (r <= state.tolerance);\n  if (draw) return \"D\";\n  return p === me ? \"W\" : \"L\";\n}\n\nfunction evalAI(state) {\n  if (state.winner !== null) {\n    if (state.winner === \"draw\") return 0;\n    return state.winner === state.turn ? AI_WIN : -AI_WIN;\n  }\n  const me = state.turn;\n  const opp = 1 - me;\n  const dm = distanceOf(state, me);\n  const dop = distanceOf(state, opp);\n  const exits = countOpenExits(state);\n  if (!Number.isFinite(dm) || !Number.isFinite(dop)) {\n    if (!Number.isFinite(dm) && !Number.isFinite(dop)) return 0;\n    if (!Number.isFinite(dm)) return -AI_WIN / 2;\n    return AI_WIN / 2;\n  }\n  if (exits === 0) return 0;\n\n  const m = dop - dm;\n  // 规则 1.3（drawMode=firstOnly）：先手领先 1 手只是平局，后手领先 1 手却是直接取胜\n  const firstOnly = state.drawMode === \"firstOnly\";\n  const meIsFirst = state.firstPlayer === undefined ? true : state.firstPlayer === me;\n\n  const ways = pathCount(state, me, 20) - pathCount(state, opp, 20);\n  const near = nearExits(state, me) - nearExits(state, opp);\n  const doorstep = (dm === 1 ? 120 : 0) - (dop === 1 ? 120 : 0);\n  const openPenalty = 10 - exits;\n\n  const winning = m >= 2 || (firstOnly && !meIsFirst && m === 1);\n  const drawish = m === 1 && !winning;\n\n  let base;\n  if (evalRaceMode === \"race\") {\n    const rr = staticRaceResult(state);\n    base = rr === \"W\" ? 6000 : rr === \"D\" ? -60 : rr === \"L\" ? -5400 : null;\n  }\n  if (base === undefined || (evalRaceMode === \"race\" && base === null)) {\n    base = winning ? 6000 : drawish ? -60 : -5400;\n  }\n  if (winning) {\n    // 赢面：优先缩短自己的步数，其次保住路线，不再堆墙\n    return base - 18 * dm - 20 * openPenalty\n      + Math.min(m, 6) * 25 + 6 * ways + 4 * near + doorstep;\n  }\n  if (drawish) {\n    // 先手只领先 1 手：想赢就必须再拉开，否则只能保平\n    return base + 20 * ways + 12 * near - 8 * openPenalty + doorstep;\n  }\n  // 落后（含均势）：出口越少越可能逼平，差距越大越糟\n  return base + 14 * m + 26 * openPenalty + 5 * ways + 6 * near + doorstep;\n}\n\n/** 调试：返回 evalAI 的分项，不改变评估语义。 */\nfunction debugEvalBreakdown(state) {\n  const me = state.turn;\n  const opp = 1 - me;\n  const dm = distanceOf(state, me);\n  const dop = distanceOf(state, opp);\n  const exits = countOpenExits(state);\n  const m = dop - dm;\n  const firstOnly = state.drawMode === \"firstOnly\";\n  const meIsFirst = state.firstPlayer === undefined ? true : state.firstPlayer === me;\n  const ways = pathCount(state, me, 20) - pathCount(state, opp, 20);\n  const near = nearExits(state, me) - nearExits(state, opp);\n  const doorstep = (dm === 1 ? 120 : 0) - (dop === 1 ? 120 : 0);\n  const openPenalty = 10 - exits;\n  const winning = m >= 2 || (firstOnly && !meIsFirst && m === 1);\n  const drawish = m === 1 && !winning;\n  return {\n    winner: state.winner, turn: me, dm, dop, m, exits, openPenalty,\n    firstOnly, meIsFirst, winning, drawish, ways, near, doorstep,\n    pathMe: pathCount(state, me, 20), pathOpp: pathCount(state, opp, 20),\n    eval: evalAI(state),\n  };\n}\n\n/** 走法生成：走子 + 对手最短路墙 + （根节点）全墙扫描的高收益墙 + 计划墙。 */\nfunction candidatesAI(state, opts = {}) {\n  const me = state.turn;\n  const opp = 1 - me;\n  const out = [];\n  const seen = new Set();\n  const add = (a) => {\n    const k = a.type === \"move\" ? `m:${a.dir}` : `w:${a.kind}:${a.c}:${a.r}`;\n    if (seen.has(k)) return;\n    seen.add(k);\n    out.push(a);\n  };\n  const mp = state.players[me];\n  const op = state.players[opp];\n  for (const dir of legalDirs(state, mp.c, mp.r)) add({ type: \"move\", dir });\n\n  // 只保留真正让对手更慢的墙；不制造“双方一起被拖慢”的无效墙。\n  const netWalls = !!opts.netWalls;\n  const topWallMinPlies = Number(opts.topWallMinPlies ?? 0);\n  const dm0 = netWalls ? distanceToGoal(state, mp.c, mp.r) : 0;\n  const dop0 = netWalls ? distanceToGoal(state, op.c, op.r) : 0;\n  const wallGain = (w) => {\n    const probe = cloneState(state);\n    setWall(probe, w.kind, w.c, w.r);\n    if (!hasPath(probe, mp.c, mp.r)) return null;\n    const dm = distanceToGoal(probe, mp.c, mp.r);\n    const dop = distanceToGoal(probe, op.c, op.r);\n    if (!Number.isFinite(dm) || !Number.isFinite(dop)) return null;\n    return { gainMe: dm - dm0, gainOpp: dop - dop0 };\n  };\n  const addWall = (w, top = false) => {\n    const a = w.type === \"wall\" ? w : { type: \"wall\", kind: w.kind, c: w.c, r: w.r };\n    if (top && state.plies < topWallMinPlies) return;\n    if (wallPlaced(state, a.kind, a.c, a.r)) return;\n    if (netWalls) {\n      const g = wallGain(a);\n      if (!g) return;\n      const diff = g.gainOpp - g.gainMe;\n      if (top ? diff < 0 : diff <= 0) return;\n    }\n    add(a);\n  };\n\n  for (const w of shortestPathWalls(state, op.c, op.r)) addWall(w, w.kind === \"t\" || w.kind === \"top\");\n\n  if (opts.scanAll) {\n    const scored = [];\n    for (const w of allWallSlots()) {\n      if (wallPlaced(state, w.kind, w.c, w.r)) continue;\n      if ((w.kind === \"top\" || w.kind === \"t\") && state.plies < topWallMinPlies) continue;\n      const probe = cloneState(state);\n      setWall(probe, w.kind, w.c, w.r);\n      if (!hasPath(probe, mp.c, mp.r)) continue;\n      const dm = netWalls ? distanceToGoal(probe, mp.c, mp.r) : 0;\n      const dop = distanceToGoal(probe, op.c, op.r);\n      if (!Number.isFinite(dop)) continue;\n      const gainOpp = dop - dop0;\n      const score = netWalls ? gainOpp - (dm - dm0) : gainOpp;\n      if (netWalls) {\n        if (w.kind === \"t\" || w.kind === \"top\" ? score < 0 : score <= 0) continue;\n      } else if (gainOpp < 1) continue;\n      scored.push([score, { type: \"wall\", kind: w.kind, c: w.c, r: w.r }]);\n    }\n    scored.sort((x, y) => y[0] - x[0]);\n    for (let i = 0; i < Math.min(opts.scanAll, scored.length); i++) add(scored[i][1]);\n  }\n  if ((opts.topWalls || marginFor(state, me) <= 0) && state.plies >= topWallMinPlies) {\n    const topKind = opts.topWallKind === \"top\" ? \"top\" : \"t\";\n    for (let c = 0; c < COLS; c++) {\n      if (state.topWall[c] !== 0) continue;\n      const w = { type: \"wall\", kind: topKind, c, r: 0 };\n      if (topKind === \"top\") addWall(w, true);\n      else add(w);\n    }\n  }\n  if (opts.planWall) addWall(opts.planWall);\n  return out;\n}\n\n/** 排序用：刚走完一方的静态优势。 */\nfunction orderScore(state) {\n  return distanceOf(state, state.turn) - distanceOf(state, 1 - state.turn);\n}\n\n/**\n * 路由墙候选：在不增加即时距离的墙里，挑「砍掉对手最短路条数最多」的前 N 面。\n * 只在根节点调用，避免搜索内部的高昂开销。\n */\nfunction routeCutCandidates(state, n) {\n  const opp = 1 - state.turn;\n  const base = pathCount(state, opp, 24);\n  const out = [];\n  for (const w of allWallSlots()) {\n    if (wallPlaced(state, w.kind, w.c, w.r)) continue;\n    const a = { type: \"wall\", kind: w.kind, c: w.c, r: w.r };\n    if (!validateAction(state, a).ok) continue;\n    const r = applyAction(state, a);\n    if (!r.ok) continue;\n    const cut = base - pathCount(r.state, opp, 24);\n    if (cut > 0) out.push([cut, a]);\n  }\n  out.sort((x, y) => y[0] - x[0]);\n  return out.slice(0, n).map((x) => x[1]);\n}\n\nfunction searchAI(state, depth, alpha, beta, ctx) {\n  ctx.nodes++;\n  if ((ctx.nodes & 255) === 0 && aiNow() >= ctx.deadline) {\n    ctx.abort = true;\n    return 0;\n  }\n  if (state.winner !== null || depth === 0) return evalAI(state);\n\n  const cands = candidatesAI(state, ctx.candOpts ?? {});\n  const scored = [];\n  for (const a of cands) {\n    const r = applyAction(state, a);\n    if (!r.ok) continue;\n    scored.push([orderScore(r.state), a, r.state]);\n  }\n  scored.sort((x, y) => y[0] - x[0]);\n\n  let best = -Infinity;\n  for (const [, , st] of scored) {\n    const v = -searchAI(st, depth - 1, -beta, -alpha, ctx);\n    if (ctx.abort) return 0;\n    if (v > best) best = v;\n    if (best > alpha) alpha = best;\n    if (alpha >= beta) break;\n  }\n  return best === -Infinity ? evalAI(state) : best;\n}\n\n/** 迭代加深根搜索。 */\nfunction rootSearch(state, rng, timeMs, maxDepth, opts = {}) {\n  const ex = exitAction(state);\n  if (ex && (opts.smartExit ? ex.winner === state.turn : true)) return ex.action;\n\n  const me = state.turn;\n  const tCand0 = aiNow();\n  const cands = candidatesAI(state, { scanAll: 6, ...(opts.candOpts ?? {}) });\n  let routeCutAdded = 0;\n  if (opts.routeWalls > 0) {\n    const seen = new Set(cands.map((a) => (a.type === \"move\" ? \"m:\" + a.dir : \"w:\" + a.kind + \":\" + a.c + \":\" + a.r)));\n    for (const w of routeCutCandidates(state, opts.routeWalls)) {\n      const k = \"w:\" + w.kind + \":\" + w.c + \":\" + w.r;\n      if (seen.has(k)) continue;\n      seen.add(k);\n      cands.push(w);\n      routeCutAdded++;\n    }\n  }\n  const tCand = aiNow() - tCand0;\n  const tOrder0 = aiNow();\n  const ordered = [];\n  const startWallBias = Number(opts.startWallBias ?? 0);\n  const startWallPlies = Number(opts.startWallPlies ?? 0);\n  for (const a of cands) {\n    const r = applyAction(state, a);\n    if (!r.ok) continue;\n    let s = orderScore(r.state);\n    if (a.type === \"move\") s += 0.01;\n    if (startWallBias && state.plies < startWallPlies && a.type === \"wall\") {\n      if (a.kind === \"h\" && a.r >= ROWS - 3) s += startWallBias;\n      else if (a.kind === \"h\" && a.r >= ROWS - 6) s += startWallBias * 0.4;\n      else if (a.kind === \"top\") s -= startWallBias;\n      else if (a.kind === \"h\" && a.r <= 2) s -= startWallBias * 0.6;\n    }\n    ordered.push({ a, st: r.state, score: s });\n  }\n  if (!ordered.length) return autoMove(state);\n  ordered.sort((x, y) => y.score - x.score);\n  const tOrder = aiNow() - tOrder0;\n\n  const ctx = {\n    deadline: Math.min(aiNow() + Math.max(20, timeMs), (opts.globalDeadline ?? Infinity) - 50),\n    nodes: 0,\n    abort: false,\n    candOpts: opts.candOpts ?? {},\n  };\n  const repeatSet = opts.repeatSet;\n  const repeatPenalty = Number(opts.repeatPenalty ?? 0);\n  const diag = opts.diag || null;\n  if (diag) {\n    diag.tCandidate = tCand;\n    diag.tOrder = tOrder;\n    diag.candidateCount = cands.length;\n    diag.routeCutAdded = routeCutAdded;\n    diag.searchedCount = ordered.length;\n  }\n  let best = ordered[0].a;\n  let bestScore = -Infinity;\n\n  for (let depth = 1; depth <= maxDepth; depth++) {\n    let alpha = -Infinity;\n    let localBest = null;\n    let localScore = -Infinity;\n    for (const item of ordered) {\n      let v = -searchAI(item.st, depth - 1, -Infinity, -alpha, ctx);\n      if (ctx.abort) break;\n      // 两格来回：最近回到过的格子（墙数没变）降权。\n      if (repeatSet && repeatPenalty > 0 && item.a.type === \"move\") {\n        const np = item.st.players[me];\n        const key = `${np.r * COLS + np.c}:${item.st.wallsPlaced}`;\n        if (repeatSet.has(key)) v -= repeatPenalty;\n      }\n      if (v > localScore) {\n        localScore = v;\n        localBest = item.a;\n      }\n      if (v > alpha) alpha = v;\n    }\n    if (ctx.abort) break;\n    if (localBest) {\n      best = localBest;\n      bestScore = localScore;\n      ordered.sort((x, y) => (x.a === best ? -1 : y.a === best ? 1 : y.score - x.score));\n    }\n    if (diag) {\n      diag.depths = depth;\n      diag.score = bestScore;\n      diag.nodes = ctx.nodes;\n      diag.stop = \"depth\";\n    }\n    if (bestScore >= AI_WIN * 0.9) {\n      if (diag) diag.stop = \"win\";\n      break;\n    }\n    if (aiNow() >= ctx.deadline) {\n      if (diag) diag.stop = \"timeout\";\n      break;\n    }\n  }\n  if (diag && !diag.stop) diag.stop = \"max-depth\";\n  return best;\n}\n\n/* ---------- 锁路计划层 ---------- */\n\n/** 对手一步内的最佳“反切/前进”应手（用于计划模拟）。 */\nfunction bestOpponentAction(state, opp) {\n  let best = null;\n  let bestScore = -Infinity;\n  for (const a of candidatesAI(state, { topWalls: true })) {\n    const r = applyAction(state, a);\n    if (!r.ok) continue;\n    if (r.state.winner === opp) return a;\n    let s;\n    if (r.state.winner === \"draw\") s = 5e8;\n    else if (r.state.winner !== null) s = -1e9;\n    else {\n      s = marginFor(r.state, opp);\n      if (s <= 0) s += 30 * (10 - countOpenExits(r.state));\n    }\n    if (s > bestScore) {\n      bestScore = s;\n      best = a;\n    }\n  }\n  return best;\n}\n\n/** 自适应执行：优先封对手当前列，把对手往缺口赶。 */\nfunction nextPlanWallFor(state, walls, me) {\n  const op = state.players[1 - me];\n  const remaining = walls.filter((w) => !wallPlaced(state, w.kind, w.c, w.r));\n  if (!remaining.length) return null;\n  remaining.sort((a, b) => Math.abs(a.c - op.c) - Math.abs(b.c - op.c));\n  for (const w of remaining) {\n    if (validateAction(state, w).ok) return w;\n  }\n  return null;\n}\n\n/** 模拟“我按计划封墙、对手每步走最优应手”的完整过程（大师旧行为）。 */\nfunction simulatePlanLegacy(state, walls, me) {\n  let s = state;\n  let placed = 0;\n  for (let i = 0; i < walls.length + 2; i++) {\n    const w = nextPlanWallFor(s, walls, me);\n    if (!w) break;\n    placed++;\n    const ra = applyAction(s, w);\n    if (!ra.ok) return null;\n    s = ra.state;\n    if (s.winner !== null) break;\n    const a = bestOpponentAction(s, 1 - me);\n    if (!a) return null;\n    const rb = applyAction(s, a);\n    if (!rb.ok) return null;\n    s = rb.state;\n    if (s.winner !== null) break;\n  }\n  if (!placed) return null;\n  if (s.winner === null && walls.some((w) => !wallPlaced(s, w.kind, w.c, w.r))) return null;\n  return s;\n}\n\n/** BFS：从 (c0,r0) 出发、绕开 avoid 格，是否还能到终点。 */\nfunction hasPathAvoiding(state, c0, r0, ac, ar) {\n  const { vWall, hWall, topWall } = state;\n  const seen = new Uint8Array(AI2_SIZE);\n  const q = [];\n  const startK = ai2Key(c0, r0);\n  seen[startK] = 1;\n  q.push(c0, r0);\n  for (let head = 0; head < q.length; head += 2) {\n    const c = q[head];\n    const r = q[head + 1];\n    if (r === 0 && topWall[c] === 0) return true;\n    const tryCell = (nc, nr) => {\n      if (nc === ac && nr === ar) return;\n      const k = ai2Key(nc, nr);\n      if (seen[k]) return;\n      seen[k] = 1;\n      q.push(nc, nr);\n    };\n    if (r > 0 && hWall[c * H_COUNT + (r - 1)] === 0) tryCell(c, r - 1);\n    if (r < ROWS - 1 && hWall[c * H_COUNT + r] === 0) tryCell(c, r + 1);\n    if (c > 0 && vWall[(c - 1) * ROWS + r] === 0) tryCell(c - 1, r);\n    if (c < COLS - 1 && vWall[c * ROWS + r] === 0) tryCell(c + 1, r);\n  }\n  return false;\n}\n\n/** 对手是否站在我“未来必经之路”上。 */\nfunction opponentOnNecessaryPath(state, me) {\n  const p = state.players[me];\n  const op = state.players[1 - me];\n  if (!hasPath(state, p.c, p.r)) return false;\n  return !hasPathAvoiding(state, p.c, p.r, op.c, op.r);\n}\n\n/** 自己走一步：合法走子里离终点最近的。 */\nfunction bestProgressMove(state, me) {\n  const p = state.players[me];\n  let best = null;\n  let bestD = Infinity;\n  for (const dir of legalDirs(state, p.c, p.r)) {\n    const a = { type: \"move\", dir };\n    const r = applyAction(state, a);\n    if (!r.ok) continue;\n    if (r.state.winner !== null) return a;\n    const d = distanceOf(r.state, me);\n    if (d < bestD) {\n      bestD = d;\n      best = a;\n    }\n  }\n  return best;\n}\n\n/** 宗师计划一步：会走；软/硬必经路保护；自堵检查。 */\nfunction planStepFor(state, walls, me, opts = {}) {\n  const move = bestProgressMove(state, me);\n  const w = nextPlanWallFor(state, walls, me);\n  const guard = opts.necessaryPathGuard;\n  if (w && guard && opponentOnNecessaryPath(state, me)) {\n    if (guard === \"hard\" || (guard === \"soft\" && planWallNetBad(state, me, w))) {\n      return move;\n    }\n  }\n  if (!w) return move;\n  const res = applyAction(state, w);\n  if (!res.ok) return move;\n  const dm0 = distanceOf(state, me);\n  const dop0 = distanceOf(state, 1 - me);\n  const dm = distanceOf(res.state, me);\n  const dop = distanceOf(res.state, 1 - me);\n  if (!Number.isFinite(dm) || !Number.isFinite(dop)) return move;\n  const gainMe = dm - dm0;\n  const gainOpp = dop - dop0;\n  if (gainMe > 0 && gainOpp <= gainMe) return move;\n  if (dm0 <= 3) return move;\n  return w;\n}\n\n/** 宗师计划：放墙/自己走交替模拟。 */\nfunction simulatePlanMoves(state, walls, me, opts = {}) {\n  let s = state;\n  let placed = 0;\n  for (let i = 0; i < walls.length * 2 + 6; i++) {\n    if (s.winner !== null) break;\n    if (s.turn !== me) {\n      const a = bestOpponentAction(s, 1 - me);\n      if (!a) return null;\n      const r = applyAction(s, a);\n      if (!r.ok) return null;\n      s = r.state;\n      continue;\n    }\n    const step = planStepFor(s, walls, me, opts);\n    if (!step) return null;\n    const r = applyAction(s, step);\n    if (!r.ok) return null;\n    if (step.type === \"wall\") placed++;\n    s = r.state;\n  }\n  if (!placed) return null;\n  return s;\n}\n\nfunction simulatePlan(state, walls, me, opts = {}) {\n  return opts.planMoves ? simulatePlanMoves(state, walls, me, opts) : simulatePlanLegacy(state, walls, me);\n}\n\n/** 生成并评估锁路计划：横排留一个缺口，缺口在离对手最远一侧。 */\nfunction makePlanAI(state, opts = {}) {\n  const me = state.turn;\n  const opp = 1 - me;\n  const my = state.players[me];\n  const op = state.players[opp];\n  const dm = distanceOf(state, me);\n  const dop = distanceOf(state, opp);\n  if (!Number.isFinite(dm) || !Number.isFinite(dop)) return null;\n  if (countOpenExits(state) < 5) return null;    // 出口快关光时锁路=送平局，必须冲线\n  if (dop - dm < 2 || dop - dm > 4) return null; // 只在领先脆弱时锁路；大幅领先直接冲线\n  if (dop <= 1) return null;\n  if (dm <= 3) return null;                      // 自己已很近，冲线更快\n  if (my.r > 10) return null;\n\n  let best = null;\n  const rows = [];\n  if (opts.startPlan && my.r >= 8) rows.push(10, 9);\n  rows.push(my.r, my.r - 1);\n  const uniqRows = [...new Set(rows)];\n  for (const row of uniqRows) {\n    if (row < 1 || row > 10) continue;\n    if (op.r <= row) continue;\n    for (const gap of [0, 9, my.c]) {\n      const walls = [];\n      for (let c = 0; c < COLS; c++) {\n        if (c === gap) continue;\n        if (wallPlaced(state, \"h\", c, row)) continue;\n        walls.push({ type: \"wall\", kind: \"h\", c, r: row });\n      }\n      if (!walls.length) continue;\n      const sims = [];\n      const primary = simulatePlan(state, walls, me, opts);\n      if (primary) sims.push(primary);\n      // 宗师：如果“会走”的模拟没有计划，回退到大师的旧模拟，保证不丢锁路机会。\n      if (opts.planFallback) {\n        const legacy = simulatePlanLegacy(state, walls, me);\n        if (legacy && legacy !== primary) sims.push(legacy);\n      }\n      if (!sims.length) continue;\n      for (const sim of sims) {\n        if (sim.winner === opp) continue;\n        const sdm = distanceOf(sim, me);\n        const sdo = distanceOf(sim, opp);\n        if (!Number.isFinite(sdm) || !Number.isFinite(sdo)) continue;\n        if (countOpenExits(sim) === 0) continue;\n        const m = sim.winner === \"draw\" ? 0 : sdo - sdm;\n        const netOk = !opts.planWallNet || (sdm - dm <= sdo - dop);\n        if (m >= 2 && netOk && (!best || m > best.margin)) {\n          best = { row, gap, walls, margin: m, dMe: dm, dOpp: dop, ply: state.plies };\n        }\n      }\n    }\n  }\n  return best;\n}\n\n/** 计划墙是否“损己不划算”：自己变长，且对手没有变得比自己更惨。 */\nfunction planWallNetBad(state, me, w) {\n  const opp = 1 - me;\n  const res = applyAction(state, w);\n  if (!res.ok) return true;\n  const dm0 = distanceOf(state, me);\n  const dop0 = distanceOf(state, opp);\n  const dm = distanceOf(res.state, me);\n  const dop = distanceOf(res.state, opp);\n  if (!Number.isFinite(dm) || !Number.isFinite(dop)) return true;\n  const gainMe = dm - dm0;\n  const gainOpp = dop - dop0;\n  return gainMe > 0 && gainOpp <= gainMe;\n}\n\n/** 构建一个带计划层的 AI。 */\n/** 调试：返回当前局面的生成候选（供审计工具使用）。 */\nfunction debugCandidates(state, opts = {}) {\n  return candidatesAI(state, { scanAll: 6, ...opts });\n}\n\n/** 调试：某方到终点最短路条数（截断）。 */\nfunction debugPathCount(state, p, cap = 24) {\n  return pathCount(state, p, cap);\n}\n\nfunction createMasterAI({\n  timeMs = 1200,\n  maxDepth = 6,\n  usePlan = true,\n  netWalls = false,\n  avoidRepeat = false,\n  repeatPenalty = 120,\n  planMoves = false,\n  planWallNet = false,\n  planFallback = false,\n  necessaryPathGuard = false,\n  startWallBias = 0,\n  startWallPlies = 0,\n  topWallMinPlies = 0,\n  topWallKind = \"t\",\n  startPlan = false,\n  endgameDepth = 0,\n  routeWalls = 0,\n  smartExit = false,\n  returnBuffer = 0,\n  trace = false,\n  pathCache = false,\n  pathCacheAudit = false,\n  evalRaceMode: raceModeOpt = \"legacy\",\n} = {}) {\n  let plan = null;\n  let plansUsed = 0;\n  let history = [];\n  const stats = { plans: 0, planWalls: 0, searches: 0, maxPlies: 0 };\n  if (planMoves) stats.planMoves = 0;\n  if (necessaryPathGuard) stats.necessaryMoves = 0;\n\n  function choose(state, rng) {\n    const me = state.turn;\n    const opp = 1 - me;\n    const mePos = state.players[me];\n    const tStart = aiNow();\n    const hardDeadline = tStart + Math.max(50, timeMs);\n    const buffer = Math.max(0, Math.min(returnBuffer, Math.max(0, timeMs - 20)));\n    const globalDeadline = hardDeadline - buffer;\n    if (trace) { M.on = true; resetMetrics(); }\n    if (pathCache) enablePathCache(200000, pathCacheAudit);\n    const prevRaceMode = evalRaceMode;\n    evalRaceMode = raceModeOpt;\n    try {\n\n    const exit = exitAction(state);\n    const logBase = {\n      ply: state.plies,\n      turn: me,\n      first: state.firstPlayer,\n      dMe: distanceOf(state, me),\n      dOpp: distanceOf(state, opp),\n      exits: countOpenExits(state),\n    };\n    if (!smartExit) {\n      // 旧行为：能越线就立刻越线（可能是平局）\n      if (exit) {\n        stats.lastLog = { ...logBase, source: \"exit\", action: exit.action };\n        return exit.action;\n      }\n    }\n    if (exit && exit.winner === me) {\n      stats.lastLog = { ...logBase, source: \"exit-win\", action: exit.action };\n      return exit.action;\n    }\n    // 越线只能平：先记下来，搜索若找不到更好的（或会输）就回来取平\n    const safeDraw = smartExit && exit && exit.winner === \"draw\" ? exit.action : null;\n\n    if (avoidRepeat) {\n      history.push(`${mePos.r * COLS + mePos.c}:${state.wallsPlaced}`);\n      if (history.length > 12) history.shift();\n    }\n    const repeatSet = avoidRepeat ? new Set(history.slice(0, -1)) : undefined;\n\n    if (plan) {\n      const my = state.players[me];\n      const op = state.players[opp];\n      const stale =\n        op.r <= plan.row ||\n        my.r > plan.row + 1 ||\n        distanceOf(state, me) > plan.dMe + 2 ||\n        state.winner !== null;\n      if (stale) {\n        plan = null;\n      } else if (planMoves) {\n        // 宗师：计划生成时已算过，执行期只走一步，避免重复整段模拟。\n        const step = planStepFor(state, plan.walls, me, { necessaryPathGuard });\n        if (step) {\n          if (step.type === \"wall\" && netWalls && planWallNetBad(state, me, step)) {\n            plan = null;\n          } else {\n            if (step.type === \"wall\") stats.planWalls++;\n            else stats.planMoves++;\n            stats.lastLog = { ...logBase, source: \"plan\", action: step,\n              tPlan: aiNow() - tStart, tSearch: 0, tTotal: aiNow() - tStart, depthLast: 0, abort: \"plan\" };\n            return step;\n          }\n        }\n        plan = null;\n      } else {\n        // 用当前局面重算计划价值；变差就放弃\n        const sim = simulatePlan(state, plan.walls, me);\n        if (sim && sim.winner !== opp) {\n          const sm = distanceOf(sim, me);\n          const so = distanceOf(sim, opp);\n          const m = sim.winner === \"draw\" ? 0 : (Number.isFinite(sm) && Number.isFinite(so) ? so - sm : -1);\n          if (m >= 2) {\n            const w = nextPlanWallFor(state, plan.walls, me);\n            if (w && !(netWalls && planWallNetBad(state, me, w))) {\n              stats.planWalls++;\n              return w;\n            }\n            plan = null;\n          }\n        }\n        plan = null;\n      }\n    }\n\n    const planReserve = timeMs >= 1000 ? 500 : 0;\n    if (usePlan && plansUsed < 2 && aiNow() < globalDeadline - planReserve) {\n      const p = makePlanAI(state, { planMoves, planWallNet, planFallback, necessaryPathGuard, startPlan });\n      if (p) {\n        plan = p;\n        plansUsed++;\n        stats.plans++;\n        const step = planMoves\n          ? planStepFor(state, p.walls, me, { necessaryPathGuard })\n          : nextPlanWallFor(state, p.walls, me);\n        if (step && !(step.type === \"wall\" && netWalls && planWallNetBad(state, me, step))) {\n          if (step.type === \"wall\") stats.planWalls++;\n          else stats.planMoves++;\n          stats.lastLog = { ...logBase, source: \"plan-new\", action: step,\n            tPlan: aiNow() - tStart, tSearch: 0, tTotal: aiNow() - tStart, depthLast: 0, abort: \"plan\" };\n          return step;\n        }\n        plan = null;\n      }\n    }\n\n    const searchReserve = timeMs >= 1000 ? 100 : 0;\n    if (aiNow() >= globalDeadline - searchReserve) {\n      const fallback = autoMove(state) ?? bestProgressMove(state, me) ?? legalActions(state)[0];\n      stats.lastLog = { ...logBase, source: \"deadline-fallback\", action: fallback,\n        tPlan: aiNow() - tStart, tSearch: 0, tTotal: aiNow() - tStart, depthLast: 0, abort: \"deadline\" };\n      return fallback;\n    }\n\n    const tPlan = aiNow() - tStart;\n    stats.searches++;\n    const tSearch0 = aiNow();\n    const dm = distanceOf(state, me);\n    const dop = distanceOf(state, opp);\n    const endgame = endgameDepth > 0 &&\n      countOpenExits(state) <= 4 &&\n      Number.isFinite(dm) && Number.isFinite(dop) &&\n      Math.max(dm, dop) <= 5;\n    const depth = endgame ? Math.max(maxDepth, endgameDepth) : maxDepth;\n    const diag = {};\n    const action = rootSearch(state, rng, timeMs, depth, {\n      diag,\n      candOpts: { netWalls, topWallMinPlies, topWallKind },\n      startWallBias,\n      startWallPlies,\n      repeatSet,\n      repeatPenalty: avoidRepeat ? repeatPenalty : 0,\n      routeWalls,\n      smartExit,\n      globalDeadline,\n    });\n    // 能越线但只是平：若搜索结果更差，退回安全平局\n    if (safeDraw && (diag.score ?? 0) < 0) {\n      stats.lastLog = {\n        ...logBase, source: \"exit-draw-fallback\", action: safeDraw, score: diag.score,\n      };\n      return safeDraw;\n    }\n    if (necessaryPathGuard && action.type === \"wall\" && opponentOnNecessaryPath(state, me)) {\n      const should = necessaryPathGuard === \"hard\" || planWallNetBad(state, me, action);\n      if (should) {\n        const mv = bestProgressMove(state, me);\n        if (mv) {\n          stats.necessaryMoves++;\n          stats.lastLog = { ...logBase, source: \"guard\", action: mv };\n          return mv;\n        }\n      }\n    }\n    stats.lastLog = {\n      ...logBase,\n      source: \"search\",\n      action,\n      depth: diag.depths,\n      score: diag.score,\n      nodes: diag.nodes,\n      stop: diag.stop,\n      tCandidate: diag.tCandidate ?? 0,\n      tOrder: diag.tOrder ?? 0,\n      tSearch: aiNow() - tSearch0,\n      tTotal: aiNow() - tStart,\n      depthLast: diag.depths ?? 0,\n      abort: diag.stop,\n      candidateCount: diag.candidateCount ?? 0,\n      routeCutAdded: diag.routeCutAdded ?? 0,\n      searchedCount: diag.searchedCount ?? 0,\n      selectedSource: \"search\",\n      tPlan,\n      returnBuffer: buffer,\n      trace: trace ? snapshot() : null,\n      pathCache: pathCache ? cacheStats() : null,\n    };\n    return action;\n    } finally {\n      if (trace) M.on = false;\n      if (pathCache) disablePathCache();\n      evalRaceMode = prevRaceMode;\n    }\n  }\n\n  choose.stats = stats;\n  choose.planBudget = () => plansUsed;\n  choose.reset = () => {\n    plan = null;\n    plansUsed = 0;\n    history = [];\n    stats.plans = 0;\n    stats.planWalls = 0;\n    stats.searches = 0;\n    stats.maxPlies = 0;\n    delete stats.lastLog;\n    if (planMoves) stats.planMoves = 0;\n    if (necessaryPathGuard) stats.necessaryMoves = 0;\n  };\n  choose.planInfo = () => plan;\n  return choose;\n}\n\n/**\n * 档位：\n *   easy   偶尔随机\n *   normal 一步贪心\n *   hard   4 层 αβ + 结构评估（不锁路）\n *   master 6 层 αβ + 结构评估 + 锁路计划层\n */\n\n\n// 调试/自测入口（不参与对局逻辑）\n\n\n/* ===== src/hell-config.js ===== */\n// 地狱难度共享配置：ai.js、ai-worker.js、测试脚本共用，避免参数漂移。\n//\n// 生产版本 = A1（routeWalls=6）。\n// A0（routeWalls=3）作为回退基线保留，需要时用 createHellA0Config() 切换。\n\nconst HELL_A0_ROUTE_WALLS = 3;\nconst HELL_A1_ROUTE_WALLS = 6;\n\nfunction createHellConfig(overrides = {}) {\n  return {\n    timeMs: 28000,\n    maxDepth: 12,\n    usePlan: true,\n    netWalls: true,\n    avoidRepeat: true,\n    repeatPenalty: 160,\n    planMoves: true,\n    planFallback: true,\n    necessaryPathGuard: \"soft\",\n    endgameDepth: 12,\n    routeWalls: HELL_A1_ROUTE_WALLS,\n    smartExit: true,\n    ...overrides,\n  };\n}\n\n/** A0 回退基线：除 routeWalls=3 外与生产地狱完全一致。 */\nfunction createHellA0Config(overrides = {}) {\n  return createHellConfig({ routeWalls: HELL_A0_ROUTE_WALLS, ...overrides });\n}\n\nconst HELL_CONFIG = createHellConfig();\nconst HELL_A0_CONFIG = createHellA0Config();\n\n/** 稳定序列化 + 轻量哈希，用于实验配置快照。 */\nfunction configHash(cfg) {\n  const keys = Object.keys(cfg).sort();\n  const text = keys.map((k) => `${k}=${JSON.stringify(cfg[k])}`).join(\";\");\n  let h = 0x811c9dc5;\n  for (let i = 0; i < text.length; i++) {\n    h ^= text.charCodeAt(i);\n    h = Math.imul(h, 0x01000193);\n  }\n  return (h >>> 0).toString(16);\n}\n\n/* ===== src/plus-config.js ===== */\n// 宗师+ 独立配置：3,000ms 硬预算 + 返回缓冲。\n// 只用于宗师+ 研发与评测，不改变固定宗师或地狱的现有配置。\n\n\nconst GRANDMASTER_PLUS_MS = 3000;\n\n/** 固定 3 秒宗师（验收对手）。 */\nfunction createGrandmasterConfig(overrides = {}) {\n  return {\n    timeMs: 3000,\n    maxDepth: 7,\n    usePlan: true,\n    netWalls: true,\n    avoidRepeat: true,\n    repeatPenalty: 160,\n    planMoves: true,\n    planFallback: true,\n    necessaryPathGuard: \"soft\",\n    endgameDepth: 9,\n    returnBuffer: 0,\n    ...overrides,\n  };\n}\n\n/** 宗师+ 默认基线：A1（routeWalls=6）+ 100ms 返回缓冲。 */\nfunction createGrandmasterPlusConfig(overrides = {}) {\n  return createHellConfig({\n    timeMs: GRANDMASTER_PLUS_MS,\n    returnBuffer: 100,\n    evalRaceMode: \"legacy\",\n    ...overrides,\n  });\n}\n\n/** 宗师+ 的 A0 对照：routeWalls=3，其余同宗师+。 */\nfunction createGrandmasterPlusA0Config(overrides = {}) {\n  return createHellA0Config({\n    timeMs: GRANDMASTER_PLUS_MS,\n    returnBuffer: 100,\n    evalRaceMode: \"legacy\",\n    ...overrides,\n  });\n}\n\n/* ===== src/ai-worker.js ===== */\n/**\n * AI 专用 Worker：把搜索放到后台线程，主线程的计时与动画不再被阻塞。\n * 开发时以 module worker 加载；单文件版由 build-single 内联成 Blob。\n */\n\n\nconst CONFIG = {\n  hard: { timeMs: 350, maxDepth: 4, usePlan: false },\n  master: {\n    timeMs: 1200, maxDepth: 6, usePlan: true,\n    netWalls: true, avoidRepeat: true, repeatPenalty: 160,\n  },\n  grandmaster: {\n    timeMs: 3000, maxDepth: 7, usePlan: true,\n    netWalls: true, avoidRepeat: true, repeatPenalty: 160,\n    planMoves: true, planFallback: true,\n    necessaryPathGuard: \"soft\", endgameDepth: 9,\n  },\n  grandmasterPlus: createGrandmasterPlusConfig({ pathCache: true }),\n  hell: createHellConfig(),\n\n};\n\nlet ai = null;\nlet level = null;\nlet lastBudget = null;\n\nself.onmessage = (e) => {\n  const d = e.data;\n  if (!d) return;\n  if (d.type === \"reset\") {\n    ai = null;\n    level = null;\n    lastBudget = null;\n    return;\n  }\n  const cfg = CONFIG[d.level];\n  if (!cfg) {\n    self.postMessage({ id: d.id, ok: false, error: \"no-level\" });\n    return;\n  }\n  // 页面上可以按“每步时限”动态收缩预算，避免 AI 思考超过本步时间\n  const budget = d.timeMs ? { ...cfg, timeMs: d.timeMs } : cfg;\n  if (!ai || level !== d.level || budget.timeMs !== lastBudget) {\n    ai = createMasterAI(budget);\n    level = d.level;\n    lastBudget = budget.timeMs;\n  }\n  try {\n    const action = ai(d.state, Math.random);\n    self.postMessage({ id: d.id, ok: true, action });\n  } catch (err) {\n    self.postMessage({ id: d.id, ok: false, error: String(err) });\n  }\n};\n\n})();";
+globalThis.__DANTENG_WORKER_SRC__ = "(function(){\"use strict\";\n/* ===== src/config.js ===== */\n/**\n * 对局参数集中配置。\n * 规则书第 7、8 节中的“可配置项”集中在这里，界面与内核都从这里取。\n */\nconst GAME_CONFIG = {\n  perMove: 30,     // 每步基础时间（秒）\n  bank: 300,       // 每人时间库（秒）\n  undoLimit: 3,    // 每人悔棋次数\n  aiDelay: 450,    // 电脑落子前的思考停顿（毫秒），纯观感\n  diceDelay: 700,  // 掷骰动画时长（毫秒）\n};\n\n/* ===== src/board.js ===== */\n/**\n * 棋盘常量与坐标编码（多规格核心）。\n *\n * 坐标系：列 c ∈ [0, cols-1]；行 r ∈ [0, rows-1]，r=0 最靠近终点线。\n * 每局状态携带 cols/rows；所有索引函数显式接收行数。\n * COLS/ROWS 仅作为 10×12 历史兼容默认值。\n */\n\nconst COLS = 10;\nconst ROWS = 12;\nconst V_COUNT = COLS - 1;\nconst H_COUNT = ROWS - 1;\nconst TOP_COUNT = COLS;\nconst WALL_SLOTS = V_COUNT * ROWS + H_COUNT * COLS + TOP_COUNT;\n\nconst MIN_SIZE = 8;\nconst MAX_SIZE = 18;\nconst DEFAULT_COLS = 12;\nconst DEFAULT_ROWS = 12;\n\nfunction validDims(cols, rows) {\n  return Number.isInteger(cols) && Number.isInteger(rows)\n    && cols >= MIN_SIZE && cols <= MAX_SIZE\n    && rows >= MIN_SIZE && rows <= MAX_SIZE;\n}\nfunction vCount(cols, rows) { return (cols - 1) * rows; }\nfunction hCount(cols, rows) { return cols * (rows - 1); }\nfunction topCount(cols) { return cols; }\nfunction wallSlots(cols, rows) { return vCount(cols, rows) + hCount(cols, rows) + cols; }\n\nconst COL_NAMES = \"ABCDEFGHIJKLMNOPQR\";\n\n/** 竖墙：位于第 c 与 c+1 列之间、第 r 行。c ∈ [0, cols-2]。 */\nfunction vIndex(c, r, rows = ROWS) {\n  return c * rows + r;\n}\n\n/** 横墙：位于第 c 列、第 r 与 r+1 行之间。c ∈ [0, cols-1]。 */\nfunction hIndex(c, r, rows = ROWS) {\n  return c * (rows - 1) + r;\n}\n\n/** 上端墙：封住第 c 列的出口。 */\nfunction topIndex(c) {\n  return c;\n}\n\nfunction colName(c) {\n  return COL_NAMES[c] ?? \"?\";\n}\n\nfunction rowName(r) {\n  return String(r + 1);\n}\n\n/** 墙的名称（与规则书 1.3 一致）；坐标与尺寸无关。 */\nfunction wallName(kind, c, r) {\n  if (kind === \"v\") return `${colName(c)}-${colName(c + 1)}-${rowName(r)}`;\n  if (kind === \"h\") return `${colName(c)}-${rowName(r)}-${rowName(r + 1)}`;\n  if (kind === \"top\") return `${colName(c)}-0`;\n  throw new Error(`unknown wall kind: ${kind}`);\n}\n\n/** 把 (kind,c,r) 映射为全局序号；需提供该局 cols/rows。 */\nfunction wallSlot(kind, c, r, cols = COLS, rows = ROWS) {\n  if (kind === \"v\") return vIndex(c, r, rows);\n  if (kind === \"h\") return vCount(cols, rows) + hIndex(c, r, rows);\n  if (kind === \"top\") return vCount(cols, rows) + hCount(cols, rows) + topIndex(c);\n  throw new Error(`unknown wall kind: ${kind}`);\n}\n\n/** 枚举指定尺寸的全部墙位。 */\nfunction allWallSlots(cols = COLS, rows = ROWS) {\n  const out = [];\n  for (let c = 0; c < cols - 1; c++) for (let r = 0; r < rows; r++) out.push({ kind: \"v\", c, r });\n  for (let c = 0; c < cols; c++) for (let r = 0; r < rows - 1; r++) out.push({ kind: \"h\", c, r });\n  for (let c = 0; c < cols; c++) out.push({ kind: \"top\", c, r: 0 });\n  return out;\n}\n\n/* ===== src/metrics.js ===== */\n// 轻量诊断计数：默认关闭，开启时只做计数与耗时累计。\nconst M = {\n  on: false,\n  pathCalls: 0,\n  pathMs: 0,\n  legalCalls: 0,\n  legalMs: 0,\n  applyCalls: 0,\n  applyMs: 0,\n};\n\nfunction resetMetrics() {\n  M.pathCalls = 0;\n  M.pathMs = 0;\n  M.legalCalls = 0;\n  M.legalMs = 0;\n  M.applyCalls = 0;\n  M.applyMs = 0;\n}\n\nfunction snapshot() {\n  return {\n    pathCalls: M.pathCalls,\n    pathMs: Number(M.pathMs.toFixed(2)),\n    legalCalls: M.legalCalls,\n    legalMs: Number(M.legalMs.toFixed(2)),\n    applyCalls: M.applyCalls,\n    applyMs: Number(M.applyMs.toFixed(2)),\n  };\n}\n\nfunction now() {\n  return globalThis.performance?.now ? globalThis.performance.now() : Date.now();\n}\n\n/* ===== src/path-cache.js ===== */\n// 路径查询缓存（实验开关，默认关闭）。\n// 键 = 52 位墙哈希 + 起点 + 类型；另存 32 位独立签名用于命中核对（合计 84 位身份）。\n\nconst PC = {\n  on: false,\n  max: 200000,\n  map: new Map(),\n  entries: 0,\n  peak: 0,\n  hits: 0,\n  misses: 0,\n  clears: 0,\n  collisions: 0,\n  audit: false,\n  distinct: null,\n};\n\nconst hashCache = new WeakMap();\n\nfunction wallHash(state) {\n  let cached = hashCache.get(state);\n  if (cached) return cached;\n  let a = 0x9e3779b9;\n  let b = 0x85ebca6b;\n  let c = 0xc2b2ae35;\n  a = Math.imul(a ^ state.cols, 0x01000193);\n  b = Math.imul(b ^ state.rows, 0x85ebca6b);\n  const v = state.vWall, hh = state.hWall, t = state.topWall;\n  for (let i = 0; i < v.length; i++) {\n    a = Math.imul(a ^ v[i], 0x01000193);\n    b = Math.imul(b ^ v[i], 0x85ebca6b);\n    c = Math.imul(c ^ v[i], 0x27d4eb2f);\n  }\n  for (let i = 0; i < hh.length; i++) {\n    a = Math.imul(a ^ hh[i], 0x01000193);\n    b = Math.imul(b ^ hh[i], 0x85ebca6b);\n    c = Math.imul(c ^ hh[i], 0x27d4eb2f);\n  }\n  for (let i = 0; i < t.length; i++) {\n    a = Math.imul(a ^ t[i], 0x01000193);\n    b = Math.imul(b ^ t[i], 0x85ebca6b);\n    c = Math.imul(c ^ t[i], 0x27d4eb2f);\n  }\n  cached = {\n    h: (a >>> 0) * 67108864 + (b >>> 0) % 67108864,\n    sig: c >>> 0,\n  };\n  hashCache.set(state, cached);\n  return cached;\n}\n\nfunction enablePathCache(max = 200000, audit = false) {\n  PC.on = true;\n  PC.max = max;\n  PC.hits = 0;\n  PC.misses = 0;\n  PC.clears = 0;\n  PC.collisions = 0;\n  PC.entries = 0;\n  PC.peak = 0;\n  PC.audit = audit;\n  PC.distinct = audit ? new Set() : null;\n  PC.map.clear();\n}\n\nfunction disablePathCache() {\n  PC.on = false;\n}\n\nfunction cacheStats() {\n  const total = PC.hits + PC.misses;\n  return {\n    hits: PC.hits,\n    misses: PC.misses,\n    hitRate: total ? Number((PC.hits / total).toFixed(4)) : 0,\n    uniqueKeys: PC.entries,\n    peak: PC.peak,\n    distinct: PC.distinct ? PC.distinct.size : null,\n    clears: PC.clears,\n    collisions: PC.collisions,\n  };\n}\n\nfunction cacheGet(h, pk, sig) {\n  const inner = PC.map.get(h);\n  if (!inner) return undefined;\n  const e = inner.get(pk);\n  if (!e) return undefined;\n  if (e.sig !== sig) {\n    PC.collisions++;\n    return undefined;\n  }\n  return e.v;\n}\n\nfunction cacheSet(h, pk, sig, v) {\n  if (PC.entries >= PC.max) {\n    PC.map.clear();\n    PC.entries = 0;\n    PC.clears++;\n  }\n  let inner = PC.map.get(h);\n  if (!inner) {\n    inner = new Map();\n    PC.map.set(h, inner);\n  }\n  if (!inner.has(pk)) {\n    PC.entries++;\n    if (PC.entries > PC.peak) PC.peak = PC.entries;\n  }\n  inner.set(pk, { sig, v });\n  if (PC.distinct) PC.distinct.add(h + \":\" + pk);\n}\n\n/* ===== src/path.js ===== */\n/**\n * 寻路：到终点的最短路（按状态 cols/rows 参数化）。\n */\n\n\n/**\n * 从 (c0,r0) 出发，返回到达终点所需步数；无路可走时返回 Infinity。\n */\nfunction distanceToGoalImpl(state, c0, r0) {\n  const { vWall, hWall, topWall } = state;\n  const { cols, rows } = state;\n  const size = cols * rows;\n  const key = (c, r) => r * cols + c;\n  const dist = new Int16Array(size).fill(-1);\n  const q = new Int16Array(size * 2);\n  let head = 0, tail = 0;\n  q[tail++] = c0; q[tail++] = r0;\n  dist[key(c0, r0)] = 0;\n  while (head < tail) {\n    const c = q[head++], r = q[head++];\n    const d = dist[key(c, r)];\n    if (r === 0 && topWall[c] === 0) return d + 1;\n    if (r > 0 && hWall[hIndex(c, r - 1, rows)] === 0) {\n      const k = key(c, r - 1);\n      if (dist[k] < 0) { dist[k] = d + 1; q[tail++] = c; q[tail++] = r - 1; }\n    }\n    if (r < rows - 1 && hWall[hIndex(c, r, rows)] === 0) {\n      const k = key(c, r + 1);\n      if (dist[k] < 0) { dist[k] = d + 1; q[tail++] = c; q[tail++] = r + 1; }\n    }\n    if (c > 0 && vWall[vIndex(c - 1, r, rows)] === 0) {\n      const k = key(c - 1, r);\n      if (dist[k] < 0) { dist[k] = d + 1; q[tail++] = c - 1; q[tail++] = r; }\n    }\n    if (c < cols - 1 && vWall[vIndex(c, r, rows)] === 0) {\n      const k = key(c + 1, r);\n      if (dist[k] < 0) { dist[k] = d + 1; q[tail++] = c + 1; q[tail++] = r; }\n    }\n  }\n  return Infinity;\n}\n\nfunction hasPathImpl(state, c, r) {\n  return Number.isFinite(distanceToGoalImpl(state, c, r));\n}\n\n/** 最短路经过的边（用于 AI 生成“堵路”候选）。 */\nfunction shortestPathWalls(state, c0, r0) {\n  const { vWall, hWall, topWall } = state;\n  const { cols, rows } = state;\n  const size = cols * rows;\n  const key = (c, r) => r * cols + c;\n  const dist = new Int16Array(size).fill(-1);\n  const prev = new Int16Array(size).fill(-1);\n  const q = new Int16Array(size * 2);\n  let head = 0, tail = 0;\n  q[tail++] = c0; q[tail++] = r0;\n  dist[key(c0, r0)] = 0;\n  let goalIdx = -1;\n  while (head < tail) {\n    const c = q[head++], r = q[head++];\n    const d = dist[key(c, r)];\n    if (r === 0 && topWall[c] === 0) { goalIdx = key(c, r); break; }\n    const relax = (nc, nr) => {\n      const k = key(nc, nr);\n      if (dist[k] < 0) { dist[k] = d + 1; prev[k] = key(c, r); q[tail++] = nc; q[tail++] = nr; }\n    };\n    if (r > 0 && hWall[hIndex(c, r - 1, rows)] === 0) relax(c, r - 1);\n    if (r < rows - 1 && hWall[hIndex(c, r, rows)] === 0) relax(c, r + 1);\n    if (c > 0 && vWall[vIndex(c - 1, r, rows)] === 0) relax(c - 1, r);\n    if (c < cols - 1 && vWall[vIndex(c, r, rows)] === 0) relax(c + 1, r);\n  }\n  if (goalIdx < 0) return [];\n  const cells = [];\n  let cur = goalIdx;\n  while (cur >= 0) { cells.push(cur); cur = prev[cur]; }\n  cells.reverse();\n  const walls = [];\n  for (let i = 1; i < cells.length; i++) {\n    const a = cells[i - 1], b = cells[i];\n    const ac = a % cols, ar = Math.floor(a / cols);\n    const bc = b % cols, br = Math.floor(b / cols);\n    if (ar === br) walls.push({ kind: \"v\", c: Math.min(ac, bc), r: ar });\n    else walls.push({ kind: \"h\", c: ac, r: Math.min(ar, br) });\n  }\n  const last = cells[cells.length - 1];\n  walls.push({ kind: \"top\", c: last % cols, r: 0 });\n  return walls;\n}\n\nfunction distanceToGoal(state, c0, r0) {\n  const tracing = M.on;\n  if (!PC.on && !tracing) return distanceToGoalImpl(state, c0, r0);\n  const t = tracing ? now() : 0;\n  if (tracing) M.pathCalls++;\n  let out;\n  if (PC.on) {\n    const { h, sig } = wallHash(state);\n    const pk = ((r0 * state.cols + c0) * 2);\n    const hit = cacheGet(h, pk, sig);\n    if (hit !== undefined) { PC.hits++; out = hit; }\n    else { PC.misses++; out = distanceToGoalImpl(state, c0, r0); cacheSet(h, pk, sig, out); }\n  } else out = distanceToGoalImpl(state, c0, r0);\n  if (tracing) M.pathMs += now() - t;\n  return out;\n}\n\nfunction hasPath(state, c, r) {\n  const tracing = M.on;\n  if (!PC.on && !tracing) return hasPathImpl(state, c, r);\n  const t = tracing ? now() : 0;\n  if (tracing) M.pathCalls++;\n  let out;\n  if (PC.on) {\n    const { h, sig } = wallHash(state);\n    const pk = ((r * state.cols + c) * 2 + 1);\n    const hit = cacheGet(h, pk, sig);\n    if (hit !== undefined) { PC.hits++; out = hit; }\n    else { PC.misses++; out = hasPathImpl(state, c, r); cacheSet(h, pk, sig, out); }\n  } else out = hasPathImpl(state, c, r);\n  if (tracing) M.pathMs += now() - t;\n  return out;\n}\n\n/* ===== src/rules.js ===== */\n/**\r\n * 规则内核：状态、行动、合法性、判定。\r\n *\r\n * 纯函数式：applyAction 不修改传入状态，返回新状态；非法行动返回 { ok:false, error }。\r\n */\r\n\r\n\r\nconst DIRS = [\"up\", \"down\", \"left\", \"right\"];\r\n\r\nfunction createState(firstPlayer = 0, { tolerance = 1, wallLimit = Infinity, drawMode = \"firstOnly\", cols = COLS, rows = ROWS } = {}) {\r\n  if (!validDims(cols, rows)) throw new Error(`bad board size ${cols}x${rows}`);\r\n  return {\r\n    cols, rows,\r\n    vWall: new Uint8Array(vCount(cols, rows)),\r\n    hWall: new Uint8Array(hCount(cols, rows)),\r\n    topWall: new Uint8Array(cols),\r\n    players: [\r\n      { c: 0, r: rows - 1 },\r\n      { c: cols - 1, r: rows - 1 },\r\n    ],\r\n    turn: firstPlayer,\r\n    firstPlayer,\r\n    drawMode,\r\n    tolerance,\r\n    wallLimit: Array.isArray(wallLimit) ? [wallLimit[0], wallLimit[1]] : [wallLimit, wallLimit],\r\n    wallsUsed: [0, 0],\r\n    plies: 0,\r\n    wallsPlaced: 0,\r\n    winner: null, // null | 0 | 1 | \"draw\"\r\n  };\r\n}\r\n\r\nfunction cloneState(s) {\r\n  return {\r\n    cols: s.cols,\r\n    rows: s.rows,\r\n    vWall: s.vWall.slice(),\r\n    hWall: s.hWall.slice(),\r\n    topWall: s.topWall.slice(),\r\n    players: s.players.map((p) => ({ c: p.c, r: p.r })),\r\n    turn: s.turn,\r\n    firstPlayer: s.firstPlayer,\r\n    drawMode: s.drawMode,\r\n    tolerance: s.tolerance,\r\n    wallLimit: s.wallLimit.slice(),\r\n    wallsUsed: s.wallsUsed.slice(),\r\n    plies: s.plies,\r\n    wallsPlaced: s.wallsPlaced,\r\n    winner: s.winner,\r\n  };\r\n}\r\n\r\n/**\r\n * 修复外部读入的状态：JSON 往返会把 Infinity 变成 null、Uint8Array 变成普通对象，\r\n * 旧存档也可能缺字段。只补默认值，不改变已有合法值。\r\n */\r\nfunction normalizeState(state) {\r\n  if (!state || typeof state !== \"object\") return state;\r\n  if (!Number.isInteger(state.cols) || !Number.isInteger(state.rows)) {\r\n    const topLen = Array.isArray(state.topWall) || state.topWall?.length ? state.topWall.length : 10;\r\n    const cols = topLen;\r\n    const vLen = state.vWall?.length || 0;\r\n    const rows = cols > 1 ? Math.round(vLen / (cols - 1)) : 12;\r\n    state.cols = validDims(cols, rows) ? cols : 10;\r\n    state.rows = validDims(cols, rows) ? rows : 12;\r\n  }\r\n  const u8 = (v, n) => {\r\n    if (v instanceof Uint8Array && v.length === n) return v;\r\n    return Uint8Array.from({ length: n }, (_, i) => Number(v?.[i]) || 0);\r\n  };\r\n  state.vWall = u8(state.vWall, vCount(state.cols, state.rows));\r\n  state.hWall = u8(state.hWall, hCount(state.cols, state.rows));\r\n  state.topWall = u8(state.topWall, state.cols);\r\n  const lim = Array.isArray(state.wallLimit) ? state.wallLimit : [state.wallLimit, state.wallLimit];\r\n  state.wallLimit = [0, 1].map((i) => (typeof lim[i] === \"number\" && Number.isFinite(lim[i]) ? lim[i] : Infinity));\r\n  if (!Array.isArray(state.wallsUsed)) state.wallsUsed = [0, 0];\r\n  else state.wallsUsed = [Number(state.wallsUsed[0]) || 0, Number(state.wallsUsed[1]) || 0];\r\n  state.tolerance = Number.isFinite(state.tolerance) ? state.tolerance : 1;\r\n  if (typeof state.drawMode !== \"string\" || !state.drawMode) state.drawMode = \"firstOnly\";\r\n  if (state.turn !== 0 && state.turn !== 1) state.turn = state.firstPlayer === 1 ? 1 : 0;\r\n  if (state.firstPlayer !== 0 && state.firstPlayer !== 1) state.firstPlayer = state.turn;\r\n  if (!Array.isArray(state.players) || state.players.length !== 2) {\r\n    state.players = [{ c: 0, r: state.rows - 1 }, { c: state.cols - 1, r: state.rows - 1 }];\r\n  } else {\r\n    state.players = state.players.map((p) => ({ c: Number(p?.c) || 0, r: Number(p?.r) || 0 }));\r\n  }\r\n  state.plies = Number.isFinite(state.plies) ? state.plies : 0;\r\n  state.wallsPlaced = Number.isFinite(state.wallsPlaced) ? state.wallsPlaced : 0;\r\n  if (state.winner === undefined) state.winner = null;\r\n  return state;\r\n}\r\n\r\nfunction wallPlaced(s, kind, c, r) {  if (kind === \"v\") return s.vWall[vIndex(c, r, s.rows)] === 1;\r\n  if (kind === \"h\") return s.hWall[hIndex(c, r, s.rows)] === 1;\r\n  if (kind === \"top\") return s.topWall[topIndex(c)] === 1;\r\n  throw new Error(`unknown wall kind: ${kind}`);\r\n}\r\n\r\nfunction setWall(s, kind, c, r) {\r\n  if (kind === \"v\") s.vWall[vIndex(c, r, s.rows)] = 1;\r\n  else if (kind === \"h\") s.hWall[hIndex(c, r, s.rows)] = 1;\r\n  else if (kind === \"top\") s.topWall[topIndex(c)] = 1;\r\n  else throw new Error(`unknown wall kind: ${kind}`);\r\n}\r\n\r\n/** 墙位是否在合法范围内。 */\r\nfunction wallInBounds(kind, c, r, cols = COLS, rows = ROWS) {\r\n  if (kind === \"v\") return c >= 0 && c < cols - 1 && r >= 0 && r < rows;\r\n  if (kind === \"h\") return c >= 0 && c < cols && r >= 0 && r < rows - 1;\r\n  if (kind === \"top\") return c >= 0 && c < cols && r === 0;\r\n  return false;\r\n}\r\n\r\n/**\r\n * 从 (c,r) 沿 dir 走一步的结果。\r\n * 返回 { c, r } | { exit:true } | null（不可走）。\r\n */\r\nfunction stepTarget(state, c, r, dir) {\r\n  const { vWall, hWall, topWall } = state;\r\n  const { cols, rows } = state;\r\n  if (dir === \"up\") {\r\n    if (r === 0) return topWall[c] === 0 ? { exit: true } : null;\r\n    return hWall[hIndex(c, r - 1, rows)] === 0 ? { c, r: r - 1 } : null;\r\n  }\r\n  if (dir === \"down\") {\r\n    if (r === rows - 1) return null;\r\n    return hWall[hIndex(c, r, rows)] === 0 ? { c, r: r + 1 } : null;\r\n  }\r\n  if (dir === \"left\") {\r\n    if (c === 0) return null;\r\n    return vWall[vIndex(c - 1, r, rows)] === 0 ? { c: c - 1, r } : null;\r\n  }\r\n  if (dir === \"right\") {\r\n    if (c === cols - 1) return null;\r\n    return vWall[vIndex(c, r, rows)] === 0 ? { c: c + 1, r } : null;\r\n  }\r\n  return null;\r\n}\r\n\r\nfunction legalDirs(state, c, r) {\r\n  return DIRS.filter((d) => stepTarget(state, c, r, d) !== null);\r\n}\r\n\r\n/**\r\n * 行动是否合法。不修改状态。\r\n * 返回 { ok:true } 或 { ok:false, error }。\r\n */\r\nfunction validateActionImpl(state, action) {\r\n  if (state.winner !== null) return { ok: false, error: \"game-over\" };\r\n\r\n  if (action.type === \"move\") {\r\n    const p = state.players[state.turn];\r\n    if (!DIRS.includes(action.dir)) return { ok: false, error: \"bad-action\" };\r\n    const t = stepTarget(state, p.c, p.r, action.dir);\r\n    if (!t) return { ok: false, error: \"blocked\" };\r\n    return { ok: true };\r\n  }\r\n\r\n  if (action.type === \"wall\") {\r\n    const { kind, c, r } = action;\r\n    if (state.wallsUsed[state.turn] >= state.wallLimit[state.turn]) {\r\n      return { ok: false, error: \"no-walls\" };\r\n    }\r\n    if (!wallInBounds(kind, c, r, state.cols, state.rows)) return { ok: false, error: \"out-of-bounds\" };\r\n    if (wallPlaced(state, kind, c, r)) return { ok: false, error: \"occupied\" };\r\n\r\n    const probe = cloneState(state);\r\n    setWall(probe, kind, c, r);\r\n    for (const pl of probe.players) {\r\n      if (!hasPath(probe, pl.c, pl.r)) return { ok: false, error: \"blocks-path\" };\r\n    }\r\n    return { ok: true };\r\n  }\r\n\r\n  return { ok: false, error: \"bad-action\" };\r\n}\r\n\r\n/**\r\n * 执行行动，返回新状态。\r\n * 事件类型：move / exit / wall；若一方越线，winner 已确定（0 | 1 | \"draw\"）。\r\n */\r\nfunction applyActionImpl(state, action) {\r\n  const check = validateAction(state, action);\r\n  if (!check.ok) return { ok: false, error: check.error };\r\n\r\n  const next = cloneState(state);\r\n  const p = state.turn;\r\n  let event;\r\n\r\n  if (action.type === \"move\") {\r\n    const me = next.players[p];\r\n    const t = stepTarget(state, me.c, me.r, action.dir);\r\n    if (t.exit) {\r\n      const opp = next.players[1 - p];\r\n      const oppDist = distanceToGoal(next, opp.c, opp.r);\r\n      const withinTolerance = oppDist <= next.tolerance;\r\n      const draw = next.drawMode === \"firstOnly\"\r\n        ? (p === next.firstPlayer && withinTolerance)\r\n        : withinTolerance;\r\n      next.winner = draw ? \"draw\" : p;\r\n      event = { type: \"exit\", player: p, draw, oppDist };\r\n    } else {\r\n      me.c = t.c;\r\n      me.r = t.r;\r\n      event = { type: \"move\", player: p, c: t.c, r: t.r };\r\n    }\r\n  } else {\r\n    setWall(next, action.kind, action.c, action.r);\r\n    next.wallsUsed[p] += 1;\r\n    next.wallsPlaced += 1;\r\n    event = { type: \"wall\", player: p, kind: action.kind, c: action.c, r: action.r };\r\n  }\r\n\r\n  next.turn = 1 - p;\r\n  next.plies += 1;\r\n  return { ok: true, state: next, event };\r\n}\r\n\r\n/** 枚举全部合法行动（主要用于随机 AI 与测试）。 */\r\nfunction legalActions(state) {\r\n  if (state.winner !== null) return [];\r\n  const out = [];\r\n  const p = state.players[state.turn];\r\n  for (const dir of legalDirs(state, p.c, p.r)) {\r\n    out.push({ type: \"move\", dir });\r\n  }\r\n  if (state.wallsUsed[state.turn] >= state.wallLimit[state.turn]) {\r\n    return out;\r\n  }\r\n  for (let c = 0; c < state.cols - 1; c++) {\r\n    for (let r = 0; r < state.rows; r++) {\r\n      if (!wallPlaced(state, \"v\", c, r)) out.push({ type: \"wall\", kind: \"v\", c, r });\r\n    }\r\n  }\r\n  for (let c = 0; c < state.cols; c++) {\r\n    for (let r = 0; r < state.rows - 1; r++) {\r\n      if (!wallPlaced(state, \"h\", c, r)) out.push({ type: \"wall\", kind: \"h\", c, r });\r\n    }\r\n  }\r\n  for (let c = 0; c < state.cols; c++) {\r\n    if (!wallPlaced(state, \"top\", c, 0)) out.push({ type: \"wall\", kind: \"top\", c, r: 0 });\r\n  }\r\n  return out;\r\n}\r\n\r\nfunction distanceOf(state, player) {\r\n  const p = state.players[player];\r\n  return distanceToGoal(state, p.c, p.r);\r\n}\r\n\r\n/**\r\n * 兜底走子：BFS 最短路，同长度时优先向上。\r\n * （开启“超时系统代走”时调用；关闭时超时判负。）\r\n * 依赖 DIRS 的顺序（up 在最前），只在严格更短时替换，从而保证同长优先“上”。\r\n */\r\nfunction autoMove(state) {\r\n  const p = state.players[state.turn];\r\n  let best = null;\r\n  let bestDist = Infinity;\r\n  for (const dir of DIRS) {\r\n    const t = stepTarget(state, p.c, p.r, dir);\r\n    if (!t) continue;\r\n    if (t.exit) return { type: \"move\", dir };\r\n    const d = distanceToGoal(state, t.c, t.r);\r\n    if (d < bestDist) {\r\n      bestDist = d;\r\n      best = { type: \"move\", dir };\r\n    }\r\n  }\r\n  return best;\r\n}\r\n\r\n\r\nfunction validateAction(state, action) {\r\n  if (!M.on) return validateActionImpl(state, action);\r\n  const t = now();\r\n  M.legalCalls++;\r\n  const out = validateActionImpl(state, action);\r\n  M.legalMs += now() - t;\r\n  return out;\r\n}\r\n\r\nfunction applyAction(state, action) {\r\n  if (!M.on) return applyActionImpl(state, action);\r\n  const t = now();\r\n  M.applyCalls++;\r\n  const out = applyActionImpl(state, action);\r\n  M.applyMs += now() - t;\r\n  return out;\r\n}\r\n\n/* ===== src/ai-random.js ===== */\n/**\n * 随机与随机数工具：被 ai.js 与 ai-master.js 共用，避免循环依赖。\n */\n\n\nfunction makeRng(seed) {\n  let a = seed >>> 0;\n  return function rng() {\n    a |= 0;\n    a = (a + 0x6d2b79f5) | 0;\n    let t = Math.imul(a ^ (a >>> 15), 1 | a);\n    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;\n    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;\n  };\n}\n\nfunction randomAI(state, rng) {\n  const actions = legalActions(state);\n  // 随机墙可能封死通路，需要按规则校验；连续命中非法时退化为走子。\n  for (let i = 0; i < 200; i++) {\n    const a = actions[Math.floor(rng() * actions.length)];\n    if (a.type === \"move\") return a;\n    if (validateAction(state, a).ok) return a;\n  }\n  const p = state.players[state.turn];\n  const dirs = legalDirs(state, p.c, p.r);\n  return { type: \"move\", dir: dirs[Math.floor(rng() * dirs.length)] };\n}\n\n/* ===== src/ai-master.js ===== */\n/**\r\n * 大师 AI：迭代加深 αβ + 结构评估 + 锁路计划层。\r\n * 移植自朋友的分支（ai2.js），仅补上模块 import 与 path 内部常量。\r\n */\r\n\r\n\r\n\r\n// 评估竞速模式：legacy（默认）/ race（E1a 实验）。\r\nlet evalRaceMode = \"legacy\";\r\nfunction setEvalRaceMode(mode) { evalRaceMode = mode; }\r\nfunction getEvalRaceMode() { return evalRaceMode; }\r\n\r\n/**\r\n * 越线结果：返回 { action, winner } 或 null。\r\n * winner 可能是本方（赢）、\"draw\"（平）或对方。\r\n * 注意：能越线不等于能赢——规则 1.3 下可能是平局。\r\n */\r\nfunction exitAction(state) {\r\n  const p = state.players[state.turn];\r\n  if (p.r !== 0) return null;\r\n  const t = stepTarget(state, p.c, p.r, \"up\");\r\n  if (!t || !t.exit) return null;\r\n  const r = applyAction(state, { type: \"move\", dir: \"up\" });\r\n  if (!r.ok) return null;\r\n  return { action: { type: \"move\", dir: \"up\" }, winner: r.state.winner };\r\n}\r\n\r\n/**\r\n * 强 AI：迭代加深 αβ + 结构评估 + 锁路计划层。\r\n * 纯逻辑，不依赖 DOM，便于自对弈测试。\r\n */\r\n\r\nconst AI_WIN = 1e9;\r\n\r\nfunction aiNow() {\r\n  return typeof performance !== \"undefined\" && performance.now ? performance.now() : Date.now();\r\n}\r\n\r\nfunction marginFor(state, p) {\r\n  return distanceOf(state, 1 - p) - distanceOf(state, p);\r\n}\r\n\r\nfunction countOpenExits(state) {\r\n  let n = 0;\r\n  for (let c = 0; c < state.cols; c++) if (state.topWall[c] === 0) n++;\r\n  return n;\r\n}\r\n\r\n/** 到终点的最短路条数（截断），衡量备选路是否被砍光。 */\r\nfunction pathCount(state, p, cap = 24) {\r\n  const { vWall, hWall, topWall } = state;\r\n  const pl = state.players[p];\r\n  const size = state.cols * state.rows;\r\n  const keyOf = (c, r) => r * state.cols + c;\r\n  const dist = new Int16Array(size).fill(-1);\r\n  const ways = new Int16Array(size);\r\n  const q = new Int16Array(size * 2);\r\n  let head = 0;\r\n  let tail = 0;\r\n  const sk = keyOf(pl.c, pl.r);\r\n  dist[sk] = 0;\r\n  ways[sk] = 1;\r\n  q[tail++] = pl.c;\r\n  q[tail++] = pl.r;\r\n  while (head < tail) {\r\n    const c = q[head++];\r\n    const r = q[head++];\r\n    const k = keyOf(c, r);\r\n    const d = dist[k];\r\n    const w = ways[k];\r\n    const relax = (nc, nr) => {\r\n      const nk = keyOf(nc, nr);\r\n      if (dist[nk] < 0) {\r\n        dist[nk] = d + 1;\r\n        ways[nk] = w;\r\n        q[tail++] = nc;\r\n        q[tail++] = nr;\r\n      } else if (dist[nk] === d + 1) {\r\n        ways[nk] = Math.min(cap, ways[nk] + w);\r\n      }\r\n    };\r\n    if (r > 0 && hWall[hIndex(c, r - 1, state.rows)] === 0) relax(c, r - 1);\r\n    if (r < state.rows - 1 && hWall[hIndex(c, r, state.rows)] === 0) relax(c, r + 1);\r\n    if (c > 0 && vWall[vIndex(c - 1, r, state.rows)] === 0) relax(c - 1, r);\r\n    if (c < state.cols - 1 && vWall[vIndex(c, r, state.rows)] === 0) relax(c + 1, r);\r\n  }\r\n  let gd = Infinity;\r\n  for (let c = 0; c < state.cols; c++) {\r\n    if (topWall[c] !== 0) continue;\r\n    const d = dist[keyOf(c, 0)];\r\n    if (d >= 0 && d + 1 < gd) gd = d + 1;\r\n  }\r\n  if (!Number.isFinite(gd)) return 0;\r\n  let count = 0;\r\n  for (let c = 0; c < state.cols; c++) {\r\n    if (topWall[c] !== 0) continue;\r\n    const d = dist[keyOf(c, 0)];\r\n    if (d + 1 === gd) count += ways[keyOf(c, 0)];\r\n  }\r\n  return Math.min(cap, count);\r\n}\r\n\r\n/** 结构评估：胜势奖励“更快到达”，并把“出口被关光”视为平局。 */\r\n/** p 附近（列差 ≤3）仍开放的出口数量。 */\r\nfunction nearExits(state, p) {\r\n  const pc = state.players[p].c;\r\n  let n = 0;\r\n  for (let c = 0; c < state.cols; c++) {\r\n    if (state.topWall[c] === 0 && Math.abs(c - pc) <= 3) n++;\r\n  }\r\n  return n;\r\n}\r\n\r\n/**\r\n * 局面评估（站在 state.turn 的角度）。\r\n *\r\n * v2 相比 v1：\r\n *   - 领先时用连续的速度项代替粗糙的分档，引导搜索找更快的赢法；\r\n *   - 所有区间都计入「最短路条数」与「近端出口」两个结构项，\r\n *     因为残局里“能封我几条路”比“我还差几步”更能决定胜负；\r\n *   - 显式惩罚对手站在终点线（下一步就能出）的局面。\r\n */\r\n/** 静态竞速：双方沿最短路走子、不加墙时的 W/D/L（M=state.turn 视角）。 */\r\nfunction staticRaceResult(state) {\r\n  const me = state.turn;\r\n  const opp = 1 - me;\r\n  const dM = distanceOf(state, me);\r\n  const dO = distanceOf(state, opp);\r\n  if (!Number.isFinite(dM) || !Number.isFinite(dO) || dM <= 0 || dO <= 0) return null;\r\n  const m = dO - dM;\r\n  let p, r;\r\n  if (m >= 0) { p = me; r = m + 1; }\r\n  else { p = opp; r = -m; }\r\n  const firstOnly = state.drawMode === \"firstOnly\";\r\n  const pIsFirst = state.firstPlayer === undefined ? true : state.firstPlayer === p;\r\n  const draw = firstOnly ? (pIsFirst && r <= state.tolerance) : (r <= state.tolerance);\r\n  if (draw) return \"D\";\r\n  return p === me ? \"W\" : \"L\";\r\n}\r\n\r\nfunction evalAI(state) {\r\n  if (state.winner !== null) {\r\n    if (state.winner === \"draw\") return 0;\r\n    return state.winner === state.turn ? AI_WIN : -AI_WIN;\r\n  }\r\n  const me = state.turn;\r\n  const opp = 1 - me;\r\n  const dm = distanceOf(state, me);\r\n  const dop = distanceOf(state, opp);\r\n  const exits = countOpenExits(state);\r\n  if (!Number.isFinite(dm) || !Number.isFinite(dop)) {\r\n    if (!Number.isFinite(dm) && !Number.isFinite(dop)) return 0;\r\n    if (!Number.isFinite(dm)) return -AI_WIN / 2;\r\n    return AI_WIN / 2;\r\n  }\r\n  if (exits === 0) return 0;\r\n\r\n  const m = dop - dm;\r\n  // 规则 1.3（drawMode=firstOnly）：先手领先 1 手只是平局，后手领先 1 手却是直接取胜\r\n  const firstOnly = state.drawMode === \"firstOnly\";\r\n  const meIsFirst = state.firstPlayer === undefined ? true : state.firstPlayer === me;\r\n\r\n  const ways = pathCount(state, me, 20) - pathCount(state, opp, 20);\r\n  const near = nearExits(state, me) - nearExits(state, opp);\r\n  const doorstep = (dm === 1 ? 120 : 0) - (dop === 1 ? 120 : 0);\r\n  const openPenalty = 10 - exits;\r\n\r\n  const winning = m >= 2 || (firstOnly && !meIsFirst && m === 1);\r\n  const drawish = m === 1 && !winning;\r\n\r\n  let base;\r\n  if (evalRaceMode === \"race\") {\r\n    const rr = staticRaceResult(state);\r\n    base = rr === \"W\" ? 6000 : rr === \"D\" ? -60 : rr === \"L\" ? -5400 : null;\r\n  }\r\n  if (base === undefined || (evalRaceMode === \"race\" && base === null)) {\r\n    base = winning ? 6000 : drawish ? -60 : -5400;\r\n  }\r\n  if (winning) {\r\n    // 赢面：优先缩短自己的步数，其次保住路线，不再堆墙\r\n    return base - 18 * dm - 20 * openPenalty\r\n      + Math.min(m, 6) * 25 + 6 * ways + 4 * near + doorstep;\r\n  }\r\n  if (drawish) {\r\n    // 先手只领先 1 手：想赢就必须再拉开，否则只能保平\r\n    return base + 20 * ways + 12 * near - 8 * openPenalty + doorstep;\r\n  }\r\n  // 落后（含均势）：出口越少越可能逼平，差距越大越糟\r\n  return base + 14 * m + 26 * openPenalty + 5 * ways + 6 * near + doorstep;\r\n}\r\n\r\n/** 调试：返回 evalAI 的分项，不改变评估语义。 */\r\nfunction debugEvalBreakdown(state) {\r\n  const me = state.turn;\r\n  const opp = 1 - me;\r\n  const dm = distanceOf(state, me);\r\n  const dop = distanceOf(state, opp);\r\n  const exits = countOpenExits(state);\r\n  const m = dop - dm;\r\n  const firstOnly = state.drawMode === \"firstOnly\";\r\n  const meIsFirst = state.firstPlayer === undefined ? true : state.firstPlayer === me;\r\n  const ways = pathCount(state, me, 20) - pathCount(state, opp, 20);\r\n  const near = nearExits(state, me) - nearExits(state, opp);\r\n  const doorstep = (dm === 1 ? 120 : 0) - (dop === 1 ? 120 : 0);\r\n  const openPenalty = 10 - exits;\r\n  const winning = m >= 2 || (firstOnly && !meIsFirst && m === 1);\r\n  const drawish = m === 1 && !winning;\r\n  return {\r\n    winner: state.winner, turn: me, dm, dop, m, exits, openPenalty,\r\n    firstOnly, meIsFirst, winning, drawish, ways, near, doorstep,\r\n    pathMe: pathCount(state, me, 20), pathOpp: pathCount(state, opp, 20),\r\n    eval: evalAI(state),\r\n  };\r\n}\r\n\r\n/** 走法生成：走子 + 对手最短路墙 + （根节点）全墙扫描的高收益墙 + 计划墙。 */\r\nfunction candidatesAI(state, opts = {}) {\r\n  const me = state.turn;\r\n  const opp = 1 - me;\r\n  const out = [];\r\n  const seen = new Set();\r\n  const add = (a) => {\r\n    const k = a.type === \"move\" ? `m:${a.dir}` : `w:${a.kind}:${a.c}:${a.r}`;\r\n    if (seen.has(k)) return;\r\n    seen.add(k);\r\n    out.push(a);\r\n  };\r\n  const mp = state.players[me];\r\n  const op = state.players[opp];\r\n  for (const dir of legalDirs(state, mp.c, mp.r)) add({ type: \"move\", dir });\r\n\r\n  // 只保留真正让对手更慢的墙；不制造“双方一起被拖慢”的无效墙。\r\n  const netWalls = !!opts.netWalls;\r\n  const topWallMinPlies = Number(opts.topWallMinPlies ?? 0);\r\n  const dm0 = netWalls ? distanceToGoal(state, mp.c, mp.r) : 0;\r\n  const dop0 = netWalls ? distanceToGoal(state, op.c, op.r) : 0;\r\n  const wallGain = (w) => {\r\n    const probe = cloneState(state);\r\n    setWall(probe, w.kind, w.c, w.r);\r\n    if (!hasPath(probe, mp.c, mp.r)) return null;\r\n    const dm = distanceToGoal(probe, mp.c, mp.r);\r\n    const dop = distanceToGoal(probe, op.c, op.r);\r\n    if (!Number.isFinite(dm) || !Number.isFinite(dop)) return null;\r\n    return { gainMe: dm - dm0, gainOpp: dop - dop0 };\r\n  };\r\n  const addWall = (w, top = false) => {\r\n    const a = w.type === \"wall\" ? w : { type: \"wall\", kind: w.kind, c: w.c, r: w.r };\r\n    if (top && state.plies < topWallMinPlies) return;\r\n    if (wallPlaced(state, a.kind, a.c, a.r)) return;\r\n    if (netWalls) {\r\n      const g = wallGain(a);\r\n      if (!g) return;\r\n      const diff = g.gainOpp - g.gainMe;\r\n      if (top ? diff < 0 : diff <= 0) return;\r\n    }\r\n    add(a);\r\n  };\r\n\r\n  for (const w of shortestPathWalls(state, op.c, op.r)) addWall(w, w.kind === \"t\" || w.kind === \"top\");\r\n\r\n  if (opts.scanAll) {\r\n    const scored = [];\r\n    for (const w of allWallSlots(state.cols, state.rows)) {\r\n      if (wallPlaced(state, w.kind, w.c, w.r)) continue;\r\n      if ((w.kind === \"top\" || w.kind === \"t\") && state.plies < topWallMinPlies) continue;\r\n      const probe = cloneState(state);\r\n      setWall(probe, w.kind, w.c, w.r);\r\n      if (!hasPath(probe, mp.c, mp.r)) continue;\r\n      const dm = netWalls ? distanceToGoal(probe, mp.c, mp.r) : 0;\r\n      const dop = distanceToGoal(probe, op.c, op.r);\r\n      if (!Number.isFinite(dop)) continue;\r\n      const gainOpp = dop - dop0;\r\n      const score = netWalls ? gainOpp - (dm - dm0) : gainOpp;\r\n      if (netWalls) {\r\n        if (w.kind === \"t\" || w.kind === \"top\" ? score < 0 : score <= 0) continue;\r\n      } else if (gainOpp < 1) continue;\r\n      scored.push([score, { type: \"wall\", kind: w.kind, c: w.c, r: w.r }]);\r\n    }\r\n    scored.sort((x, y) => y[0] - x[0]);\r\n    for (let i = 0; i < Math.min(opts.scanAll, scored.length); i++) add(scored[i][1]);\r\n  }\r\n  if ((opts.topWalls || marginFor(state, me) <= 0) && state.plies >= topWallMinPlies) {\r\n    const topKind = opts.topWallKind === \"top\" ? \"top\" : \"t\";\r\n    for (let c = 0; c < state.cols; c++) {\r\n      if (state.topWall[c] !== 0) continue;\r\n      const w = { type: \"wall\", kind: topKind, c, r: 0 };\r\n      if (topKind === \"top\") addWall(w, true);\r\n      else add(w);\r\n    }\r\n  }\r\n  if (opts.planWall) addWall(opts.planWall);\r\n  return out;\r\n}\r\n\r\n/** 排序用：刚走完一方的静态优势。 */\r\nfunction orderScore(state) {\r\n  return distanceOf(state, state.turn) - distanceOf(state, 1 - state.turn);\r\n}\r\n\r\n/**\r\n * 路由墙候选：在不增加即时距离的墙里，挑「砍掉对手最短路条数最多」的前 N 面。\r\n * 只在根节点调用，避免搜索内部的高昂开销。\r\n */\r\nfunction routeCutCandidates(state, n) {\r\n  const opp = 1 - state.turn;\r\n  const base = pathCount(state, opp, 24);\r\n  const out = [];\r\n  for (const w of allWallSlots(state.cols, state.rows)) {\r\n    if (wallPlaced(state, w.kind, w.c, w.r)) continue;\r\n    const a = { type: \"wall\", kind: w.kind, c: w.c, r: w.r };\r\n    if (!validateAction(state, a).ok) continue;\r\n    const r = applyAction(state, a);\r\n    if (!r.ok) continue;\r\n    const cut = base - pathCount(r.state, opp, 24);\r\n    if (cut > 0) out.push([cut, a]);\r\n  }\r\n  out.sort((x, y) => y[0] - x[0]);\r\n  return out.slice(0, n).map((x) => x[1]);\r\n}\r\n\r\nfunction searchAI(state, depth, alpha, beta, ctx) {\r\n  ctx.nodes++;\r\n  if ((ctx.nodes & 255) === 0 && aiNow() >= ctx.deadline) {\r\n    ctx.abort = true;\r\n    return 0;\r\n  }\r\n  if (state.winner !== null || depth === 0) return evalAI(state);\r\n\r\n  const cands = candidatesAI(state, ctx.candOpts ?? {});\r\n  const scored = [];\r\n  for (const a of cands) {\r\n    const r = applyAction(state, a);\r\n    if (!r.ok) continue;\r\n    scored.push([orderScore(r.state), a, r.state]);\r\n  }\r\n  scored.sort((x, y) => y[0] - x[0]);\r\n\r\n  let best = -Infinity;\r\n  for (const [, , st] of scored) {\r\n    const v = -searchAI(st, depth - 1, -beta, -alpha, ctx);\r\n    if (ctx.abort) return 0;\r\n    if (v > best) best = v;\r\n    if (best > alpha) alpha = best;\r\n    if (alpha >= beta) break;\r\n  }\r\n  return best === -Infinity ? evalAI(state) : best;\r\n}\r\n\r\n/** 迭代加深根搜索。 */\r\nfunction rootSearch(state, rng, timeMs, maxDepth, opts = {}) {\r\n  const ex = exitAction(state);\r\n  if (ex && (opts.smartExit ? ex.winner === state.turn : true)) return ex.action;\r\n\r\n  const me = state.turn;\r\n  const tCand0 = aiNow();\r\n  const cands = candidatesAI(state, { scanAll: 6, ...(opts.candOpts ?? {}) });\r\n  let routeCutAdded = 0;\r\n  if (opts.routeWalls > 0) {\r\n    const seen = new Set(cands.map((a) => (a.type === \"move\" ? \"m:\" + a.dir : \"w:\" + a.kind + \":\" + a.c + \":\" + a.r)));\r\n    for (const w of routeCutCandidates(state, opts.routeWalls)) {\r\n      const k = \"w:\" + w.kind + \":\" + w.c + \":\" + w.r;\r\n      if (seen.has(k)) continue;\r\n      seen.add(k);\r\n      cands.push(w);\r\n      routeCutAdded++;\r\n    }\r\n  }\r\n  const tCand = aiNow() - tCand0;\r\n  const tOrder0 = aiNow();\r\n  const ordered = [];\r\n  const startWallBias = Number(opts.startWallBias ?? 0);\r\n  const startWallPlies = Number(opts.startWallPlies ?? 0);\r\n  for (const a of cands) {\r\n    const r = applyAction(state, a);\r\n    if (!r.ok) continue;\r\n    let s = orderScore(r.state);\r\n    if (a.type === \"move\") s += 0.01;\r\n    if (startWallBias && state.plies < startWallPlies && a.type === \"wall\") {\r\n      if (a.kind === \"h\" && a.r >= state.rows - 3) s += startWallBias;\r\n      else if (a.kind === \"h\" && a.r >= state.rows - 6) s += startWallBias * 0.4;\r\n      else if (a.kind === \"top\") s -= startWallBias;\r\n      else if (a.kind === \"h\" && a.r <= 2) s -= startWallBias * 0.6;\r\n    }\r\n    ordered.push({ a, st: r.state, score: s });\r\n  }\r\n  if (!ordered.length) return autoMove(state);\r\n  ordered.sort((x, y) => y.score - x.score);\r\n  const tOrder = aiNow() - tOrder0;\r\n\r\n  const ctx = {\r\n    deadline: Math.min(aiNow() + Math.max(20, timeMs), (opts.globalDeadline ?? Infinity) - 50),\r\n    nodes: 0,\r\n    abort: false,\r\n    candOpts: opts.candOpts ?? {},\r\n  };\r\n  const repeatSet = opts.repeatSet;\r\n  const repeatPenalty = Number(opts.repeatPenalty ?? 0);\r\n  const diag = opts.diag || null;\r\n  if (diag) {\r\n    diag.tCandidate = tCand;\r\n    diag.tOrder = tOrder;\r\n    diag.candidateCount = cands.length;\r\n    diag.routeCutAdded = routeCutAdded;\r\n    diag.searchedCount = ordered.length;\r\n  }\r\n  let best = ordered[0].a;\r\n  let bestScore = -Infinity;\r\n\r\n  for (let depth = 1; depth <= maxDepth; depth++) {\r\n    let alpha = -Infinity;\r\n    let localBest = null;\r\n    let localScore = -Infinity;\r\n    for (const item of ordered) {\r\n      let v = -searchAI(item.st, depth - 1, -Infinity, -alpha, ctx);\r\n      if (ctx.abort) break;\r\n      // 两格来回：最近回到过的格子（墙数没变）降权。\r\n      if (repeatSet && repeatPenalty > 0 && item.a.type === \"move\") {\r\n        const np = item.st.players[me];\r\n        const key = `${np.r * state.cols + np.c}:${item.st.wallsPlaced}`;\r\n        if (repeatSet.has(key)) v -= repeatPenalty;\r\n      }\r\n      if (v > localScore) {\r\n        localScore = v;\r\n        localBest = item.a;\r\n      }\r\n      if (v > alpha) alpha = v;\r\n    }\r\n    if (ctx.abort) break;\r\n    if (localBest) {\r\n      best = localBest;\r\n      bestScore = localScore;\r\n      ordered.sort((x, y) => (x.a === best ? -1 : y.a === best ? 1 : y.score - x.score));\r\n    }\r\n    if (diag) {\r\n      diag.depths = depth;\r\n      diag.score = bestScore;\r\n      diag.nodes = ctx.nodes;\r\n      diag.stop = \"depth\";\r\n    }\r\n    if (bestScore >= AI_WIN * 0.9) {\r\n      if (diag) diag.stop = \"win\";\r\n      break;\r\n    }\r\n    if (aiNow() >= ctx.deadline) {\r\n      if (diag) diag.stop = \"timeout\";\r\n      break;\r\n    }\r\n  }\r\n  if (diag && !diag.stop) diag.stop = \"max-depth\";\r\n  return best;\r\n}\r\n\r\n/* ---------- 锁路计划层 ---------- */\r\n\r\n/** 对手一步内的最佳“反切/前进”应手（用于计划模拟）。 */\r\nfunction bestOpponentAction(state, opp) {\r\n  let best = null;\r\n  let bestScore = -Infinity;\r\n  for (const a of candidatesAI(state, { topWalls: true })) {\r\n    const r = applyAction(state, a);\r\n    if (!r.ok) continue;\r\n    if (r.state.winner === opp) return a;\r\n    let s;\r\n    if (r.state.winner === \"draw\") s = 5e8;\r\n    else if (r.state.winner !== null) s = -1e9;\r\n    else {\r\n      s = marginFor(r.state, opp);\r\n      if (s <= 0) s += 30 * (10 - countOpenExits(r.state));\r\n    }\r\n    if (s > bestScore) {\r\n      bestScore = s;\r\n      best = a;\r\n    }\r\n  }\r\n  return best;\r\n}\r\n\r\n/** 自适应执行：优先封对手当前列，把对手往缺口赶。 */\r\nfunction nextPlanWallFor(state, walls, me) {\r\n  const op = state.players[1 - me];\r\n  const remaining = walls.filter((w) => !wallPlaced(state, w.kind, w.c, w.r));\r\n  if (!remaining.length) return null;\r\n  remaining.sort((a, b) => Math.abs(a.c - op.c) - Math.abs(b.c - op.c));\r\n  for (const w of remaining) {\r\n    if (validateAction(state, w).ok) return w;\r\n  }\r\n  return null;\r\n}\r\n\r\n/** 模拟“我按计划封墙、对手每步走最优应手”的完整过程（大师旧行为）。 */\r\nfunction simulatePlanLegacy(state, walls, me) {\r\n  let s = state;\r\n  let placed = 0;\r\n  for (let i = 0; i < walls.length + 2; i++) {\r\n    const w = nextPlanWallFor(s, walls, me);\r\n    if (!w) break;\r\n    placed++;\r\n    const ra = applyAction(s, w);\r\n    if (!ra.ok) return null;\r\n    s = ra.state;\r\n    if (s.winner !== null) break;\r\n    const a = bestOpponentAction(s, 1 - me);\r\n    if (!a) return null;\r\n    const rb = applyAction(s, a);\r\n    if (!rb.ok) return null;\r\n    s = rb.state;\r\n    if (s.winner !== null) break;\r\n  }\r\n  if (!placed) return null;\r\n  if (s.winner === null && walls.some((w) => !wallPlaced(s, w.kind, w.c, w.r))) return null;\r\n  return s;\r\n}\r\n\r\n/** BFS：从 (c0,r0) 出发、绕开 avoid 格，是否还能到终点。 */\r\nfunction hasPathAvoiding(state, c0, r0, ac, ar) {\r\n  const { vWall, hWall, topWall } = state;\r\n  const keyOf = (c, r) => r * state.cols + c;\r\n  const seen = new Uint8Array(state.cols * state.rows);\r\n  const q = [];\r\n  const startK = keyOf(c0, r0);\r\n  seen[startK] = 1;\r\n  q.push(c0, r0);\r\n  for (let head = 0; head < q.length; head += 2) {\r\n    const c = q[head];\r\n    const r = q[head + 1];\r\n    if (r === 0 && topWall[c] === 0) return true;\r\n    const tryCell = (nc, nr) => {\r\n      if (nc === ac && nr === ar) return;\r\n      const k = keyOf(nc, nr);\r\n      if (seen[k]) return;\r\n      seen[k] = 1;\r\n      q.push(nc, nr);\r\n    };\r\n    if (r > 0 && hWall[hIndex(c, r - 1, state.rows)] === 0) tryCell(c, r - 1);\r\n    if (r < state.rows - 1 && hWall[hIndex(c, r, state.rows)] === 0) tryCell(c, r + 1);\r\n    if (c > 0 && vWall[vIndex(c - 1, r, state.rows)] === 0) tryCell(c - 1, r);\r\n    if (c < state.cols - 1 && vWall[vIndex(c, r, state.rows)] === 0) tryCell(c + 1, r);\r\n  }\r\n  return false;\r\n}\r\n\r\n/** 对手是否站在我“未来必经之路”上。 */\r\nfunction opponentOnNecessaryPath(state, me) {\r\n  const p = state.players[me];\r\n  const op = state.players[1 - me];\r\n  if (!hasPath(state, p.c, p.r)) return false;\r\n  return !hasPathAvoiding(state, p.c, p.r, op.c, op.r);\r\n}\r\n\r\n/** 自己走一步：合法走子里离终点最近的。 */\r\nfunction bestProgressMove(state, me) {\r\n  const p = state.players[me];\r\n  let best = null;\r\n  let bestD = Infinity;\r\n  for (const dir of legalDirs(state, p.c, p.r)) {\r\n    const a = { type: \"move\", dir };\r\n    const r = applyAction(state, a);\r\n    if (!r.ok) continue;\r\n    if (r.state.winner !== null) return a;\r\n    const d = distanceOf(r.state, me);\r\n    if (d < bestD) {\r\n      bestD = d;\r\n      best = a;\r\n    }\r\n  }\r\n  return best;\r\n}\r\n\r\n/** 宗师计划一步：会走；软/硬必经路保护；自堵检查。 */\r\nfunction planStepFor(state, walls, me, opts = {}) {\r\n  const move = bestProgressMove(state, me);\r\n  const w = nextPlanWallFor(state, walls, me);\r\n  const guard = opts.necessaryPathGuard;\r\n  if (w && guard && opponentOnNecessaryPath(state, me)) {\r\n    if (guard === \"hard\" || (guard === \"soft\" && planWallNetBad(state, me, w))) {\r\n      return move;\r\n    }\r\n  }\r\n  if (!w) return move;\r\n  const res = applyAction(state, w);\r\n  if (!res.ok) return move;\r\n  const dm0 = distanceOf(state, me);\r\n  const dop0 = distanceOf(state, 1 - me);\r\n  const dm = distanceOf(res.state, me);\r\n  const dop = distanceOf(res.state, 1 - me);\r\n  if (!Number.isFinite(dm) || !Number.isFinite(dop)) return move;\r\n  const gainMe = dm - dm0;\r\n  const gainOpp = dop - dop0;\r\n  if (gainMe > 0 && gainOpp <= gainMe) return move;\r\n  if (dm0 <= 3) return move;\r\n  return w;\r\n}\r\n\r\n/** 宗师计划：放墙/自己走交替模拟。 */\r\nfunction simulatePlanMoves(state, walls, me, opts = {}) {\r\n  let s = state;\r\n  let placed = 0;\r\n  for (let i = 0; i < walls.length * 2 + 6; i++) {\r\n    if (s.winner !== null) break;\r\n    if (s.turn !== me) {\r\n      const a = bestOpponentAction(s, 1 - me);\r\n      if (!a) return null;\r\n      const r = applyAction(s, a);\r\n      if (!r.ok) return null;\r\n      s = r.state;\r\n      continue;\r\n    }\r\n    const step = planStepFor(s, walls, me, opts);\r\n    if (!step) return null;\r\n    const r = applyAction(s, step);\r\n    if (!r.ok) return null;\r\n    if (step.type === \"wall\") placed++;\r\n    s = r.state;\r\n  }\r\n  if (!placed) return null;\r\n  return s;\r\n}\r\n\r\nfunction simulatePlan(state, walls, me, opts = {}) {\r\n  return opts.planMoves ? simulatePlanMoves(state, walls, me, opts) : simulatePlanLegacy(state, walls, me);\r\n}\r\n\r\n/** 生成并评估锁路计划：横排留一个缺口，缺口在离对手最远一侧。 */\r\nfunction makePlanAI(state, opts = {}) {\r\n  const me = state.turn;\r\n  const opp = 1 - me;\r\n  const my = state.players[me];\r\n  const op = state.players[opp];\r\n  const dm = distanceOf(state, me);\r\n  const dop = distanceOf(state, opp);\r\n  if (!Number.isFinite(dm) || !Number.isFinite(dop)) return null;\r\n  if (countOpenExits(state) < 5) return null;    // 出口快关光时锁路=送平局，必须冲线\r\n  if (dop - dm < 2 || dop - dm > 4) return null; // 只在领先脆弱时锁路；大幅领先直接冲线\r\n  if (dop <= 1) return null;\r\n  if (dm <= 3) return null;                      // 自己已很近，冲线更快\r\n  if (my.r > state.rows - 2) return null;\r\n\r\n  let best = null;\r\n  const rows = [];\r\n  if (opts.startPlan && my.r >= state.rows - 4) rows.push(state.rows - 2, state.rows - 3);\r\n  rows.push(my.r, my.r - 1);\r\n  const uniqRows = [...new Set(rows)];\r\n  for (const row of uniqRows) {\r\n    if (row < 1 || row > state.rows - 2) continue;\r\n    if (op.r <= row) continue;\r\n    for (const gap of [0, state.cols - 1, my.c]) {\r\n      const walls = [];\r\n      for (let c = 0; c < state.cols; c++) {\r\n        if (c === gap) continue;\r\n        if (wallPlaced(state, \"h\", c, row)) continue;\r\n        walls.push({ type: \"wall\", kind: \"h\", c, r: row });\r\n      }\r\n      if (!walls.length) continue;\r\n      const sims = [];\r\n      const primary = simulatePlan(state, walls, me, opts);\r\n      if (primary) sims.push(primary);\r\n      // 宗师：如果“会走”的模拟没有计划，回退到大师的旧模拟，保证不丢锁路机会。\r\n      if (opts.planFallback) {\r\n        const legacy = simulatePlanLegacy(state, walls, me);\r\n        if (legacy && legacy !== primary) sims.push(legacy);\r\n      }\r\n      if (!sims.length) continue;\r\n      for (const sim of sims) {\r\n        if (sim.winner === opp) continue;\r\n        const sdm = distanceOf(sim, me);\r\n        const sdo = distanceOf(sim, opp);\r\n        if (!Number.isFinite(sdm) || !Number.isFinite(sdo)) continue;\r\n        if (countOpenExits(sim) === 0) continue;\r\n        const m = sim.winner === \"draw\" ? 0 : sdo - sdm;\r\n        const netOk = !opts.planWallNet || (sdm - dm <= sdo - dop);\r\n        if (m >= 2 && netOk && (!best || m > best.margin)) {\r\n          best = { row, gap, walls, margin: m, dMe: dm, dOpp: dop, ply: state.plies };\r\n        }\r\n      }\r\n    }\r\n  }\r\n  return best;\r\n}\r\n\r\n/** 计划墙是否“损己不划算”：自己变长，且对手没有变得比自己更惨。 */\r\nfunction planWallNetBad(state, me, w) {\r\n  const opp = 1 - me;\r\n  const res = applyAction(state, w);\r\n  if (!res.ok) return true;\r\n  const dm0 = distanceOf(state, me);\r\n  const dop0 = distanceOf(state, opp);\r\n  const dm = distanceOf(res.state, me);\r\n  const dop = distanceOf(res.state, opp);\r\n  if (!Number.isFinite(dm) || !Number.isFinite(dop)) return true;\r\n  const gainMe = dm - dm0;\r\n  const gainOpp = dop - dop0;\r\n  return gainMe > 0 && gainOpp <= gainMe;\r\n}\r\n\r\n/** 构建一个带计划层的 AI。 */\r\n/** 调试：返回当前局面的生成候选（供审计工具使用）。 */\r\nfunction debugCandidates(state, opts = {}) {\r\n  return candidatesAI(state, { scanAll: 6, ...opts });\r\n}\r\n\r\n/** 调试：某方到终点最短路条数（截断）。 */\r\nfunction debugPathCount(state, p, cap = 24) {\r\n  return pathCount(state, p, cap);\r\n}\r\n\r\nfunction createMasterAI({\r\n  timeMs = 1200,\r\n  maxDepth = 6,\r\n  usePlan = true,\r\n  netWalls = false,\r\n  avoidRepeat = false,\r\n  repeatPenalty = 120,\r\n  planMoves = false,\r\n  planWallNet = false,\r\n  planFallback = false,\r\n  necessaryPathGuard = false,\r\n  startWallBias = 0,\r\n  startWallPlies = 0,\r\n  topWallMinPlies = 0,\r\n  topWallKind = \"t\",\r\n  startPlan = false,\r\n  endgameDepth = 0,\r\n  routeWalls = 0,\r\n  smartExit = false,\r\n  returnBuffer = 0,\r\n  trace = false,\r\n  pathCache = false,\r\n  pathCacheAudit = false,\r\n  evalRaceMode: raceModeOpt = \"legacy\",\r\n} = {}) {\r\n  let plan = null;\r\n  let plansUsed = 0;\r\n  let history = [];\r\n  const stats = { plans: 0, planWalls: 0, searches: 0, maxPlies: 0 };\r\n  if (planMoves) stats.planMoves = 0;\r\n  if (necessaryPathGuard) stats.necessaryMoves = 0;\r\n\r\n  function choose(state, rng) {\r\n    const me = state.turn;\r\n    const opp = 1 - me;\r\n    const mePos = state.players[me];\r\n    const tStart = aiNow();\r\n    const hardDeadline = tStart + Math.max(50, timeMs);\r\n    const buffer = Math.max(0, Math.min(returnBuffer, Math.max(0, timeMs - 20)));\r\n    const globalDeadline = hardDeadline - buffer;\r\n    if (trace) { M.on = true; resetMetrics(); }\r\n    if (pathCache) enablePathCache(200000, pathCacheAudit);\r\n    const prevRaceMode = evalRaceMode;\r\n    evalRaceMode = raceModeOpt;\r\n    try {\r\n\r\n    const exit = exitAction(state);\r\n    const logBase = {\r\n      ply: state.plies,\r\n      turn: me,\r\n      first: state.firstPlayer,\r\n      dMe: distanceOf(state, me),\r\n      dOpp: distanceOf(state, opp),\r\n      exits: countOpenExits(state),\r\n    };\r\n    if (!smartExit) {\r\n      // 旧行为：能越线就立刻越线（可能是平局）\r\n      if (exit) {\r\n        stats.lastLog = { ...logBase, source: \"exit\", action: exit.action };\r\n        return exit.action;\r\n      }\r\n    }\r\n    if (exit && exit.winner === me) {\r\n      stats.lastLog = { ...logBase, source: \"exit-win\", action: exit.action };\r\n      return exit.action;\r\n    }\r\n    // 越线只能平：先记下来，搜索若找不到更好的（或会输）就回来取平\r\n    const safeDraw = smartExit && exit && exit.winner === \"draw\" ? exit.action : null;\r\n\r\n    if (avoidRepeat) {\r\n      history.push(`${mePos.r * state.cols + mePos.c}:${state.wallsPlaced}`);\r\n      if (history.length > 12) history.shift();\r\n    }\r\n    const repeatSet = avoidRepeat ? new Set(history.slice(0, -1)) : undefined;\r\n\r\n    if (plan) {\r\n      const my = state.players[me];\r\n      const op = state.players[opp];\r\n      const stale =\r\n        op.r <= plan.row ||\r\n        my.r > plan.row + 1 ||\r\n        distanceOf(state, me) > plan.dMe + 2 ||\r\n        state.winner !== null;\r\n      if (stale) {\r\n        plan = null;\r\n      } else if (planMoves) {\r\n        // 宗师：计划生成时已算过，执行期只走一步，避免重复整段模拟。\r\n        const step = planStepFor(state, plan.walls, me, { necessaryPathGuard });\r\n        if (step) {\r\n          if (step.type === \"wall\" && netWalls && planWallNetBad(state, me, step)) {\r\n            plan = null;\r\n          } else {\r\n            if (step.type === \"wall\") stats.planWalls++;\r\n            else stats.planMoves++;\r\n            stats.lastLog = { ...logBase, source: \"plan\", action: step,\r\n              tPlan: aiNow() - tStart, tSearch: 0, tTotal: aiNow() - tStart, depthLast: 0, abort: \"plan\" };\r\n            return step;\r\n          }\r\n        }\r\n        plan = null;\r\n      } else {\r\n        // 用当前局面重算计划价值；变差就放弃\r\n        const sim = simulatePlan(state, plan.walls, me);\r\n        if (sim && sim.winner !== opp) {\r\n          const sm = distanceOf(sim, me);\r\n          const so = distanceOf(sim, opp);\r\n          const m = sim.winner === \"draw\" ? 0 : (Number.isFinite(sm) && Number.isFinite(so) ? so - sm : -1);\r\n          if (m >= 2) {\r\n            const w = nextPlanWallFor(state, plan.walls, me);\r\n            if (w && !(netWalls && planWallNetBad(state, me, w))) {\r\n              stats.planWalls++;\r\n              return w;\r\n            }\r\n            plan = null;\r\n          }\r\n        }\r\n        plan = null;\r\n      }\r\n    }\r\n\r\n    const planReserve = timeMs >= 1000 ? 500 : 0;\r\n    if (usePlan && plansUsed < 2 && aiNow() < globalDeadline - planReserve) {\r\n      const p = makePlanAI(state, { planMoves, planWallNet, planFallback, necessaryPathGuard, startPlan });\r\n      if (p) {\r\n        plan = p;\r\n        plansUsed++;\r\n        stats.plans++;\r\n        const step = planMoves\r\n          ? planStepFor(state, p.walls, me, { necessaryPathGuard })\r\n          : nextPlanWallFor(state, p.walls, me);\r\n        if (step && !(step.type === \"wall\" && netWalls && planWallNetBad(state, me, step))) {\r\n          if (step.type === \"wall\") stats.planWalls++;\r\n          else stats.planMoves++;\r\n          stats.lastLog = { ...logBase, source: \"plan-new\", action: step,\r\n            tPlan: aiNow() - tStart, tSearch: 0, tTotal: aiNow() - tStart, depthLast: 0, abort: \"plan\" };\r\n          return step;\r\n        }\r\n        plan = null;\r\n      }\r\n    }\r\n\r\n    const searchReserve = timeMs >= 1000 ? 100 : 0;\r\n    if (aiNow() >= globalDeadline - searchReserve) {\r\n      const fallback = autoMove(state) ?? bestProgressMove(state, me) ?? legalActions(state)[0];\r\n      stats.lastLog = { ...logBase, source: \"deadline-fallback\", action: fallback,\r\n        tPlan: aiNow() - tStart, tSearch: 0, tTotal: aiNow() - tStart, depthLast: 0, abort: \"deadline\" };\r\n      return fallback;\r\n    }\r\n\r\n    const tPlan = aiNow() - tStart;\r\n    stats.searches++;\r\n    const tSearch0 = aiNow();\r\n    const dm = distanceOf(state, me);\r\n    const dop = distanceOf(state, opp);\r\n    const endgame = endgameDepth > 0 &&\r\n      countOpenExits(state) <= 4 &&\r\n      Number.isFinite(dm) && Number.isFinite(dop) &&\r\n      Math.max(dm, dop) <= 5;\r\n    const depth = endgame ? Math.max(maxDepth, endgameDepth) : maxDepth;\r\n    const diag = {};\r\n    const action = rootSearch(state, rng, timeMs, depth, {\r\n      diag,\r\n      candOpts: { netWalls, topWallMinPlies, topWallKind },\r\n      startWallBias,\r\n      startWallPlies,\r\n      repeatSet,\r\n      repeatPenalty: avoidRepeat ? repeatPenalty : 0,\r\n      routeWalls,\r\n      smartExit,\r\n      globalDeadline,\r\n    });\r\n    // 能越线但只是平：若搜索结果更差，退回安全平局\r\n    if (safeDraw && (diag.score ?? 0) < 0) {\r\n      stats.lastLog = {\r\n        ...logBase, source: \"exit-draw-fallback\", action: safeDraw, score: diag.score,\r\n      };\r\n      return safeDraw;\r\n    }\r\n    if (necessaryPathGuard && action.type === \"wall\" && opponentOnNecessaryPath(state, me)) {\r\n      const should = necessaryPathGuard === \"hard\" || planWallNetBad(state, me, action);\r\n      if (should) {\r\n        const mv = bestProgressMove(state, me);\r\n        if (mv) {\r\n          stats.necessaryMoves++;\r\n          stats.lastLog = { ...logBase, source: \"guard\", action: mv };\r\n          return mv;\r\n        }\r\n      }\r\n    }\r\n    stats.lastLog = {\r\n      ...logBase,\r\n      source: \"search\",\r\n      action,\r\n      depth: diag.depths,\r\n      score: diag.score,\r\n      nodes: diag.nodes,\r\n      stop: diag.stop,\r\n      tCandidate: diag.tCandidate ?? 0,\r\n      tOrder: diag.tOrder ?? 0,\r\n      tSearch: aiNow() - tSearch0,\r\n      tTotal: aiNow() - tStart,\r\n      depthLast: diag.depths ?? 0,\r\n      abort: diag.stop,\r\n      candidateCount: diag.candidateCount ?? 0,\r\n      routeCutAdded: diag.routeCutAdded ?? 0,\r\n      searchedCount: diag.searchedCount ?? 0,\r\n      selectedSource: \"search\",\r\n      tPlan,\r\n      returnBuffer: buffer,\r\n      trace: trace ? snapshot() : null,\r\n      pathCache: pathCache ? cacheStats() : null,\r\n    };\r\n    return action;\r\n    } finally {\r\n      if (trace) M.on = false;\r\n      if (pathCache) disablePathCache();\r\n      evalRaceMode = prevRaceMode;\r\n    }\r\n  }\r\n\r\n  choose.stats = stats;\r\n  choose.planBudget = () => plansUsed;\r\n  choose.reset = () => {\r\n    plan = null;\r\n    plansUsed = 0;\r\n    history = [];\r\n    stats.plans = 0;\r\n    stats.planWalls = 0;\r\n    stats.searches = 0;\r\n    stats.maxPlies = 0;\r\n    delete stats.lastLog;\r\n    if (planMoves) stats.planMoves = 0;\r\n    if (necessaryPathGuard) stats.necessaryMoves = 0;\r\n  };\r\n  choose.planInfo = () => plan;\r\n  return choose;\r\n}\r\n\r\n/**\r\n * 档位：\r\n *   easy   偶尔随机\r\n *   normal 一步贪心\r\n *   hard   4 层 αβ + 结构评估（不锁路）\r\n *   master 6 层 αβ + 结构评估 + 锁路计划层\r\n */\r\n\r\n\r\n// 调试/自测入口（不参与对局逻辑）\r\n\r\n\n/* ===== src/hell-config.js ===== */\n// 地狱难度共享配置：ai.js、ai-worker.js、测试脚本共用，避免参数漂移。\n//\n// 生产版本 = A1（routeWalls=6）。\n// A0（routeWalls=3）作为回退基线保留，需要时用 createHellA0Config() 切换。\n\nconst HELL_A0_ROUTE_WALLS = 3;\nconst HELL_A1_ROUTE_WALLS = 6;\n\nfunction createHellConfig(overrides = {}) {\n  return {\n    timeMs: 28000,\n    maxDepth: 12,\n    usePlan: true,\n    netWalls: true,\n    avoidRepeat: true,\n    repeatPenalty: 160,\n    planMoves: true,\n    planFallback: true,\n    necessaryPathGuard: \"soft\",\n    endgameDepth: 12,\n    routeWalls: HELL_A1_ROUTE_WALLS,\n    smartExit: true,\n    ...overrides,\n  };\n}\n\n/** A0 回退基线：除 routeWalls=3 外与生产地狱完全一致。 */\nfunction createHellA0Config(overrides = {}) {\n  return createHellConfig({ routeWalls: HELL_A0_ROUTE_WALLS, ...overrides });\n}\n\nconst HELL_CONFIG = createHellConfig();\nconst HELL_A0_CONFIG = createHellA0Config();\n\n/** 稳定序列化 + 轻量哈希，用于实验配置快照。 */\nfunction configHash(cfg) {\n  const keys = Object.keys(cfg).sort();\n  const text = keys.map((k) => `${k}=${JSON.stringify(cfg[k])}`).join(\";\");\n  let h = 0x811c9dc5;\n  for (let i = 0; i < text.length; i++) {\n    h ^= text.charCodeAt(i);\n    h = Math.imul(h, 0x01000193);\n  }\n  return (h >>> 0).toString(16);\n}\n\n/* ===== src/plus-config.js ===== */\n// 宗师+ 独立配置：3,000ms 硬预算 + 返回缓冲。\n// 只用于宗师+ 研发与评测，不改变固定宗师或地狱的现有配置。\n\n\nconst GRANDMASTER_PLUS_MS = 3000;\n\n/** 固定 3 秒宗师（验收对手）。 */\nfunction createGrandmasterConfig(overrides = {}) {\n  return {\n    timeMs: 3000,\n    maxDepth: 7,\n    usePlan: true,\n    netWalls: true,\n    avoidRepeat: true,\n    repeatPenalty: 160,\n    planMoves: true,\n    planFallback: true,\n    necessaryPathGuard: \"soft\",\n    endgameDepth: 9,\n    returnBuffer: 0,\n    ...overrides,\n  };\n}\n\n/** 宗师+ 默认基线：A1（routeWalls=6）+ 100ms 返回缓冲。 */\nfunction createGrandmasterPlusConfig(overrides = {}) {\n  return createHellConfig({\n    timeMs: GRANDMASTER_PLUS_MS,\n    returnBuffer: 100,\n    evalRaceMode: \"legacy\",\n    ...overrides,\n  });\n}\n\n/** 宗师+ 的 A0 对照：routeWalls=3，其余同宗师+。 */\nfunction createGrandmasterPlusA0Config(overrides = {}) {\n  return createHellA0Config({\n    timeMs: GRANDMASTER_PLUS_MS,\n    returnBuffer: 100,\n    evalRaceMode: \"legacy\",\n    ...overrides,\n  });\n}\n\n/* ===== src/ai-worker.js ===== */\n/**\n * AI 专用 Worker：把搜索放到后台线程，主线程的计时与动画不再被阻塞。\n * 开发时以 module worker 加载；单文件版由 build-single 内联成 Blob。\n */\n\n\nconst CONFIG = {\n  hard: { timeMs: 350, maxDepth: 4, usePlan: false },\n  master: {\n    timeMs: 1200, maxDepth: 6, usePlan: true,\n    netWalls: true, avoidRepeat: true, repeatPenalty: 160,\n  },\n  grandmaster: {\n    timeMs: 3000, maxDepth: 7, usePlan: true,\n    netWalls: true, avoidRepeat: true, repeatPenalty: 160,\n    planMoves: true, planFallback: true,\n    necessaryPathGuard: \"soft\", endgameDepth: 9,\n  },\n  grandmasterPlus: createGrandmasterPlusConfig({ pathCache: true }),\n  hell: createHellConfig(),\n\n};\n\nlet ai = null;\nlet level = null;\nlet lastBudget = null;\n\nself.onmessage = (e) => {\n  const d = e.data;\n  if (!d) return;\n  if (d.type === \"reset\") {\n    ai = null;\n    level = null;\n    lastBudget = null;\n    return;\n  }\n  const cfg = CONFIG[d.level];\n  if (!cfg) {\n    self.postMessage({ id: d.id, ok: false, error: \"no-level\" });\n    return;\n  }\n  // 页面上可以按“每步时限”动态收缩预算，避免 AI 思考超过本步时间\n  const budget = d.timeMs ? { ...cfg, timeMs: d.timeMs } : cfg;\n  if (!ai || level !== d.level || budget.timeMs !== lastBudget) {\n    ai = createMasterAI(budget);\n    level = d.level;\n    lastBudget = budget.timeMs;\n  }\n  try {\n    const action = ai(d.state, Math.random);\n    self.postMessage({ id: d.id, ok: true, action });\n  } catch (err) {\n    self.postMessage({ id: d.id, ok: false, error: String(err) });\n  }\n};\n\n})();";
 function __dantengTurn() {
 /* ===== src/config.js ===== */
 /**
@@ -1569,34 +1569,45 @@ const GAME_CONFIG = {
 
 /* ===== src/board.js ===== */
 /**
- * 棋盘常量与坐标编码。
+ * 棋盘常量与坐标编码（多规格核心）。
  *
- * 坐标系：列 c ∈ [0, 9] 对应 A–J；行 r ∈ [0, 11] 对应 1–12，r=0 是最靠近终点线的一行。
- * 墙位共 228 个：
- *   - 竖墙 9 × 12 = 108（分隔相邻两列，位于 c 与 c+1 之间）
- *   - 横墙 10 × 11 = 110（分隔相邻两行，位于 r 与 r+1 之间）
- *   - 上端 10 段（每列 1 段，封住该列的出口）
+ * 坐标系：列 c ∈ [0, cols-1]；行 r ∈ [0, rows-1]，r=0 最靠近终点线。
+ * 每局状态携带 cols/rows；所有索引函数显式接收行数。
+ * COLS/ROWS 仅作为 10×12 历史兼容默认值。
  */
 
 const COLS = 10;
 const ROWS = 12;
+const V_COUNT = COLS - 1;
+const H_COUNT = ROWS - 1;
+const TOP_COUNT = COLS;
+const WALL_SLOTS = V_COUNT * ROWS + H_COUNT * COLS + TOP_COUNT;
 
-const V_COUNT = COLS - 1; // 9  条内部竖线
-const H_COUNT = ROWS - 1; // 11 条内部横线
-const TOP_COUNT = COLS;   // 10 段终点线
+const MIN_SIZE = 8;
+const MAX_SIZE = 18;
+const DEFAULT_COLS = 12;
+const DEFAULT_ROWS = 12;
 
-const WALL_SLOTS = V_COUNT * ROWS + H_COUNT * COLS + TOP_COUNT; // 228
+function validDims(cols, rows) {
+  return Number.isInteger(cols) && Number.isInteger(rows)
+    && cols >= MIN_SIZE && cols <= MAX_SIZE
+    && rows >= MIN_SIZE && rows <= MAX_SIZE;
+}
+function vCount(cols, rows) { return (cols - 1) * rows; }
+function hCount(cols, rows) { return cols * (rows - 1); }
+function topCount(cols) { return cols; }
+function wallSlots(cols, rows) { return vCount(cols, rows) + hCount(cols, rows) + cols; }
 
-const COL_NAMES = "ABCDEFGHIJ";
+const COL_NAMES = "ABCDEFGHIJKLMNOPQR";
 
-/** 竖墙：位于第 c 列与第 c+1 列之间、第 r 行。c ∈ [0,8]，r ∈ [0,11]。 */
-function vIndex(c, r) {
-  return c * ROWS + r;
+/** 竖墙：位于第 c 与 c+1 列之间、第 r 行。c ∈ [0, cols-2]。 */
+function vIndex(c, r, rows = ROWS) {
+  return c * rows + r;
 }
 
-/** 横墙：位于第 c 列、第 r 行与第 r+1 行之间。c ∈ [0,9]，r ∈ [0,10]。 */
-function hIndex(c, r) {
-  return c * H_COUNT + r;
+/** 横墙：位于第 c 列、第 r 与 r+1 行之间。c ∈ [0, cols-1]。 */
+function hIndex(c, r, rows = ROWS) {
+  return c * (rows - 1) + r;
 }
 
 /** 上端墙：封住第 c 列的出口。 */
@@ -1605,17 +1616,14 @@ function topIndex(c) {
 }
 
 function colName(c) {
-  return COL_NAMES[c];
+  return COL_NAMES[c] ?? "?";
 }
 
 function rowName(r) {
   return String(r + 1);
 }
 
-/**
- * 墙的名称（与规则书 1.3 一致）。
- * 竖墙 A-9-10；横墙 A-B-10；上端墙 A-0。
- */
+/** 墙的名称（与规则书 1.3 一致）；坐标与尺寸无关。 */
 function wallName(kind, c, r) {
   if (kind === "v") return `${colName(c)}-${colName(c + 1)}-${rowName(r)}`;
   if (kind === "h") return `${colName(c)}-${rowName(r)}-${rowName(r + 1)}`;
@@ -1623,24 +1631,20 @@ function wallName(kind, c, r) {
   throw new Error(`unknown wall kind: ${kind}`);
 }
 
-/** 把 (kind,c,r) 映射为 0..227 的全局序号，便于统计与快照。 */
-function wallSlot(kind, c, r) {
-  if (kind === "v") return vIndex(c, r);
-  if (kind === "h") return V_COUNT * ROWS + hIndex(c, r);
-  if (kind === "top") return V_COUNT * ROWS + H_COUNT * COLS + topIndex(c);
+/** 把 (kind,c,r) 映射为全局序号；需提供该局 cols/rows。 */
+function wallSlot(kind, c, r, cols = COLS, rows = ROWS) {
+  if (kind === "v") return vIndex(c, r, rows);
+  if (kind === "h") return vCount(cols, rows) + hIndex(c, r, rows);
+  if (kind === "top") return vCount(cols, rows) + hCount(cols, rows) + topIndex(c);
   throw new Error(`unknown wall kind: ${kind}`);
 }
 
-/** 枚举全部 228 个墙位，用于生成候选与测试。 */
-function allWallSlots() {
+/** 枚举指定尺寸的全部墙位。 */
+function allWallSlots(cols = COLS, rows = ROWS) {
   const out = [];
-  for (let c = 0; c < V_COUNT; c++) {
-    for (let r = 0; r < ROWS; r++) out.push({ kind: "v", c, r });
-  }
-  for (let c = 0; c < COLS; c++) {
-    for (let r = 0; r < H_COUNT; r++) out.push({ kind: "h", c, r });
-  }
-  for (let c = 0; c < TOP_COUNT; c++) out.push({ kind: "top", c, r: 0 });
+  for (let c = 0; c < cols - 1; c++) for (let r = 0; r < rows; r++) out.push({ kind: "v", c, r });
+  for (let c = 0; c < cols; c++) for (let r = 0; r < rows - 1; r++) out.push({ kind: "h", c, r });
+  for (let c = 0; c < cols; c++) out.push({ kind: "top", c, r: 0 });
   return out;
 }
 
@@ -1706,6 +1710,8 @@ function wallHash(state) {
   let a = 0x9e3779b9;
   let b = 0x85ebca6b;
   let c = 0xc2b2ae35;
+  a = Math.imul(a ^ state.cols, 0x01000193);
+  b = Math.imul(b ^ state.rows, 0x85ebca6b);
   const v = state.vWall, hh = state.hWall, t = state.topWall;
   for (let i = 0; i < v.length; i++) {
     a = Math.imul(a ^ v[i], 0x01000193);
@@ -1795,147 +1801,94 @@ function cacheSet(h, pk, sig, v) {
 
 /* ===== src/path.js ===== */
 /**
- * 寻路：到终点的最短路。
- *
- * “终点”定义为某种虚拟出口：棋子位于第 1 行（r=0），且该列上端没有墙，
- * 再向上走一步即越线。因此到终点的步数 = 到某个可出线格子的步数 + 1。
+ * 寻路：到终点的最短路（按状态 cols/rows 参数化）。
  */
 
-
-const SIZE = COLS * ROWS;
-const key = (c, r) => r * COLS + c;
 
 /**
  * 从 (c0,r0) 出发，返回到达终点所需步数；无路可走时返回 Infinity。
  */
 function distanceToGoalImpl(state, c0, r0) {
   const { vWall, hWall, topWall } = state;
-  const dist = new Int16Array(SIZE).fill(-1);
-  const q = new Int16Array(SIZE * 2);
-  let head = 0;
-  let tail = 0;
-
-  q[tail++] = c0;
-  q[tail++] = r0;
+  const { cols, rows } = state;
+  const size = cols * rows;
+  const key = (c, r) => r * cols + c;
+  const dist = new Int16Array(size).fill(-1);
+  const q = new Int16Array(size * 2);
+  let head = 0, tail = 0;
+  q[tail++] = c0; q[tail++] = r0;
   dist[key(c0, r0)] = 0;
-
   while (head < tail) {
-    const c = q[head++];
-    const r = q[head++];
+    const c = q[head++], r = q[head++];
     const d = dist[key(c, r)];
-
     if (r === 0 && topWall[c] === 0) return d + 1;
-
-    if (r > 0 && hWall[c * H_COUNT + (r - 1)] === 0) {
+    if (r > 0 && hWall[hIndex(c, r - 1, rows)] === 0) {
       const k = key(c, r - 1);
-      if (dist[k] < 0) {
-        dist[k] = d + 1;
-        q[tail++] = c;
-        q[tail++] = r - 1;
-      }
+      if (dist[k] < 0) { dist[k] = d + 1; q[tail++] = c; q[tail++] = r - 1; }
     }
-    if (r < ROWS - 1 && hWall[c * H_COUNT + r] === 0) {
+    if (r < rows - 1 && hWall[hIndex(c, r, rows)] === 0) {
       const k = key(c, r + 1);
-      if (dist[k] < 0) {
-        dist[k] = d + 1;
-        q[tail++] = c;
-        q[tail++] = r + 1;
-      }
+      if (dist[k] < 0) { dist[k] = d + 1; q[tail++] = c; q[tail++] = r + 1; }
     }
-    if (c > 0 && vWall[(c - 1) * ROWS + r] === 0) {
+    if (c > 0 && vWall[vIndex(c - 1, r, rows)] === 0) {
       const k = key(c - 1, r);
-      if (dist[k] < 0) {
-        dist[k] = d + 1;
-        q[tail++] = c - 1;
-        q[tail++] = r;
-      }
+      if (dist[k] < 0) { dist[k] = d + 1; q[tail++] = c - 1; q[tail++] = r; }
     }
-    if (c < COLS - 1 && vWall[c * ROWS + r] === 0) {
+    if (c < cols - 1 && vWall[vIndex(c, r, rows)] === 0) {
       const k = key(c + 1, r);
-      if (dist[k] < 0) {
-        dist[k] = d + 1;
-        q[tail++] = c + 1;
-        q[tail++] = r;
-      }
+      if (dist[k] < 0) { dist[k] = d + 1; q[tail++] = c + 1; q[tail++] = r; }
     }
   }
   return Infinity;
 }
 
 function hasPathImpl(state, c, r) {
-  return Number.isFinite(distanceToGoal(state, c, r));
+  return Number.isFinite(distanceToGoalImpl(state, c, r));
 }
 
-/**
- * 最短路经过的边（用于 AI 生成“堵路”候选）。
- * 返回 [{ kind, c, r }]，即路径上每一段可被封锁的墙位。
- */
+/** 最短路经过的边（用于 AI 生成“堵路”候选）。 */
 function shortestPathWalls(state, c0, r0) {
   const { vWall, hWall, topWall } = state;
-  const dist = new Int16Array(SIZE).fill(-1);
-  const prev = new Int16Array(SIZE).fill(-1);
-  const q = new Int16Array(SIZE * 2);
-  let head = 0;
-  let tail = 0;
-  q[tail++] = c0;
-  q[tail++] = r0;
+  const { cols, rows } = state;
+  const size = cols * rows;
+  const key = (c, r) => r * cols + c;
+  const dist = new Int16Array(size).fill(-1);
+  const prev = new Int16Array(size).fill(-1);
+  const q = new Int16Array(size * 2);
+  let head = 0, tail = 0;
+  q[tail++] = c0; q[tail++] = r0;
   dist[key(c0, r0)] = 0;
-
   let goalIdx = -1;
   while (head < tail) {
-    const c = q[head++];
-    const r = q[head++];
+    const c = q[head++], r = q[head++];
     const d = dist[key(c, r)];
-    if (r === 0 && topWall[c] === 0) {
-      goalIdx = key(c, r);
-      break;
-    }
+    if (r === 0 && topWall[c] === 0) { goalIdx = key(c, r); break; }
     const relax = (nc, nr) => {
       const k = key(nc, nr);
-      if (dist[k] < 0) {
-        dist[k] = d + 1;
-        prev[k] = key(c, r);
-        q[tail++] = nc;
-        q[tail++] = nr;
-      }
+      if (dist[k] < 0) { dist[k] = d + 1; prev[k] = key(c, r); q[tail++] = nc; q[tail++] = nr; }
     };
-    if (r > 0 && hWall[c * H_COUNT + (r - 1)] === 0) relax(c, r - 1);
-    if (r < ROWS - 1 && hWall[c * H_COUNT + r] === 0) relax(c, r + 1);
-    if (c > 0 && vWall[(c - 1) * ROWS + r] === 0) relax(c - 1, r);
-    if (c < COLS - 1 && vWall[c * ROWS + r] === 0) relax(c + 1, r);
+    if (r > 0 && hWall[hIndex(c, r - 1, rows)] === 0) relax(c, r - 1);
+    if (r < rows - 1 && hWall[hIndex(c, r, rows)] === 0) relax(c, r + 1);
+    if (c > 0 && vWall[vIndex(c - 1, r, rows)] === 0) relax(c - 1, r);
+    if (c < cols - 1 && vWall[vIndex(c, r, rows)] === 0) relax(c + 1, r);
   }
-
   if (goalIdx < 0) return [];
-
   const cells = [];
   let cur = goalIdx;
-  while (cur >= 0) {
-    cells.push(cur);
-    cur = prev[cur];
-  }
+  while (cur >= 0) { cells.push(cur); cur = prev[cur]; }
   cells.reverse();
-
   const walls = [];
   for (let i = 1; i < cells.length; i++) {
-    const a = cells[i - 1];
-    const b = cells[i];
-    const ac = a % COLS, ar = Math.floor(a / COLS);
-    const bc = b % COLS, br = Math.floor(b / COLS);
-    if (ar === br) {
-      const left = Math.min(ac, bc);
-      walls.push({ kind: "v", c: left, r: ar });
-    } else {
-      const top = Math.min(ar, br);
-      walls.push({ kind: "h", c: ac, r: top });
-    }
+    const a = cells[i - 1], b = cells[i];
+    const ac = a % cols, ar = Math.floor(a / cols);
+    const bc = b % cols, br = Math.floor(b / cols);
+    if (ar === br) walls.push({ kind: "v", c: Math.min(ac, bc), r: ar });
+    else walls.push({ kind: "h", c: ac, r: Math.min(ar, br) });
   }
-  // 终点线上方的那一段
   const last = cells[cells.length - 1];
-  const lc = last % COLS;
-  walls.push({ kind: "top", c: lc, r: 0 });
+  walls.push({ kind: "top", c: last % cols, r: 0 });
   return walls;
 }
-
 
 function distanceToGoal(state, c0, r0) {
   const tracing = M.on;
@@ -1945,19 +1898,11 @@ function distanceToGoal(state, c0, r0) {
   let out;
   if (PC.on) {
     const { h, sig } = wallHash(state);
-    const pk = (c0 * 12 + r0) * 2;
+    const pk = ((r0 * state.cols + c0) * 2);
     const hit = cacheGet(h, pk, sig);
-    if (hit !== undefined) {
-      PC.hits++;
-      out = hit;
-    } else {
-      PC.misses++;
-      out = distanceToGoalImpl(state, c0, r0);
-      cacheSet(h, pk, sig, out);
-    }
-  } else {
-    out = distanceToGoalImpl(state, c0, r0);
-  }
+    if (hit !== undefined) { PC.hits++; out = hit; }
+    else { PC.misses++; out = distanceToGoalImpl(state, c0, r0); cacheSet(h, pk, sig, out); }
+  } else out = distanceToGoalImpl(state, c0, r0);
   if (tracing) M.pathMs += now() - t;
   return out;
 }
@@ -1970,19 +1915,11 @@ function hasPath(state, c, r) {
   let out;
   if (PC.on) {
     const { h, sig } = wallHash(state);
-    const pk = (c * 12 + r) * 2 + 1;
+    const pk = ((r * state.cols + c) * 2 + 1);
     const hit = cacheGet(h, pk, sig);
-    if (hit !== undefined) {
-      PC.hits++;
-      out = hit;
-    } else {
-      PC.misses++;
-      out = hasPathImpl(state, c, r);
-      cacheSet(h, pk, sig, out);
-    }
-  } else {
-    out = hasPathImpl(state, c, r);
-  }
+    if (hit !== undefined) { PC.hits++; out = hit; }
+    else { PC.misses++; out = hasPathImpl(state, c, r); cacheSet(h, pk, sig, out); }
+  } else out = hasPathImpl(state, c, r);
   if (tracing) M.pathMs += now() - t;
   return out;
 }
@@ -1997,14 +1934,16 @@ function hasPath(state, c, r) {
 
 const DIRS = ["up", "down", "left", "right"];
 
-function createState(firstPlayer = 0, { tolerance = 1, wallLimit = Infinity, drawMode = "firstOnly" } = {}) {
+function createState(firstPlayer = 0, { tolerance = 1, wallLimit = Infinity, drawMode = "firstOnly", cols = COLS, rows = ROWS } = {}) {
+  if (!validDims(cols, rows)) throw new Error(`bad board size ${cols}x${rows}`);
   return {
-    vWall: new Uint8Array(V_COUNT * ROWS),
-    hWall: new Uint8Array(H_COUNT * COLS),
-    topWall: new Uint8Array(TOP_COUNT),
+    cols, rows,
+    vWall: new Uint8Array(vCount(cols, rows)),
+    hWall: new Uint8Array(hCount(cols, rows)),
+    topWall: new Uint8Array(cols),
     players: [
-      { c: 0, r: ROWS - 1 },
-      { c: COLS - 1, r: ROWS - 1 },
+      { c: 0, r: rows - 1 },
+      { c: cols - 1, r: rows - 1 },
     ],
     turn: firstPlayer,
     firstPlayer,
@@ -2020,6 +1959,8 @@ function createState(firstPlayer = 0, { tolerance = 1, wallLimit = Infinity, dra
 
 function cloneState(s) {
   return {
+    cols: s.cols,
+    rows: s.rows,
     vWall: s.vWall.slice(),
     hWall: s.hWall.slice(),
     topWall: s.topWall.slice(),
@@ -2042,13 +1983,21 @@ function cloneState(s) {
  */
 function normalizeState(state) {
   if (!state || typeof state !== "object") return state;
+  if (!Number.isInteger(state.cols) || !Number.isInteger(state.rows)) {
+    const topLen = Array.isArray(state.topWall) || state.topWall?.length ? state.topWall.length : 10;
+    const cols = topLen;
+    const vLen = state.vWall?.length || 0;
+    const rows = cols > 1 ? Math.round(vLen / (cols - 1)) : 12;
+    state.cols = validDims(cols, rows) ? cols : 10;
+    state.rows = validDims(cols, rows) ? rows : 12;
+  }
   const u8 = (v, n) => {
     if (v instanceof Uint8Array && v.length === n) return v;
     return Uint8Array.from({ length: n }, (_, i) => Number(v?.[i]) || 0);
   };
-  state.vWall = u8(state.vWall, V_COUNT * ROWS);
-  state.hWall = u8(state.hWall, H_COUNT * COLS);
-  state.topWall = u8(state.topWall, TOP_COUNT);
+  state.vWall = u8(state.vWall, vCount(state.cols, state.rows));
+  state.hWall = u8(state.hWall, hCount(state.cols, state.rows));
+  state.topWall = u8(state.topWall, state.cols);
   const lim = Array.isArray(state.wallLimit) ? state.wallLimit : [state.wallLimit, state.wallLimit];
   state.wallLimit = [0, 1].map((i) => (typeof lim[i] === "number" && Number.isFinite(lim[i]) ? lim[i] : Infinity));
   if (!Array.isArray(state.wallsUsed)) state.wallsUsed = [0, 0];
@@ -2058,7 +2007,7 @@ function normalizeState(state) {
   if (state.turn !== 0 && state.turn !== 1) state.turn = state.firstPlayer === 1 ? 1 : 0;
   if (state.firstPlayer !== 0 && state.firstPlayer !== 1) state.firstPlayer = state.turn;
   if (!Array.isArray(state.players) || state.players.length !== 2) {
-    state.players = [{ c: 0, r: ROWS - 1 }, { c: COLS - 1, r: ROWS - 1 }];
+    state.players = [{ c: 0, r: state.rows - 1 }, { c: state.cols - 1, r: state.rows - 1 }];
   } else {
     state.players = state.players.map((p) => ({ c: Number(p?.c) || 0, r: Number(p?.r) || 0 }));
   }
@@ -2068,24 +2017,24 @@ function normalizeState(state) {
   return state;
 }
 
-function wallPlaced(s, kind, c, r) {  if (kind === "v") return s.vWall[vIndex(c, r)] === 1;
-  if (kind === "h") return s.hWall[hIndex(c, r)] === 1;
+function wallPlaced(s, kind, c, r) {  if (kind === "v") return s.vWall[vIndex(c, r, s.rows)] === 1;
+  if (kind === "h") return s.hWall[hIndex(c, r, s.rows)] === 1;
   if (kind === "top") return s.topWall[topIndex(c)] === 1;
   throw new Error(`unknown wall kind: ${kind}`);
 }
 
 function setWall(s, kind, c, r) {
-  if (kind === "v") s.vWall[vIndex(c, r)] = 1;
-  else if (kind === "h") s.hWall[hIndex(c, r)] = 1;
+  if (kind === "v") s.vWall[vIndex(c, r, s.rows)] = 1;
+  else if (kind === "h") s.hWall[hIndex(c, r, s.rows)] = 1;
   else if (kind === "top") s.topWall[topIndex(c)] = 1;
   else throw new Error(`unknown wall kind: ${kind}`);
 }
 
 /** 墙位是否在合法范围内。 */
-function wallInBounds(kind, c, r) {
-  if (kind === "v") return c >= 0 && c < V_COUNT && r >= 0 && r < ROWS;
-  if (kind === "h") return c >= 0 && c < COLS && r >= 0 && r < H_COUNT;
-  if (kind === "top") return c >= 0 && c < TOP_COUNT && r === 0;
+function wallInBounds(kind, c, r, cols = COLS, rows = ROWS) {
+  if (kind === "v") return c >= 0 && c < cols - 1 && r >= 0 && r < rows;
+  if (kind === "h") return c >= 0 && c < cols && r >= 0 && r < rows - 1;
+  if (kind === "top") return c >= 0 && c < cols && r === 0;
   return false;
 }
 
@@ -2095,21 +2044,22 @@ function wallInBounds(kind, c, r) {
  */
 function stepTarget(state, c, r, dir) {
   const { vWall, hWall, topWall } = state;
+  const { cols, rows } = state;
   if (dir === "up") {
     if (r === 0) return topWall[c] === 0 ? { exit: true } : null;
-    return hWall[c * H_COUNT + (r - 1)] === 0 ? { c, r: r - 1 } : null;
+    return hWall[hIndex(c, r - 1, rows)] === 0 ? { c, r: r - 1 } : null;
   }
   if (dir === "down") {
-    if (r === ROWS - 1) return null;
-    return hWall[c * H_COUNT + r] === 0 ? { c, r: r + 1 } : null;
+    if (r === rows - 1) return null;
+    return hWall[hIndex(c, r, rows)] === 0 ? { c, r: r + 1 } : null;
   }
   if (dir === "left") {
     if (c === 0) return null;
-    return vWall[(c - 1) * ROWS + r] === 0 ? { c: c - 1, r } : null;
+    return vWall[vIndex(c - 1, r, rows)] === 0 ? { c: c - 1, r } : null;
   }
   if (dir === "right") {
-    if (c === COLS - 1) return null;
-    return vWall[c * ROWS + r] === 0 ? { c: c + 1, r } : null;
+    if (c === cols - 1) return null;
+    return vWall[vIndex(c, r, rows)] === 0 ? { c: c + 1, r } : null;
   }
   return null;
 }
@@ -2138,7 +2088,7 @@ function validateActionImpl(state, action) {
     if (state.wallsUsed[state.turn] >= state.wallLimit[state.turn]) {
       return { ok: false, error: "no-walls" };
     }
-    if (!wallInBounds(kind, c, r)) return { ok: false, error: "out-of-bounds" };
+    if (!wallInBounds(kind, c, r, state.cols, state.rows)) return { ok: false, error: "out-of-bounds" };
     if (wallPlaced(state, kind, c, r)) return { ok: false, error: "occupied" };
 
     const probe = cloneState(state);
@@ -2204,17 +2154,17 @@ function legalActions(state) {
   if (state.wallsUsed[state.turn] >= state.wallLimit[state.turn]) {
     return out;
   }
-  for (let c = 0; c < V_COUNT; c++) {
-    for (let r = 0; r < ROWS; r++) {
+  for (let c = 0; c < state.cols - 1; c++) {
+    for (let r = 0; r < state.rows; r++) {
       if (!wallPlaced(state, "v", c, r)) out.push({ type: "wall", kind: "v", c, r });
     }
   }
-  for (let c = 0; c < COLS; c++) {
-    for (let r = 0; r < H_COUNT; r++) {
+  for (let c = 0; c < state.cols; c++) {
+    for (let r = 0; r < state.rows - 1; r++) {
       if (!wallPlaced(state, "h", c, r)) out.push({ type: "wall", kind: "h", c, r });
     }
   }
-  for (let c = 0; c < TOP_COUNT; c++) {
+  for (let c = 0; c < state.cols; c++) {
     if (!wallPlaced(state, "top", c, 0)) out.push({ type: "wall", kind: "top", c, r: 0 });
   }
   return out;
@@ -2384,7 +2334,6 @@ function randomAI(state, rng) {
  */
 
 
-const AI2_SIZE = COLS * ROWS;
 
 // 评估竞速模式：legacy（默认）/ race（E1a 实验）。
 let evalRaceMode = "legacy";
@@ -2405,7 +2354,6 @@ function exitAction(state) {
   if (!r.ok) return null;
   return { action: { type: "move", dir: "up" }, winner: r.state.winner };
 }
-const ai2Key = (c, r) => r * COLS + c;
 
 /**
  * 强 AI：迭代加深 αβ + 结构评估 + 锁路计划层。
@@ -2424,7 +2372,7 @@ function marginFor(state, p) {
 
 function countOpenExits(state) {
   let n = 0;
-  for (let c = 0; c < COLS; c++) if (state.topWall[c] === 0) n++;
+  for (let c = 0; c < state.cols; c++) if (state.topWall[c] === 0) n++;
   return n;
 }
 
@@ -2432,12 +2380,14 @@ function countOpenExits(state) {
 function pathCount(state, p, cap = 24) {
   const { vWall, hWall, topWall } = state;
   const pl = state.players[p];
-  const dist = new Int16Array(AI2_SIZE).fill(-1);
-  const ways = new Int16Array(AI2_SIZE);
-  const q = new Int16Array(AI2_SIZE * 2);
+  const size = state.cols * state.rows;
+  const keyOf = (c, r) => r * state.cols + c;
+  const dist = new Int16Array(size).fill(-1);
+  const ways = new Int16Array(size);
+  const q = new Int16Array(size * 2);
   let head = 0;
   let tail = 0;
-  const sk = ai2Key(pl.c, pl.r);
+  const sk = keyOf(pl.c, pl.r);
   dist[sk] = 0;
   ways[sk] = 1;
   q[tail++] = pl.c;
@@ -2445,11 +2395,11 @@ function pathCount(state, p, cap = 24) {
   while (head < tail) {
     const c = q[head++];
     const r = q[head++];
-    const k = ai2Key(c, r);
+    const k = keyOf(c, r);
     const d = dist[k];
     const w = ways[k];
     const relax = (nc, nr) => {
-      const nk = ai2Key(nc, nr);
+      const nk = keyOf(nc, nr);
       if (dist[nk] < 0) {
         dist[nk] = d + 1;
         ways[nk] = w;
@@ -2459,23 +2409,23 @@ function pathCount(state, p, cap = 24) {
         ways[nk] = Math.min(cap, ways[nk] + w);
       }
     };
-    if (r > 0 && hWall[c * H_COUNT + (r - 1)] === 0) relax(c, r - 1);
-    if (r < ROWS - 1 && hWall[c * H_COUNT + r] === 0) relax(c, r + 1);
-    if (c > 0 && vWall[(c - 1) * ROWS + r] === 0) relax(c - 1, r);
-    if (c < COLS - 1 && vWall[c * ROWS + r] === 0) relax(c + 1, r);
+    if (r > 0 && hWall[hIndex(c, r - 1, state.rows)] === 0) relax(c, r - 1);
+    if (r < state.rows - 1 && hWall[hIndex(c, r, state.rows)] === 0) relax(c, r + 1);
+    if (c > 0 && vWall[vIndex(c - 1, r, state.rows)] === 0) relax(c - 1, r);
+    if (c < state.cols - 1 && vWall[vIndex(c, r, state.rows)] === 0) relax(c + 1, r);
   }
   let gd = Infinity;
-  for (let c = 0; c < COLS; c++) {
+  for (let c = 0; c < state.cols; c++) {
     if (topWall[c] !== 0) continue;
-    const d = dist[ai2Key(c, 0)];
+    const d = dist[keyOf(c, 0)];
     if (d >= 0 && d + 1 < gd) gd = d + 1;
   }
   if (!Number.isFinite(gd)) return 0;
   let count = 0;
-  for (let c = 0; c < COLS; c++) {
+  for (let c = 0; c < state.cols; c++) {
     if (topWall[c] !== 0) continue;
-    const d = dist[ai2Key(c, 0)];
-    if (d + 1 === gd) count += ways[ai2Key(c, 0)];
+    const d = dist[keyOf(c, 0)];
+    if (d + 1 === gd) count += ways[keyOf(c, 0)];
   }
   return Math.min(cap, count);
 }
@@ -2485,7 +2435,7 @@ function pathCount(state, p, cap = 24) {
 function nearExits(state, p) {
   const pc = state.players[p].c;
   let n = 0;
-  for (let c = 0; c < COLS; c++) {
+  for (let c = 0; c < state.cols; c++) {
     if (state.topWall[c] === 0 && Math.abs(c - pc) <= 3) n++;
   }
   return n;
@@ -2640,7 +2590,7 @@ function candidatesAI(state, opts = {}) {
 
   if (opts.scanAll) {
     const scored = [];
-    for (const w of allWallSlots()) {
+    for (const w of allWallSlots(state.cols, state.rows)) {
       if (wallPlaced(state, w.kind, w.c, w.r)) continue;
       if ((w.kind === "top" || w.kind === "t") && state.plies < topWallMinPlies) continue;
       const probe = cloneState(state);
@@ -2661,7 +2611,7 @@ function candidatesAI(state, opts = {}) {
   }
   if ((opts.topWalls || marginFor(state, me) <= 0) && state.plies >= topWallMinPlies) {
     const topKind = opts.topWallKind === "top" ? "top" : "t";
-    for (let c = 0; c < COLS; c++) {
+    for (let c = 0; c < state.cols; c++) {
       if (state.topWall[c] !== 0) continue;
       const w = { type: "wall", kind: topKind, c, r: 0 };
       if (topKind === "top") addWall(w, true);
@@ -2685,7 +2635,7 @@ function routeCutCandidates(state, n) {
   const opp = 1 - state.turn;
   const base = pathCount(state, opp, 24);
   const out = [];
-  for (const w of allWallSlots()) {
+  for (const w of allWallSlots(state.cols, state.rows)) {
     if (wallPlaced(state, w.kind, w.c, w.r)) continue;
     const a = { type: "wall", kind: w.kind, c: w.c, r: w.r };
     if (!validateAction(state, a).ok) continue;
@@ -2756,8 +2706,8 @@ function rootSearch(state, rng, timeMs, maxDepth, opts = {}) {
     let s = orderScore(r.state);
     if (a.type === "move") s += 0.01;
     if (startWallBias && state.plies < startWallPlies && a.type === "wall") {
-      if (a.kind === "h" && a.r >= ROWS - 3) s += startWallBias;
-      else if (a.kind === "h" && a.r >= ROWS - 6) s += startWallBias * 0.4;
+      if (a.kind === "h" && a.r >= state.rows - 3) s += startWallBias;
+      else if (a.kind === "h" && a.r >= state.rows - 6) s += startWallBias * 0.4;
       else if (a.kind === "top") s -= startWallBias;
       else if (a.kind === "h" && a.r <= 2) s -= startWallBias * 0.6;
     }
@@ -2796,7 +2746,7 @@ function rootSearch(state, rng, timeMs, maxDepth, opts = {}) {
       // 两格来回：最近回到过的格子（墙数没变）降权。
       if (repeatSet && repeatPenalty > 0 && item.a.type === "move") {
         const np = item.st.players[me];
-        const key = `${np.r * COLS + np.c}:${item.st.wallsPlaced}`;
+        const key = `${np.r * state.cols + np.c}:${item.st.wallsPlaced}`;
         if (repeatSet.has(key)) v -= repeatPenalty;
       }
       if (v > localScore) {
@@ -2894,9 +2844,10 @@ function simulatePlanLegacy(state, walls, me) {
 /** BFS：从 (c0,r0) 出发、绕开 avoid 格，是否还能到终点。 */
 function hasPathAvoiding(state, c0, r0, ac, ar) {
   const { vWall, hWall, topWall } = state;
-  const seen = new Uint8Array(AI2_SIZE);
+  const keyOf = (c, r) => r * state.cols + c;
+  const seen = new Uint8Array(state.cols * state.rows);
   const q = [];
-  const startK = ai2Key(c0, r0);
+  const startK = keyOf(c0, r0);
   seen[startK] = 1;
   q.push(c0, r0);
   for (let head = 0; head < q.length; head += 2) {
@@ -2905,15 +2856,15 @@ function hasPathAvoiding(state, c0, r0, ac, ar) {
     if (r === 0 && topWall[c] === 0) return true;
     const tryCell = (nc, nr) => {
       if (nc === ac && nr === ar) return;
-      const k = ai2Key(nc, nr);
+      const k = keyOf(nc, nr);
       if (seen[k]) return;
       seen[k] = 1;
       q.push(nc, nr);
     };
-    if (r > 0 && hWall[c * H_COUNT + (r - 1)] === 0) tryCell(c, r - 1);
-    if (r < ROWS - 1 && hWall[c * H_COUNT + r] === 0) tryCell(c, r + 1);
-    if (c > 0 && vWall[(c - 1) * ROWS + r] === 0) tryCell(c - 1, r);
-    if (c < COLS - 1 && vWall[c * ROWS + r] === 0) tryCell(c + 1, r);
+    if (r > 0 && hWall[hIndex(c, r - 1, state.rows)] === 0) tryCell(c, r - 1);
+    if (r < state.rows - 1 && hWall[hIndex(c, r, state.rows)] === 0) tryCell(c, r + 1);
+    if (c > 0 && vWall[vIndex(c - 1, r, state.rows)] === 0) tryCell(c - 1, r);
+    if (c < state.cols - 1 && vWall[vIndex(c, r, state.rows)] === 0) tryCell(c + 1, r);
   }
   return false;
 }
@@ -3012,19 +2963,19 @@ function makePlanAI(state, opts = {}) {
   if (dop - dm < 2 || dop - dm > 4) return null; // 只在领先脆弱时锁路；大幅领先直接冲线
   if (dop <= 1) return null;
   if (dm <= 3) return null;                      // 自己已很近，冲线更快
-  if (my.r > 10) return null;
+  if (my.r > state.rows - 2) return null;
 
   let best = null;
   const rows = [];
-  if (opts.startPlan && my.r >= 8) rows.push(10, 9);
+  if (opts.startPlan && my.r >= state.rows - 4) rows.push(state.rows - 2, state.rows - 3);
   rows.push(my.r, my.r - 1);
   const uniqRows = [...new Set(rows)];
   for (const row of uniqRows) {
-    if (row < 1 || row > 10) continue;
+    if (row < 1 || row > state.rows - 2) continue;
     if (op.r <= row) continue;
-    for (const gap of [0, 9, my.c]) {
+    for (const gap of [0, state.cols - 1, my.c]) {
       const walls = [];
-      for (let c = 0; c < COLS; c++) {
+      for (let c = 0; c < state.cols; c++) {
         if (c === gap) continue;
         if (wallPlaced(state, "h", c, row)) continue;
         walls.push({ type: "wall", kind: "h", c, r: row });
@@ -3152,7 +3103,7 @@ function createMasterAI({
     const safeDraw = smartExit && exit && exit.winner === "draw" ? exit.action : null;
 
     if (avoidRepeat) {
-      history.push(`${mePos.r * COLS + mePos.c}:${state.wallsPlaced}`);
+      history.push(`${mePos.r * state.cols + mePos.c}:${state.wallsPlaced}`);
       if (history.length > 12) history.shift();
     }
     const repeatSet = avoidRepeat ? new Set(history.slice(0, -1)) : undefined;
@@ -4375,8 +4326,6 @@ function fileName(rec) {
  */
 
 
-const CELL_W = 10;          // 每列宽度（%）
-const CELL_H = 100 / ROWS;  // 每行高度（%）
 
 const el = (id) => document.getElementById(id);
 const boardEl = el("board");
@@ -4483,6 +4432,8 @@ const S = {
   aiThinking: false,
   preview: null,   // { action, valid, label }
   gameOver: false,
+  boardCols: 12,
+  boardRows: 12,
   recorder: null,  // GL 当前对局记录
   replaying: null, // 复盘状态（不参与对局）
   paused: false,
@@ -4521,12 +4472,12 @@ function buildBoard() {
   slotEls.clear();
   colLabelEls.clear();
 
-  for (let r = 0; r < ROWS; r++) {
-    for (let c = 0; c < COLS; c++) {
+  for (let r = 0; r < (S.state?.rows ?? S.boardRows ?? 12); r++) {
+    for (let c = 0; c < (S.state?.cols ?? S.boardCols ?? 12); c++) {
       const d = document.createElement("div");
       d.className = "cell" + ((c + r) % 2 ? " odd" : "");
-      d.style.left = `${c * CELL_W}%`;
-      d.style.top = `${r * CELL_H}%`;
+      d.style.left = `${c * (100 / (S.state?.cols ?? S.boardCols ?? 12))}%`;
+      d.style.top = `${r * (100 / (S.state?.rows ?? S.boardRows ?? 12))}%`;
       d.dataset.c = c;
       d.dataset.r = r;
       d.addEventListener("click", () => onCellClick(c, r));
@@ -4536,7 +4487,7 @@ function buildBoard() {
   }
 
   // 列标签：只显示坐标，站在第 1 行时可点击越线
-  for (let c = 0; c < COLS; c++) {
+  for (let c = 0; c < (S.state?.cols ?? S.boardCols ?? 12); c++) {
     const d = document.createElement("div");
     d.className = "colSlot";
     d.dataset.c = c;
@@ -4546,22 +4497,22 @@ function buildBoard() {
     colLabelEls.set(c, d);
   }
 
-  for (let r = 0; r < ROWS; r++) {
+  for (let r = 0; r < (S.state?.rows ?? S.boardRows ?? 12); r++) {
     const d = document.createElement("div");
     d.className = "rowSlot";
     d.textContent = String(r + 1);
     rowLabelsEl.appendChild(d);
   }
 
-  for (let c = 0; c < COLS - 1; c++) {
-    for (let r = 0; r < ROWS; r++) {
+  for (let c = 0; c < (S.state?.cols ?? S.boardCols ?? 12) - 1; c++) {
+    for (let r = 0; r < (S.state?.rows ?? S.boardRows ?? 12); r++) {
       const d = document.createElement("div");
       d.className = "slot slot-v";
       d.dataset.kind = "v";
       d.dataset.c = c;
       d.dataset.r = r;
-      d.style.left = `${(c + 1) * CELL_W}%`;
-      d.style.top = `${r * CELL_H}%`;
+      d.style.left = `${(c + 1) * (100 / (S.state?.cols ?? S.boardCols ?? 12))}%`;
+      d.style.top = `${r * (100 / (S.state?.rows ?? S.boardRows ?? 12))}%`;
       d.innerHTML = `<i class="bar"></i>`;
       d.addEventListener("click", () => onWallClick("v", c, r));
       wallsEl.appendChild(d);
@@ -4569,15 +4520,15 @@ function buildBoard() {
     }
   }
 
-  for (let c = 0; c < COLS; c++) {
-    for (let r = 0; r < ROWS - 1; r++) {
+  for (let c = 0; c < (S.state?.cols ?? S.boardCols ?? 12); c++) {
+    for (let r = 0; r < (S.state?.rows ?? S.boardRows ?? 12) - 1; r++) {
       const d = document.createElement("div");
       d.className = "slot slot-h";
       d.dataset.kind = "h";
       d.dataset.c = c;
       d.dataset.r = r;
-      d.style.left = `${c * CELL_W}%`;
-      d.style.top = `${(r + 1) * CELL_H}%`;
+      d.style.left = `${c * (100 / (S.state?.cols ?? S.boardCols ?? 12))}%`;
+      d.style.top = `${(r + 1) * (100 / (S.state?.rows ?? S.boardRows ?? 12))}%`;
       d.innerHTML = `<i class="bar"></i>`;
       d.addEventListener("click", () => onWallClick("h", c, r));
       wallsEl.appendChild(d);
@@ -4586,13 +4537,13 @@ function buildBoard() {
   }
 
   // 上端格线：与其他墙位一样压在格线上
-  for (let c = 0; c < COLS; c++) {
+  for (let c = 0; c < (S.state?.cols ?? S.boardCols ?? 12); c++) {
     const d = document.createElement("div");
     d.className = "slot slot-top";
     d.dataset.kind = "top";
     d.dataset.c = c;
     d.dataset.r = 0;
-    d.style.left = `${c * CELL_W}%`;
+    d.style.left = `${c * (100 / (S.state?.cols ?? S.boardCols ?? 12))}%`;
     d.style.top = "0";
     d.innerHTML = `<i class="bar"></i>`;
     d.addEventListener("click", () => onTopSlotClick(c));
@@ -4654,16 +4605,16 @@ function paint() {
   for (const [key, d] of slotEls) {
     const parts = key.split(":");
     let placed = false;
-    if (parts[0] === "v") placed = st.vWall[+parts[1] * ROWS + +parts[2]] === 1;
-    else if (parts[0] === "h") placed = st.hWall[+parts[1] * (ROWS - 1) + +parts[2]] === 1;
+    if (parts[0] === "v") placed = st.vWall[+parts[1] * (S.state?.rows ?? S.boardRows ?? 12) + +parts[2]] === 1;
+    else if (parts[0] === "h") placed = st.hWall[+parts[1] * ((S.state?.rows ?? S.boardRows ?? 12) - 1) + +parts[2]] === 1;
     else placed = st.topWall[+parts[1]] === 1;
     d.classList.toggle("placed", placed);
   }
 
   for (let p = 0; p < 2; p++) {
     const { c, r } = st.players[p];
-    pieceEls[p].style.left = `${c * CELL_W}%`;
-    pieceEls[p].style.top = `${r * CELL_H}%`;
+    pieceEls[p].style.left = `${c * (100 / (S.state?.cols ?? S.boardCols ?? 12))}%`;
+    pieceEls[p].style.top = `${r * (100 / (S.state?.rows ?? S.boardRows ?? 12))}%`;
   }
   const [a, b] = st.players;
   const same = a.c === b.c && a.r === b.r;
@@ -4703,7 +4654,7 @@ function paint() {
     const me = st.players[st.turn];
     if (me.r === 0 && st.topWall[me.c] === 0) {
       exitBadge.style.display = "flex";
-      exitBadge.style.left = `${me.c * CELL_W}%`;
+      exitBadge.style.left = `${me.c * (100 / (S.state?.cols ?? S.boardCols ?? 12))}%`;
       exitBadge.classList.toggle("p1", st.turn === 1);
     }
   }
@@ -4731,8 +4682,8 @@ function paint() {
         }
         ghostEl.style.display = "block";
         ghostEl.className = `piece ghost p${st.turn}`;
-        ghostEl.style.left = `${t.c * CELL_W}%`;
-        ghostEl.style.top = `${t.r * CELL_H}%`;
+        ghostEl.style.left = `${t.c * (100 / (S.state?.cols ?? S.boardCols ?? 12))}%`;
+        ghostEl.style.top = `${t.r * (100 / (S.state?.rows ?? S.boardRows ?? 12))}%`;
       }
     }
   }
@@ -4983,8 +4934,8 @@ function onWallClick(kind, c, r) {
   }
 
   const placed = kind === "v"
-    ? st.vWall[c * ROWS + r] === 1
-    : st.hWall[c * (ROWS - 1) + r] === 1;
+    ? st.vWall[c * (S.state?.rows ?? S.boardRows ?? 12) + r] === 1
+    : st.hWall[c * ((S.state?.rows ?? S.boardRows ?? 12) - 1) + r] === 1;
   if (placed) return;
 
   setPreview({ type: "wall", kind, c, r }, `封墙 ${wallName(kind, c, r)}`);
@@ -5337,9 +5288,10 @@ function resetSeatsForNewGame() {
 function newGame(announce = false) {
   for (const k of Object.keys(AI)) AI[k]?.reset?.();
   resetAIWorker();
-  S.state = createState(S.firstSeat);
+  S.state = createState(S.firstSeat, { cols: S.boardCols, rows: S.boardRows });
   S.clocks = createClock({ perMove: S.settings.perMove, bank: S.settings.bank });
   S.history = [{ state: S.state, clocks: clockSnapshot(S.clocks) }];
+  buildBoard();
   S.recorder = createGameRecord({
     mode: S.mode,
     seat: S.mySeat ?? 0,
@@ -6299,10 +6251,10 @@ if (demo) {
   S.started = true;
   homeOverlay.hidden = true;
   const st = createState(0);
-  st.hWall[0 * (ROWS - 1) + 9] = 1;
-  st.hWall[3 * (ROWS - 1) + 6] = 1;
-  st.vWall[4 * ROWS + 4] = 1;
-  st.vWall[7 * ROWS + 8] = 1;
+  st.hWall[0 * ((S.state?.rows ?? S.boardRows ?? 12) - 1) + 9] = 1;
+  st.hWall[3 * ((S.state?.rows ?? S.boardRows ?? 12) - 1) + 6] = 1;
+  st.vWall[4 * (S.state?.rows ?? S.boardRows ?? 12) + 4] = 1;
+  st.vWall[7 * (S.state?.rows ?? S.boardRows ?? 12) + 8] = 1;
   st.topWall[9] = 1;
   st.players[0] = { c: 3, r: 5 };
   st.players[1] = { c: 6, r: 4 };
@@ -6591,6 +6543,7 @@ function glEnsureUI() {
 
 function loadPosition(p) {
   const s = jsonToStateExternal(p.state);
+  S.boardCols = s.cols; S.boardRows = s.rows;
   S.state = s;
   S.mode = "local";
   S.aiSeat = null;
@@ -6601,6 +6554,7 @@ function loadPosition(p) {
   S.undoLeft = [S.settings.undoLimit, S.settings.undoLimit];
   S.clocks = createClock({ perMove: S.settings.perMove, bank: S.settings.bank });
   S.history = [{ state: S.state, clocks: clockSnapshot(S.clocks) }];
+  buildBoard();
   S.recorder = createGameRecord({ mode: "local", seat: 0, firstPlayer: s.firstPlayer, state: s,
     config: { mode: "local", loadedPosition: p.positionId }, source: "position" });
   overlay.hidden = true;
@@ -6645,8 +6599,8 @@ function openReplay(rec) {
   function draw() {
     const s = states[idx];
     board.innerHTML = "";
-    for (let rr = 0; rr < ROWS; rr++) {
-      for (let cc = 0; cc < COLS; cc++) {
+    for (let rr = 0; rr < (S.state?.rows ?? S.boardRows ?? 12); rr++) {
+      for (let cc = 0; cc < (S.state?.cols ?? S.boardCols ?? 12); cc++) {
         const d = glEl("div", "", "glCell");
         if (cc > 0 && s.vWall[vIndex(cc - 1, rr)]) d.style.borderLeft = "3px solid #5b6b7f";
         if (rr > 0 && s.hWall[hIndex(cc, rr - 1)]) d.style.borderTop = "3px solid #5b6b7f";
@@ -6699,6 +6653,47 @@ if (demo === "dice") {
   startGame("local");
 }
 
+
+/* ---------------------------------------------------------------- 棋盘尺寸 */
+function initSizePicker() {
+  const host = document.getElementById("homeMain");
+  if (!host || document.getElementById("bsSize")) return;
+  const box = document.createElement("div");
+  box.id = "bsSize";
+  box.style.cssText = "margin:10px 0;padding:8px 10px;border:1px solid #d8e0ea;border-radius:10px;font:12px/1.6 'Microsoft YaHei',sans-serif;color:#243447;background:#f7f9fc";
+  box.innerHTML = `<b>棋盘尺寸</b>
+    <select id="bsPreset" style="margin-left:8px">
+      <option value="8x8">8×8</option>
+      <option value="10x12">10×12 经典</option>
+      <option value="12x12" selected>12×12 标准</option>
+      <option value="18x18">18×18</option>
+      <option value="custom">自定义</option>
+    </select>
+    <span id="bsCustom" hidden>列 <input id="bsCols" type="number" min="8" max="18" value="12" style="width:48px"> 行
+    <input id="bsRows" type="number" min="8" max="18" value="12" style="width:48px"></span>
+    <span id="bsWarn" style="color:#b33"></span>`;
+  host.insertBefore(box, host.firstChild);
+  const preset = document.getElementById("bsPreset");
+  const custom = document.getElementById("bsCustom");
+  const cols = document.getElementById("bsCols");
+  const rows = document.getElementById("bsRows");
+  const warn = document.getElementById("bsWarn");
+  const apply = () => {
+    let c = S.boardCols, r = S.boardRows;
+    if (preset.value === "custom") { c = Number(cols.value); r = Number(rows.value); }
+    else { const [a, b] = preset.value.split("x").map(Number); c = a; r = b; }
+    if (!(c >= 8 && c <= 18 && r >= 8 && r <= 18 && Number.isInteger(c) && Number.isInteger(r))) {
+      warn.textContent = "行列须为 8–18 整数"; return;
+    }
+    warn.textContent = "";
+    S.boardCols = c; S.boardRows = r;
+    try { localStorage.setItem("danteng.boardSize", `${c}x${r}`); } catch {}
+  };
+  preset.onchange = () => { custom.hidden = preset.value !== "custom"; apply(); };
+  cols.oninput = apply; rows.oninput = apply;
+  apply();
+}
+initSizePicker();
 const pendingStart = sessionStorage.getItem("danteng.autostart");
 if (pendingStart && !demo) {
   sessionStorage.removeItem("danteng.autostart");
@@ -6728,34 +6723,45 @@ const GAME_CONFIG = {
 
 /* ===== src/board.js ===== */
 /**
- * 棋盘常量与坐标编码。
+ * 棋盘常量与坐标编码（多规格核心）。
  *
- * 坐标系：列 c ∈ [0, 9] 对应 A–J；行 r ∈ [0, 11] 对应 1–12，r=0 是最靠近终点线的一行。
- * 墙位共 228 个：
- *   - 竖墙 9 × 12 = 108（分隔相邻两列，位于 c 与 c+1 之间）
- *   - 横墙 10 × 11 = 110（分隔相邻两行，位于 r 与 r+1 之间）
- *   - 上端 10 段（每列 1 段，封住该列的出口）
+ * 坐标系：列 c ∈ [0, cols-1]；行 r ∈ [0, rows-1]，r=0 最靠近终点线。
+ * 每局状态携带 cols/rows；所有索引函数显式接收行数。
+ * COLS/ROWS 仅作为 10×12 历史兼容默认值。
  */
 
 const COLS = 10;
 const ROWS = 12;
+const V_COUNT = COLS - 1;
+const H_COUNT = ROWS - 1;
+const TOP_COUNT = COLS;
+const WALL_SLOTS = V_COUNT * ROWS + H_COUNT * COLS + TOP_COUNT;
 
-const V_COUNT = COLS - 1; // 9  条内部竖线
-const H_COUNT = ROWS - 1; // 11 条内部横线
-const TOP_COUNT = COLS;   // 10 段终点线
+const MIN_SIZE = 8;
+const MAX_SIZE = 18;
+const DEFAULT_COLS = 12;
+const DEFAULT_ROWS = 12;
 
-const WALL_SLOTS = V_COUNT * ROWS + H_COUNT * COLS + TOP_COUNT; // 228
+function validDims(cols, rows) {
+  return Number.isInteger(cols) && Number.isInteger(rows)
+    && cols >= MIN_SIZE && cols <= MAX_SIZE
+    && rows >= MIN_SIZE && rows <= MAX_SIZE;
+}
+function vCount(cols, rows) { return (cols - 1) * rows; }
+function hCount(cols, rows) { return cols * (rows - 1); }
+function topCount(cols) { return cols; }
+function wallSlots(cols, rows) { return vCount(cols, rows) + hCount(cols, rows) + cols; }
 
-const COL_NAMES = "ABCDEFGHIJ";
+const COL_NAMES = "ABCDEFGHIJKLMNOPQR";
 
-/** 竖墙：位于第 c 列与第 c+1 列之间、第 r 行。c ∈ [0,8]，r ∈ [0,11]。 */
-function vIndex(c, r) {
-  return c * ROWS + r;
+/** 竖墙：位于第 c 与 c+1 列之间、第 r 行。c ∈ [0, cols-2]。 */
+function vIndex(c, r, rows = ROWS) {
+  return c * rows + r;
 }
 
-/** 横墙：位于第 c 列、第 r 行与第 r+1 行之间。c ∈ [0,9]，r ∈ [0,10]。 */
-function hIndex(c, r) {
-  return c * H_COUNT + r;
+/** 横墙：位于第 c 列、第 r 与 r+1 行之间。c ∈ [0, cols-1]。 */
+function hIndex(c, r, rows = ROWS) {
+  return c * (rows - 1) + r;
 }
 
 /** 上端墙：封住第 c 列的出口。 */
@@ -6764,17 +6770,14 @@ function topIndex(c) {
 }
 
 function colName(c) {
-  return COL_NAMES[c];
+  return COL_NAMES[c] ?? "?";
 }
 
 function rowName(r) {
   return String(r + 1);
 }
 
-/**
- * 墙的名称（与规则书 1.3 一致）。
- * 竖墙 A-9-10；横墙 A-B-10；上端墙 A-0。
- */
+/** 墙的名称（与规则书 1.3 一致）；坐标与尺寸无关。 */
 function wallName(kind, c, r) {
   if (kind === "v") return `${colName(c)}-${colName(c + 1)}-${rowName(r)}`;
   if (kind === "h") return `${colName(c)}-${rowName(r)}-${rowName(r + 1)}`;
@@ -6782,24 +6785,20 @@ function wallName(kind, c, r) {
   throw new Error(`unknown wall kind: ${kind}`);
 }
 
-/** 把 (kind,c,r) 映射为 0..227 的全局序号，便于统计与快照。 */
-function wallSlot(kind, c, r) {
-  if (kind === "v") return vIndex(c, r);
-  if (kind === "h") return V_COUNT * ROWS + hIndex(c, r);
-  if (kind === "top") return V_COUNT * ROWS + H_COUNT * COLS + topIndex(c);
+/** 把 (kind,c,r) 映射为全局序号；需提供该局 cols/rows。 */
+function wallSlot(kind, c, r, cols = COLS, rows = ROWS) {
+  if (kind === "v") return vIndex(c, r, rows);
+  if (kind === "h") return vCount(cols, rows) + hIndex(c, r, rows);
+  if (kind === "top") return vCount(cols, rows) + hCount(cols, rows) + topIndex(c);
   throw new Error(`unknown wall kind: ${kind}`);
 }
 
-/** 枚举全部 228 个墙位，用于生成候选与测试。 */
-function allWallSlots() {
+/** 枚举指定尺寸的全部墙位。 */
+function allWallSlots(cols = COLS, rows = ROWS) {
   const out = [];
-  for (let c = 0; c < V_COUNT; c++) {
-    for (let r = 0; r < ROWS; r++) out.push({ kind: "v", c, r });
-  }
-  for (let c = 0; c < COLS; c++) {
-    for (let r = 0; r < H_COUNT; r++) out.push({ kind: "h", c, r });
-  }
-  for (let c = 0; c < TOP_COUNT; c++) out.push({ kind: "top", c, r: 0 });
+  for (let c = 0; c < cols - 1; c++) for (let r = 0; r < rows; r++) out.push({ kind: "v", c, r });
+  for (let c = 0; c < cols; c++) for (let r = 0; r < rows - 1; r++) out.push({ kind: "h", c, r });
+  for (let c = 0; c < cols; c++) out.push({ kind: "top", c, r: 0 });
   return out;
 }
 

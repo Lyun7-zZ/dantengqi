@@ -149,6 +149,8 @@ try {
   check("主菜单可打开规则", (await evaluate("!document.getElementById('rulesOverlay').hidden")) === true);
   await click("#rulesClose", "知道了");
 
+  check("默认棋盘为 12×12", (await evaluate("window.__danteng.boardCols===12 && window.__danteng.boardRows===12")) === true);
+  await evaluate("const p=document.getElementById('bsPreset'); p.value='10x12'; p.dispatchEvent(new Event('change')); true");
   await click("#menuLocal", "玩家对战");
   check("点击玩家对战进入对局", (await evaluate("window.__danteng.started")) === true);
   check("主菜单已隐藏", (await evaluate("document.getElementById('homeOverlay').hidden")) === true);
@@ -464,7 +466,8 @@ try {
     (await evaluate("JSON.parse(localStorage.getItem('danteng.gamelib.positions.v2')||'[]').length > 0")) === true);
   await evaluate("window.__gl.openReplay(window.__danteng.recorder); true");
   await sleep(150);
-  check("复盘棋盘已渲染", (await evaluate("document.querySelectorAll('.glModal .glCell').length")) === 120);
+  check("复盘棋盘已渲染", (await evaluate("document.querySelectorAll('.glModal .glCell').length")) ===
+    (await evaluate("window.__danteng.state.cols * window.__danteng.state.rows")));
   await evaluate("document.querySelector('.glModal')?.remove(); true");
 
   ws.close();

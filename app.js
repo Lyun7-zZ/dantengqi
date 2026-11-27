@@ -7,7 +7,7 @@ import {
   createState, applyAction, validateAction,
   legalDirs, stepTarget, distanceOf, autoMove, normalizeState,
 } from "./src/rules.js";
-import { COL_NAMES, COLS, ROWS, wallName, vIndex, hIndex } from "./src/board.js";
+import { COL_NAMES, wallName, vIndex, hIndex } from "./src/board.js";
 import {
   createClock, tickClock, resetTurn, displayTime,
   clockSnapshot, clockRestore,
@@ -24,8 +24,6 @@ import {
   replayGame, parseImport, stateToJson, fileName, defaultName,
 } from "./src/game-library.js";
 
-const CELL_W = 10;          // 每列宽度（%）
-const CELL_H = 100 / ROWS;  // 每行高度（%）
 
 const el = (id) => document.getElementById(id);
 const boardEl = el("board");
@@ -132,6 +130,8 @@ const S = {
   aiThinking: false,
   preview: null,   // { action, valid, label }
   gameOver: false,
+  boardCols: 12,
+  boardRows: 12,
   recorder: null,  // GL 当前对局记录
   replaying: null, // 复盘状态（不参与对局）
   paused: false,
@@ -170,12 +170,12 @@ function buildBoard() {
   slotEls.clear();
   colLabelEls.clear();
 
-  for (let r = 0; r < ROWS; r++) {
-    for (let c = 0; c < COLS; c++) {
+  for (let r = 0; r < (S.state?.rows ?? S.boardRows ?? 12); r++) {
+    for (let c = 0; c < (S.state?.cols ?? S.boardCols ?? 12); c++) {
       const d = document.createElement("div");
       d.className = "cell" + ((c + r) % 2 ? " odd" : "");
-      d.style.left = `${c * CELL_W}%`;
-      d.style.top = `${r * CELL_H}%`;
+      d.style.left = `${c * (100 / (S.state?.cols ?? S.boardCols ?? 12))}%`;
+      d.style.top = `${r * (100 / (S.state?.rows ?? S.boardRows ?? 12))}%`;
       d.dataset.c = c;
       d.dataset.r = r;
       d.addEventListener("click", () => onCellClick(c, r));
@@ -185,7 +185,7 @@ function buildBoard() {
   }
 
   // 列标签：只显示坐标，站在第 1 行时可点击越线
-  for (let c = 0; c < COLS; c++) {
+  for (let c = 0; c < (S.state?.cols ?? S.boardCols ?? 12); c++) {
     const d = document.createElement("div");
     d.className = "colSlot";
     d.dataset.c = c;
@@ -195,22 +195,22 @@ function buildBoard() {
     colLabelEls.set(c, d);
   }
 
-  for (let r = 0; r < ROWS; r++) {
+  for (let r = 0; r < (S.state?.rows ?? S.boardRows ?? 12); r++) {
     const d = document.createElement("div");
     d.className = "rowSlot";
     d.textContent = String(r + 1);
     rowLabelsEl.appendChild(d);
   }
 
-  for (let c = 0; c < COLS - 1; c++) {
-    for (let r = 0; r < ROWS; r++) {
+  for (let c = 0; c < (S.state?.cols ?? S.boardCols ?? 12) - 1; c++) {
+    for (let r = 0; r < (S.state?.rows ?? S.boardRows ?? 12); r++) {
       const d = document.createElement("div");
       d.className = "slot slot-v";
       d.dataset.kind = "v";
       d.dataset.c = c;
       d.dataset.r = r;
-      d.style.left = `${(c + 1) * CELL_W}%`;
-      d.style.top = `${r * CELL_H}%`;
+      d.style.left = `${(c + 1) * (100 / (S.state?.cols ?? S.boardCols ?? 12))}%`;
+      d.style.top = `${r * (100 / (S.state?.rows ?? S.boardRows ?? 12))}%`;
       d.innerHTML = `<i class="bar"></i>`;
       d.addEventListener("click", () => onWallClick("v", c, r));
       wallsEl.appendChild(d);
@@ -218,15 +218,15 @@ function buildBoard() {
     }
   }
 
-  for (let c = 0; c < COLS; c++) {
-    for (let r = 0; r < ROWS - 1; r++) {
+  for (let c = 0; c < (S.state?.cols ?? S.boardCols ?? 12); c++) {
+    for (let r = 0; r < (S.state?.rows ?? S.boardRows ?? 12) - 1; r++) {
       const d = document.createElement("div");
       d.className = "slot slot-h";
       d.dataset.kind = "h";
       d.dataset.c = c;
       d.dataset.r = r;
-      d.style.left = `${c * CELL_W}%`;
-      d.style.top = `${(r + 1) * CELL_H}%`;
+      d.style.left = `${c * (100 / (S.state?.cols ?? S.boardCols ?? 12))}%`;
+      d.style.top = `${(r + 1) * (100 / (S.state?.rows ?? S.boardRows ?? 12))}%`;
       d.innerHTML = `<i class="bar"></i>`;
       d.addEventListener("click", () => onWallClick("h", c, r));
       wallsEl.appendChild(d);
@@ -235,13 +235,13 @@ function buildBoard() {
   }
 
   // 上端格线：与其他墙位一样压在格线上
-  for (let c = 0; c < COLS; c++) {
+  for (let c = 0; c < (S.state?.cols ?? S.boardCols ?? 12); c++) {
     const d = document.createElement("div");
     d.className = "slot slot-top";
     d.dataset.kind = "top";
     d.dataset.c = c;
     d.dataset.r = 0;
-    d.style.left = `${c * CELL_W}%`;
+    d.style.left = `${c * (100 / (S.state?.cols ?? S.boardCols ?? 12))}%`;
     d.style.top = "0";
     d.innerHTML = `<i class="bar"></i>`;
     d.addEventListener("click", () => onTopSlotClick(c));
@@ -303,16 +303,16 @@ function paint() {
   for (const [key, d] of slotEls) {
     const parts = key.split(":");
     let placed = false;
-    if (parts[0] === "v") placed = st.vWall[+parts[1] * ROWS + +parts[2]] === 1;
-    else if (parts[0] === "h") placed = st.hWall[+parts[1] * (ROWS - 1) + +parts[2]] === 1;
+    if (parts[0] === "v") placed = st.vWall[+parts[1] * (S.state?.rows ?? S.boardRows ?? 12) + +parts[2]] === 1;
+    else if (parts[0] === "h") placed = st.hWall[+parts[1] * ((S.state?.rows ?? S.boardRows ?? 12) - 1) + +parts[2]] === 1;
     else placed = st.topWall[+parts[1]] === 1;
     d.classList.toggle("placed", placed);
   }
 
   for (let p = 0; p < 2; p++) {
     const { c, r } = st.players[p];
-    pieceEls[p].style.left = `${c * CELL_W}%`;
-    pieceEls[p].style.top = `${r * CELL_H}%`;
+    pieceEls[p].style.left = `${c * (100 / (S.state?.cols ?? S.boardCols ?? 12))}%`;
+    pieceEls[p].style.top = `${r * (100 / (S.state?.rows ?? S.boardRows ?? 12))}%`;
   }
   const [a, b] = st.players;
   const same = a.c === b.c && a.r === b.r;
@@ -352,7 +352,7 @@ function paint() {
     const me = st.players[st.turn];
     if (me.r === 0 && st.topWall[me.c] === 0) {
       exitBadge.style.display = "flex";
-      exitBadge.style.left = `${me.c * CELL_W}%`;
+      exitBadge.style.left = `${me.c * (100 / (S.state?.cols ?? S.boardCols ?? 12))}%`;
       exitBadge.classList.toggle("p1", st.turn === 1);
     }
   }
@@ -380,8 +380,8 @@ function paint() {
         }
         ghostEl.style.display = "block";
         ghostEl.className = `piece ghost p${st.turn}`;
-        ghostEl.style.left = `${t.c * CELL_W}%`;
-        ghostEl.style.top = `${t.r * CELL_H}%`;
+        ghostEl.style.left = `${t.c * (100 / (S.state?.cols ?? S.boardCols ?? 12))}%`;
+        ghostEl.style.top = `${t.r * (100 / (S.state?.rows ?? S.boardRows ?? 12))}%`;
       }
     }
   }
@@ -632,8 +632,8 @@ function onWallClick(kind, c, r) {
   }
 
   const placed = kind === "v"
-    ? st.vWall[c * ROWS + r] === 1
-    : st.hWall[c * (ROWS - 1) + r] === 1;
+    ? st.vWall[c * (S.state?.rows ?? S.boardRows ?? 12) + r] === 1
+    : st.hWall[c * ((S.state?.rows ?? S.boardRows ?? 12) - 1) + r] === 1;
   if (placed) return;
 
   setPreview({ type: "wall", kind, c, r }, `封墙 ${wallName(kind, c, r)}`);
@@ -986,9 +986,10 @@ function resetSeatsForNewGame() {
 function newGame(announce = false) {
   for (const k of Object.keys(AI)) AI[k]?.reset?.();
   resetAIWorker();
-  S.state = createState(S.firstSeat);
+  S.state = createState(S.firstSeat, { cols: S.boardCols, rows: S.boardRows });
   S.clocks = createClock({ perMove: S.settings.perMove, bank: S.settings.bank });
   S.history = [{ state: S.state, clocks: clockSnapshot(S.clocks) }];
+  buildBoard();
   S.recorder = createGameRecord({
     mode: S.mode,
     seat: S.mySeat ?? 0,
@@ -1948,10 +1949,10 @@ if (demo) {
   S.started = true;
   homeOverlay.hidden = true;
   const st = createState(0);
-  st.hWall[0 * (ROWS - 1) + 9] = 1;
-  st.hWall[3 * (ROWS - 1) + 6] = 1;
-  st.vWall[4 * ROWS + 4] = 1;
-  st.vWall[7 * ROWS + 8] = 1;
+  st.hWall[0 * ((S.state?.rows ?? S.boardRows ?? 12) - 1) + 9] = 1;
+  st.hWall[3 * ((S.state?.rows ?? S.boardRows ?? 12) - 1) + 6] = 1;
+  st.vWall[4 * (S.state?.rows ?? S.boardRows ?? 12) + 4] = 1;
+  st.vWall[7 * (S.state?.rows ?? S.boardRows ?? 12) + 8] = 1;
   st.topWall[9] = 1;
   st.players[0] = { c: 3, r: 5 };
   st.players[1] = { c: 6, r: 4 };
@@ -2240,6 +2241,7 @@ function glEnsureUI() {
 
 function loadPosition(p) {
   const s = jsonToStateExternal(p.state);
+  S.boardCols = s.cols; S.boardRows = s.rows;
   S.state = s;
   S.mode = "local";
   S.aiSeat = null;
@@ -2250,6 +2252,7 @@ function loadPosition(p) {
   S.undoLeft = [S.settings.undoLimit, S.settings.undoLimit];
   S.clocks = createClock({ perMove: S.settings.perMove, bank: S.settings.bank });
   S.history = [{ state: S.state, clocks: clockSnapshot(S.clocks) }];
+  buildBoard();
   S.recorder = createGameRecord({ mode: "local", seat: 0, firstPlayer: s.firstPlayer, state: s,
     config: { mode: "local", loadedPosition: p.positionId }, source: "position" });
   overlay.hidden = true;
@@ -2294,8 +2297,8 @@ function openReplay(rec) {
   function draw() {
     const s = states[idx];
     board.innerHTML = "";
-    for (let rr = 0; rr < ROWS; rr++) {
-      for (let cc = 0; cc < COLS; cc++) {
+    for (let rr = 0; rr < (S.state?.rows ?? S.boardRows ?? 12); rr++) {
+      for (let cc = 0; cc < (S.state?.cols ?? S.boardCols ?? 12); cc++) {
         const d = glEl("div", "", "glCell");
         if (cc > 0 && s.vWall[vIndex(cc - 1, rr)]) d.style.borderLeft = "3px solid #5b6b7f";
         if (rr > 0 && s.hWall[hIndex(cc, rr - 1)]) d.style.borderTop = "3px solid #5b6b7f";
@@ -2348,6 +2351,47 @@ if (demo === "dice") {
   startGame("local");
 }
 
+
+/* ---------------------------------------------------------------- 棋盘尺寸 */
+function initSizePicker() {
+  const host = document.getElementById("homeMain");
+  if (!host || document.getElementById("bsSize")) return;
+  const box = document.createElement("div");
+  box.id = "bsSize";
+  box.style.cssText = "margin:10px 0;padding:8px 10px;border:1px solid #d8e0ea;border-radius:10px;font:12px/1.6 'Microsoft YaHei',sans-serif;color:#243447;background:#f7f9fc";
+  box.innerHTML = `<b>棋盘尺寸</b>
+    <select id="bsPreset" style="margin-left:8px">
+      <option value="8x8">8×8</option>
+      <option value="10x12">10×12 经典</option>
+      <option value="12x12" selected>12×12 标准</option>
+      <option value="18x18">18×18</option>
+      <option value="custom">自定义</option>
+    </select>
+    <span id="bsCustom" hidden>列 <input id="bsCols" type="number" min="8" max="18" value="12" style="width:48px"> 行
+    <input id="bsRows" type="number" min="8" max="18" value="12" style="width:48px"></span>
+    <span id="bsWarn" style="color:#b33"></span>`;
+  host.insertBefore(box, host.firstChild);
+  const preset = document.getElementById("bsPreset");
+  const custom = document.getElementById("bsCustom");
+  const cols = document.getElementById("bsCols");
+  const rows = document.getElementById("bsRows");
+  const warn = document.getElementById("bsWarn");
+  const apply = () => {
+    let c = S.boardCols, r = S.boardRows;
+    if (preset.value === "custom") { c = Number(cols.value); r = Number(rows.value); }
+    else { const [a, b] = preset.value.split("x").map(Number); c = a; r = b; }
+    if (!(c >= 8 && c <= 18 && r >= 8 && r <= 18 && Number.isInteger(c) && Number.isInteger(r))) {
+      warn.textContent = "行列须为 8–18 整数"; return;
+    }
+    warn.textContent = "";
+    S.boardCols = c; S.boardRows = r;
+    try { localStorage.setItem("danteng.boardSize", `${c}x${r}`); } catch {}
+  };
+  preset.onchange = () => { custom.hidden = preset.value !== "custom"; apply(); };
+  cols.oninput = apply; rows.oninput = apply;
+  apply();
+}
+initSizePicker();
 const pendingStart = sessionStorage.getItem("danteng.autostart");
 if (pendingStart && !demo) {
   sessionStorage.removeItem("danteng.autostart");

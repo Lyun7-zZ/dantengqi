@@ -24,6 +24,8 @@ function uid(prefix) { return `${prefix}${Date.now().toString(36)}${Math.random(
 /** 状态 JSON 化：保留墙图数组；Infinity 由 JSON 变 null，导入时 normalize 恢复。 */
 export function stateToJson(state) {
   return {
+    cols: state.cols,
+    rows: state.rows,
     vWall: Array.from(state.vWall),
     hWall: Array.from(state.hWall),
     topWall: Array.from(state.topWall),
