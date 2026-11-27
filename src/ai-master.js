@@ -7,8 +7,15 @@ import { COLS, ROWS, H_COUNT, allWallSlots } from "./board.js";
 import { distanceOf, legalDirs, applyAction, validateAction, cloneState, wallPlaced, stepTarget, autoMove, setWall } from "./rules.js";
 import { shortestPathWalls, distanceToGoal, hasPath } from "./path.js";
 import { randomAI } from "./ai-random.js";
+import { M, resetMetrics, snapshot } from "./metrics.js";
+import { enablePathCache, disablePathCache, cacheStats } from "./path-cache.js";
 
 const AI2_SIZE = COLS * ROWS;
+
+// 评估竞速模式：legacy（默认）/ race（E1a 实验）。
+let evalRaceMode = "legacy";
+export function setEvalRaceMode(mode) { evalRaceMode = mode; }
+export function getEvalRaceMode() { return evalRaceMode; }
 
 /**
  * 越线结果：返回 { action, winner } 或 null。
@@ -119,6 +126,24 @@ function nearExits(state, p) {
  *     因为残局里“能封我几条路”比“我还差几步”更能决定胜负；
  *   - 显式惩罚对手站在终点线（下一步就能出）的局面。
  */
+/** 静态竞速：双方沿最短路走子、不加墙时的 W/D/L（M=state.turn 视角）。 */
+export function staticRaceResult(state) {
+  const me = state.turn;
+  const opp = 1 - me;
+  const dM = distanceOf(state, me);
+  const dO = distanceOf(state, opp);
+  if (!Number.isFinite(dM) || !Number.isFinite(dO) || dM <= 0 || dO <= 0) return null;
+  const m = dO - dM;
+  let p, r;
+  if (m >= 0) { p = me; r = m + 1; }
+  else { p = opp; r = -m; }
+  const firstOnly = state.drawMode === "firstOnly";
+  const pIsFirst = state.firstPlayer === undefined ? true : state.firstPlayer === p;
+  const draw = firstOnly ? (pIsFirst && r <= state.tolerance) : (r <= state.tolerance);
+  if (draw) return "D";
+  return p === me ? "W" : "L";
+}
+
 function evalAI(state) {
   if (state.winner !== null) {
     if (state.winner === "draw") return 0;
@@ -149,17 +174,49 @@ function evalAI(state) {
   const winning = m >= 2 || (firstOnly && !meIsFirst && m === 1);
   const drawish = m === 1 && !winning;
 
+  let base;
+  if (evalRaceMode === "race") {
+    const rr = staticRaceResult(state);
+    base = rr === "W" ? 6000 : rr === "D" ? -60 : rr === "L" ? -5400 : null;
+  }
+  if (base === undefined || (evalRaceMode === "race" && base === null)) {
+    base = winning ? 6000 : drawish ? -60 : -5400;
+  }
   if (winning) {
     // 赢面：优先缩短自己的步数，其次保住路线，不再堆墙
-    return 6000 - 18 * dm - 20 * openPenalty
+    return base - 18 * dm - 20 * openPenalty
       + Math.min(m, 6) * 25 + 6 * ways + 4 * near + doorstep;
   }
   if (drawish) {
     // 先手只领先 1 手：想赢就必须再拉开，否则只能保平
-    return -60 + 20 * ways + 12 * near - 8 * openPenalty + doorstep;
+    return base + 20 * ways + 12 * near - 8 * openPenalty + doorstep;
   }
   // 落后（含均势）：出口越少越可能逼平，差距越大越糟
-  return -5400 + 14 * m + 26 * openPenalty + 5 * ways + 6 * near + doorstep;
+  return base + 14 * m + 26 * openPenalty + 5 * ways + 6 * near + doorstep;
+}
+
+/** 调试：返回 evalAI 的分项，不改变评估语义。 */
+export function debugEvalBreakdown(state) {
+  const me = state.turn;
+  const opp = 1 - me;
+  const dm = distanceOf(state, me);
+  const dop = distanceOf(state, opp);
+  const exits = countOpenExits(state);
+  const m = dop - dm;
+  const firstOnly = state.drawMode === "firstOnly";
+  const meIsFirst = state.firstPlayer === undefined ? true : state.firstPlayer === me;
+  const ways = pathCount(state, me, 20) - pathCount(state, opp, 20);
+  const near = nearExits(state, me) - nearExits(state, opp);
+  const doorstep = (dm === 1 ? 120 : 0) - (dop === 1 ? 120 : 0);
+  const openPenalty = 10 - exits;
+  const winning = m >= 2 || (firstOnly && !meIsFirst && m === 1);
+  const drawish = m === 1 && !winning;
+  return {
+    winner: state.winner, turn: me, dm, dop, m, exits, openPenalty,
+    firstOnly, meIsFirst, winning, drawish, ways, near, doorstep,
+    pathMe: pathCount(state, me, 20), pathOpp: pathCount(state, opp, 20),
+    eval: evalAI(state),
+  };
 }
 
 /** 走法生成：走子 + 对手最短路墙 + （根节点）全墙扫描的高收益墙 + 计划墙。 */
@@ -670,6 +727,11 @@ function createMasterAI({
   endgameDepth = 0,
   routeWalls = 0,
   smartExit = false,
+  returnBuffer = 0,
+  trace = false,
+  pathCache = false,
+  pathCacheAudit = false,
+  evalRaceMode: raceModeOpt = "legacy",
 } = {}) {
   let plan = null;
   let plansUsed = 0;
@@ -683,7 +745,14 @@ function createMasterAI({
     const opp = 1 - me;
     const mePos = state.players[me];
     const tStart = aiNow();
-    const globalDeadline = tStart + Math.max(50, timeMs);
+    const hardDeadline = tStart + Math.max(50, timeMs);
+    const buffer = Math.max(0, Math.min(returnBuffer, Math.max(0, timeMs - 20)));
+    const globalDeadline = hardDeadline - buffer;
+    if (trace) { M.on = true; resetMetrics(); }
+    if (pathCache) enablePathCache(200000, pathCacheAudit);
+    const prevRaceMode = evalRaceMode;
+    evalRaceMode = raceModeOpt;
+    try {
 
     const exit = exitAction(state);
     const logBase = {
@@ -788,6 +857,7 @@ function createMasterAI({
       return fallback;
     }
 
+    const tPlan = aiNow() - tStart;
     stats.searches++;
     const tSearch0 = aiNow();
     const dm = distanceOf(state, me);
@@ -845,8 +915,17 @@ function createMasterAI({
       routeCutAdded: diag.routeCutAdded ?? 0,
       searchedCount: diag.searchedCount ?? 0,
       selectedSource: "search",
+      tPlan,
+      returnBuffer: buffer,
+      trace: trace ? snapshot() : null,
+      pathCache: pathCache ? cacheStats() : null,
     };
     return action;
+    } finally {
+      if (trace) M.on = false;
+      if (pathCache) disablePathCache();
+      evalRaceMode = prevRaceMode;
+    }
   }
 
   choose.stats = stats;

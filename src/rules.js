@@ -9,6 +9,7 @@ import {
   vIndex, hIndex, topIndex,
 } from "./board.js";
 import { distanceToGoal, hasPath } from "./path.js";
+import { M, now } from "./metrics.js";
 
 export const DIRS = ["up", "down", "left", "right"];
 
@@ -137,7 +138,7 @@ export function legalDirs(state, c, r) {
  * 行动是否合法。不修改状态。
  * 返回 { ok:true } 或 { ok:false, error }。
  */
-export function validateAction(state, action) {
+function validateActionImpl(state, action) {
   if (state.winner !== null) return { ok: false, error: "game-over" };
 
   if (action.type === "move") {
@@ -171,7 +172,7 @@ export function validateAction(state, action) {
  * 执行行动，返回新状态。
  * 事件类型：move / exit / wall；若一方越线，winner 已确定（0 | 1 | "draw"）。
  */
-export function applyAction(state, action) {
+function applyActionImpl(state, action) {
   const check = validateAction(state, action);
   if (!check.ok) return { ok: false, error: check.error };
 
@@ -260,4 +261,23 @@ export function autoMove(state) {
     }
   }
   return best;
+}
+
+
+export function validateAction(state, action) {
+  if (!M.on) return validateActionImpl(state, action);
+  const t = now();
+  M.legalCalls++;
+  const out = validateActionImpl(state, action);
+  M.legalMs += now() - t;
+  return out;
+}
+
+export function applyAction(state, action) {
+  if (!M.on) return applyActionImpl(state, action);
+  const t = now();
+  M.applyCalls++;
+  const out = applyActionImpl(state, action);
+  M.applyMs += now() - t;
+  return out;
 }

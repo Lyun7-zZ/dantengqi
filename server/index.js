@@ -12,6 +12,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { WebSocketServer } from "ws";
 
 import { serveStatic } from "./static.js";
+import { createGameLibrary } from "./gamelib.js";
 import { Rooms } from "./rooms.js";
 import {
   PROTOCOL_VERSION, RULES_VERSION, ERR,
@@ -43,16 +44,30 @@ export function startServer({
   bank = 300,
   random = Math.random,
   disconnectMs = 90000,
+  adminToken = process.env.GL_ADMIN_TOKEN || "",
   log = () => {},
 } = {}) {
   const rooms = new Rooms();
   const conns = new Set();
   const perIp = new Map();
+  const gamelib = createGameLibrary({
+    dataDir: process.env.GL_DATA_DIR || join(root, "..", "data", "gamelib"),
+    adminToken: adminToken,
+    log,
+  });
 
   const server = http.createServer((req, res) => {
-    serveStatic(req, res, publicRoot).catch(() => {
-      res.writeHead(500, { "Content-Type": "text/plain; charset=utf-8" });
-      res.end("Internal Error");
+    gamelib.handle(req, res).then((handled) => {
+      if (handled) return;
+      serveStatic(req, res, publicRoot).catch(() => {
+        res.writeHead(500, { "Content-Type": "text/plain; charset=utf-8" });
+        res.end("Internal Error");
+      });
+    }).catch(() => {
+      if (!res.headersSent) {
+        res.writeHead(500, { "Content-Type": "text/plain; charset=utf-8" });
+        res.end("Internal Error");
+      }
     });
   });
 

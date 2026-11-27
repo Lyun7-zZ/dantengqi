@@ -6,6 +6,8 @@
  */
 
 import { COLS, ROWS, V_COUNT, H_COUNT } from "./board.js";
+import { M, now } from "./metrics.js";
+import { PC, wallHash, cacheGet, cacheSet } from "./path-cache.js";
 
 const SIZE = COLS * ROWS;
 const key = (c, r) => r * COLS + c;
@@ -13,7 +15,7 @@ const key = (c, r) => r * COLS + c;
 /**
  * 从 (c0,r0) 出发，返回到达终点所需步数；无路可走时返回 Infinity。
  */
-export function distanceToGoal(state, c0, r0) {
+function distanceToGoalImpl(state, c0, r0) {
   const { vWall, hWall, topWall } = state;
   const dist = new Int16Array(SIZE).fill(-1);
   const q = new Int16Array(SIZE * 2);
@@ -67,7 +69,7 @@ export function distanceToGoal(state, c0, r0) {
   return Infinity;
 }
 
-export function hasPath(state, c, r) {
+function hasPathImpl(state, c, r) {
   return Number.isFinite(distanceToGoal(state, c, r));
 }
 
@@ -139,4 +141,55 @@ export function shortestPathWalls(state, c0, r0) {
   const lc = last % COLS;
   walls.push({ kind: "top", c: lc, r: 0 });
   return walls;
+}
+
+
+export function distanceToGoal(state, c0, r0) {
+  const tracing = M.on;
+  if (!PC.on && !tracing) return distanceToGoalImpl(state, c0, r0);
+  const t = tracing ? now() : 0;
+  if (tracing) M.pathCalls++;
+  let out;
+  if (PC.on) {
+    const { h, sig } = wallHash(state);
+    const pk = (c0 * 12 + r0) * 2;
+    const hit = cacheGet(h, pk, sig);
+    if (hit !== undefined) {
+      PC.hits++;
+      out = hit;
+    } else {
+      PC.misses++;
+      out = distanceToGoalImpl(state, c0, r0);
+      cacheSet(h, pk, sig, out);
+    }
+  } else {
+    out = distanceToGoalImpl(state, c0, r0);
+  }
+  if (tracing) M.pathMs += now() - t;
+  return out;
+}
+
+export function hasPath(state, c, r) {
+  const tracing = M.on;
+  if (!PC.on && !tracing) return hasPathImpl(state, c, r);
+  const t = tracing ? now() : 0;
+  if (tracing) M.pathCalls++;
+  let out;
+  if (PC.on) {
+    const { h, sig } = wallHash(state);
+    const pk = (c * 12 + r) * 2 + 1;
+    const hit = cacheGet(h, pk, sig);
+    if (hit !== undefined) {
+      PC.hits++;
+      out = hit;
+    } else {
+      PC.misses++;
+      out = hasPathImpl(state, c, r);
+      cacheSet(h, pk, sig, out);
+    }
+  } else {
+    out = hasPathImpl(state, c, r);
+  }
+  if (tracing) M.pathMs += now() - t;
+  return out;
 }
