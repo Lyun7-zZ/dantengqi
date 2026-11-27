@@ -5,6 +5,7 @@
 
 import { createMasterAI } from "./ai-master.js";
 import { createHellConfig } from "./hell-config.js";
+import { createGrandmasterPlusConfig } from "./plus-config.js";
 
 const CONFIG = {
   hard: { timeMs: 350, maxDepth: 4, usePlan: false },
@@ -18,6 +19,7 @@ const CONFIG = {
     planMoves: true, planFallback: true,
     necessaryPathGuard: "soft", endgameDepth: 9,
   },
+  grandmasterPlus: createGrandmasterPlusConfig({ pathCache: true }),
   hell: createHellConfig(),
 
 };

@@ -453,6 +453,20 @@ try {
   await sleep(200);
   check("再来一局后结算面板已关闭", (await evaluate("document.getElementById('overlay').hidden")) === true);
 
+  // GL 棋谱库与宗师+入口
+  check("棋谱库工具栏存在", (await evaluate("!!document.getElementById('glBar')")) === true);
+  check("宗师+测试入口存在",
+    (await evaluate("[...document.querySelectorAll('[data-level]')].some(b=>b.dataset.level==='grandmasterPlus')")) === true);
+  await evaluate("window.prompt = () => '自动测试局面'; true");
+  await click("#glBar button:nth-child(2)", "保存局面");
+  await sleep(120);
+  check("保存局面写入本地库",
+    (await evaluate("JSON.parse(localStorage.getItem('danteng.gamelib.positions.v2')||'[]').length > 0")) === true);
+  await evaluate("window.__gl.openReplay(window.__danteng.recorder); true");
+  await sleep(150);
+  check("复盘棋盘已渲染", (await evaluate("document.querySelectorAll('.glModal .glCell').length")) === 120);
+  await evaluate("document.querySelector('.glModal')?.remove(); true");
+
   ws.close();
 } catch (e) {
   console.error("UI-CHECK-ERROR", e && (e.stack || e.message || e));

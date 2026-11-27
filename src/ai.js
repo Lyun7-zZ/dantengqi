@@ -9,6 +9,7 @@ import { createMasterAI } from "./ai-master.js";
 import { makeRng, randomAI } from "./ai-random.js";
 import { rlAI } from "./ai-rl.js";
 import { createHellConfig } from "./hell-config.js";
+import { createGrandmasterPlusConfig } from "./plus-config.js";
 export { makeRng, randomAI };
 
 /** 可复现的伪随机数（mulberry32）。 */
@@ -379,6 +380,8 @@ export const AI = {
     necessaryPathGuard: "soft",
     endgameDepth: 9,
   }),
+  // 宗师+（测试版）：H1+C legacy 冻结配置（routeWalls=6、缓存开启、3s + 100ms）
+  grandmasterPlus: createMasterAI(createGrandmasterPlusConfig({ pathCache: true })),
   // 地狱：长预算版宗师，尽量用满每步时限（同步/Worker 计算，界面不卡）
   // 实验：直接运行强化学习策略（RL2.1 训练结果，仅作实验展示，棋力很弱）
   experiment: rlAI,
