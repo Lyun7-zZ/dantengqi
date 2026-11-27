@@ -51,6 +51,7 @@ const TURN = [
   "src/ai.js",
   "src/net/ws-client.js",
   "src/storage.js",
+  "src/game-library.js",
   "app.js",
 ];
 

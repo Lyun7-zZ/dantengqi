@@ -7,7 +7,7 @@ import {
   createState, applyAction, validateAction,
   legalDirs, stepTarget, distanceOf, autoMove, normalizeState,
 } from "./src/rules.js";
-import { COL_NAMES, COLS, ROWS, wallName } from "./src/board.js";
+import { COL_NAMES, COLS, ROWS, wallName, vIndex, hIndex } from "./src/board.js";
 import {
   createClock, tickClock, resetTurn, displayTime,
   clockSnapshot, clockRestore,
@@ -18,6 +18,11 @@ import { WsClient, PROTOCOL_VERSION, RULES_VERSION } from "./src/net/ws-client.j
 import {
   loadSlots, saveSlot, deleteSlot, defaultSlotName, slotFileName, MAX_SLOTS,
 } from "./src/storage.js";
+import {
+  createGameRecord, recordAction, finalizeGame, saveGame, loadGames, deleteGame,
+  createPositionRecord, savePosition, loadPositions, deletePosition,
+  replayGame, parseImport, stateToJson, fileName, defaultName,
+} from "./src/game-library.js";
 
 const CELL_W = 10;          // 每列宽度（%）
 const CELL_H = 100 / ROWS;  // 每行高度（%）
@@ -127,6 +132,8 @@ const S = {
   aiThinking: false,
   preview: null,   // { action, valid, label }
   gameOver: false,
+  recorder: null,  // GL 当前对局记录
+  replaying: null, // 复盘状态（不参与对局）
   paused: false,
   untimed: false,
   timeoutAutoMove: true,
@@ -708,10 +715,15 @@ function advance(nextState, label = "行动", action = null) {
   resetTurn(S.clocks);
   S.turnStartedAt = performance.now();
   S.history.push({ state: nextState, clocks: clockSnapshot(S.clocks), by, label, action });
+  if (S.recorder && action) recordAction(S.recorder, action, by);
 
   if (nextState.winner !== null) {
     S.gameOver = true;
     S.aiThinking = false;
+    if (S.recorder) {
+      finalizeGame(S.recorder, nextState, "normal_terminal");
+      saveGame(S.recorder);
+    }
     paint();
     setTimeout(showResult, 320);
     return;
@@ -862,6 +874,12 @@ function finishUndo(agree) {
 
   const target = S.history[S.history.length - 1];
   S.state = target.state;
+  if (S.recorder) {
+    S.recorder.actions = [];
+    for (const h of S.history.slice(1)) if (h.action) recordAction(S.recorder, h.action, h.by);
+    S.recorder.result = null;
+    S.recorder.plies = S.recorder.actions.length;
+  }
   clockRestore(S.clocks, target.clocks);
   AI[S.mode]?.reset?.();
   S.undoLeft[requester] -= 1;
@@ -971,6 +989,14 @@ function newGame(announce = false) {
   S.state = createState(S.firstSeat);
   S.clocks = createClock({ perMove: S.settings.perMove, bank: S.settings.bank });
   S.history = [{ state: S.state, clocks: clockSnapshot(S.clocks) }];
+  S.recorder = createGameRecord({
+    mode: S.mode,
+    seat: S.mySeat ?? 0,
+    firstPlayer: S.firstSeat,
+    state: S.state,
+    config: { mode: S.mode, aiSeat: S.aiSeat, perMove: S.settings.perMove, bank: S.settings.bank },
+    source: S.aiSeat !== null ? "human-vs-ai" : "human-vs-human",
+  });
   S.undoLeft = [S.settings.undoLimit, S.settings.undoLimit];
   S.preview = null;
   S.gameOver = false;
@@ -1980,6 +2006,276 @@ if (demo) {
     paint();
   }
 }
+
+/* ---------------------------------------------------------------- GL 棋谱库 */
+
+function glDownload(name, obj) {
+  const blob = new Blob([JSON.stringify(obj, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+
+function glEl(tag, text, cls) {
+  const e = document.createElement(tag);
+  if (text) e.textContent = text;
+  if (cls) e.className = cls;
+  return e;
+}
+
+function glEnsureUI() {
+  if (document.getElementById("glBar")) return;
+  const style = glEl("style");
+  style.textContent = `
+    #glBar{position:fixed;left:12px;bottom:12px;z-index:60;display:flex;gap:6px;flex-wrap:wrap}
+    #glBar button,.glBtn{font:12px/1.4 "Microsoft YaHei",sans-serif;padding:6px 10px;border-radius:8px;border:1px solid #c9d4e2;background:#fff;color:#243447;cursor:pointer}
+    #glBar button:hover,.glBtn:hover{background:#eef4fb}
+    .glModal{position:fixed;inset:0;z-index:80;background:rgba(20,28,40,.45);display:flex;align-items:center;justify-content:center;padding:16px}
+    .glCard{background:#fff;border-radius:14px;max-width:min(920px,96vw);max-height:92vh;overflow:auto;padding:16px;box-shadow:0 12px 40px rgba(0,0,0,.25);font:13px/1.5 "Microsoft YaHei",sans-serif;color:#1f2d3d}
+    .glCard h3{margin:0 0 8px;font-size:16px}
+    .glRow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0}
+    .glItem{border:1px solid #e3e9f2;border-radius:10px;padding:8px 10px;margin:6px 0;display:flex;justify-content:space-between;gap:8px;align-items:center}
+    .glItem small{color:#65758a}
+    .glBoard{display:grid;grid-template-columns:repeat(10,26px);gap:0;background:#d9e2ee;padding:4px;border-radius:8px}
+    .glCell{width:26px;height:26px;background:#f7e8c8;display:flex;align-items:center;justify-content:center;font-size:14px;box-sizing:border-box}
+    .glMoves{display:flex;flex-wrap:wrap;gap:4px;max-height:120px;overflow:auto;margin:8px 0}
+    .glMove{font:11px/1.3 monospace;padding:2px 5px;border:1px solid #d8e0ea;border-radius:6px;background:#f7f9fc;cursor:pointer}
+    .glMove.on{background:#2f6fb3;color:#fff;border-color:#2f6fb3}
+    .glBadge{font-size:11px;background:#eef4fb;border-radius:6px;padding:1px 6px;color:#2f5f92}
+  `;
+  document.head.appendChild(style);
+
+  const bar = glEl("div");
+  bar.id = "glBar";
+  const bLib = glEl("button", "棋谱库");
+  const bPos = glEl("button", "保存局面");
+  const bImp = glEl("button", "导入");
+  bar.append(bLib, bPos, bImp);
+  document.body.appendChild(bar);
+
+  const rbar = glEl("div", "", "glRow");
+  rbar.id = "glResultBar";
+  const rbSave = glEl("button", "保存棋谱", "glBtn");
+  const rbDown = glEl("button", "下载棋谱", "glBtn");
+  const rbReplay = glEl("button", "复盘本局", "glBtn");
+  rbar.append(rbSave, rbDown, rbReplay);
+  resultFull.appendChild(rbar);
+  rbSave.onclick = () => {
+    if (!S.recorder) return;
+    if (S.state?.winner !== null) finalizeGame(S.recorder, S.state, "normal_terminal");
+    saveGame(S.recorder);
+    toast("棋谱已保存");
+  };
+  rbDown.onclick = () => { if (S.recorder) glDownload(fileName(S.recorder), S.recorder); };
+  rbReplay.onclick = () => { if (S.recorder) openReplay(S.recorder); };
+
+  const input = glEl("input");
+  input.type = "file";
+  input.accept = ".json,application/json";
+  input.hidden = true;
+  document.body.appendChild(input);
+
+  const modal = glEl("div", "", "glModal");
+  modal.hidden = true;
+  const card = glEl("div", "", "glCard");
+  modal.appendChild(card);
+  document.body.appendChild(modal);
+
+  bLib.addEventListener("click", () => openLibrary());
+  bPos.addEventListener("click", () => {
+    if (!S.state) { toast("还没有棋盘", true); return; }
+    const name = prompt("局面名称", `局面 ${defaultName()}`);
+    if (name === null) return;
+    savePosition(createPositionRecord({ state: S.state, name, mode: S.mode,
+      config: { mode: S.mode, aiSeat: S.aiSeat } }));
+    toast("局面已保存到本地棋谱库");
+  });
+  bImp.addEventListener("click", () => input.click());
+  input.addEventListener("change", async () => {
+    const f = input.files?.[0];
+    if (!f) return;
+    const text = await f.text();
+    input.value = "";
+    const r = parseImport(text);
+    if (!r.ok) { toast("导入失败：" + r.error, true); return; }
+    if (r.kind === "game") { saveGame(r.record); toast("棋谱已导入"); }
+    else { savePosition(r.record); toast("局面已导入"); }
+    openLibrary();
+  });
+
+  function close() { modal.hidden = true; card.innerHTML = ""; }
+
+  function openLibrary(tab = "games") {
+    modal.hidden = false;
+    card.innerHTML = "";
+    const head = glEl("div", "", "glRow");
+    head.append(glEl("h3", "本地棋谱库"));
+    const closeBtn = glEl("button", "关闭", "glBtn");
+    closeBtn.onclick = close;
+    head.appendChild(closeBtn);
+    card.appendChild(head);
+    card.appendChild(glEl("small", "默认仅保存在本机浏览器；可导出 JSON 备份。"));
+    const tabs = glEl("div", "", "glRow");
+    const tg = glEl("button", "对局", "glBtn");
+    const tp = glEl("button", "局面", "glBtn");
+    tg.onclick = () => openLibrary("games");
+    tp.onclick = () => openLibrary("positions");
+    tabs.append(tg, tp);
+    card.appendChild(tabs);
+    const list = glEl("div");
+    card.appendChild(list);
+
+    if (tab === "games") {
+      const games = loadGames();
+      if (!games.length) list.appendChild(glEl("div", "还没有保存的对局。对局结束后会自动保存。"));
+      for (const g of games) {
+        const row = glEl("div", "", "glItem");
+        const info = glEl("div");
+        info.appendChild(glEl("div", `${g.mode} · ${g.plies} 手 · ${g.result?.winner === "draw" ? "平局" : g.result?.winner === 0 ? "左胜" : g.result?.winner === 1 ? "右胜" : "进行中"}`));
+        info.appendChild(glEl("small", `${g.createdAt?.replace("T", " ").slice(0, 19)} · ${g.gameId}`));
+        const acts = glEl("div", "", "glRow");
+        const bReplay = glEl("button", "复盘", "glBtn");
+        bReplay.onclick = () => { close(); openReplay(g); };
+        const bExp = glEl("button", "导出", "glBtn");
+        bExp.onclick = () => glDownload(fileName(g), g);
+        const bDel = glEl("button", "删除", "glBtn");
+        bDel.onclick = () => { if (confirm("删除这条棋谱？")) { deleteGame(g.gameId); openLibrary("games"); } };
+        acts.append(bReplay, bExp, bDel);
+        row.append(info, acts);
+        list.appendChild(row);
+      }
+      if (S.recorder) {
+        const row = glEl("div", "", "glRow");
+        const b = glEl("button", "保存当前对局", "glBtn");
+        b.onclick = () => {
+          if (S.state?.winner !== null) finalizeGame(S.recorder, S.state, "normal_terminal");
+          saveGame(S.recorder);
+          toast("当前对局已保存");
+        };
+        row.appendChild(b);
+        card.appendChild(row);
+      }
+    } else {
+      const positions = loadPositions();
+      if (!positions.length) list.appendChild(glEl("div", "还没有保存的局面。"));
+      for (const p of positions) {
+        const row = glEl("div", "", "glItem");
+        const info = glEl("div");
+        info.appendChild(glEl("div", p.name || "未命名局面"));
+        info.appendChild(glEl("small", `${p.createdAt?.replace("T", " ").slice(0, 19)} · ${p.positionId}`));
+        const acts = glEl("div", "", "glRow");
+        const bLoad = glEl("button", "从此局面继续", "glBtn");
+        bLoad.onclick = () => { close(); loadPosition(p); };
+        const bExp = glEl("button", "导出", "glBtn");
+        bExp.onclick = () => glDownload(fileName({ ...p, kind: "position" }), p);
+        const bDel = glEl("button", "删除", "glBtn");
+        bDel.onclick = () => { if (confirm("删除这个局面？")) { deletePosition(p.positionId); openLibrary("positions"); } };
+        acts.append(bLoad, bExp, bDel);
+        row.append(info, acts);
+        list.appendChild(row);
+      }
+    }
+  }
+}
+
+function loadPosition(p) {
+  const s = jsonToStateExternal(p.state);
+  S.state = s;
+  S.mode = "local";
+  S.aiSeat = null;
+  S.started = true;
+  S.gameOver = false;
+  S.paused = false;
+  S.preview = null;
+  S.undoLeft = [S.settings.undoLimit, S.settings.undoLimit];
+  S.clocks = createClock({ perMove: S.settings.perMove, bank: S.settings.bank });
+  S.history = [{ state: S.state, clocks: clockSnapshot(S.clocks) }];
+  S.recorder = createGameRecord({ mode: "local", seat: 0, firstPlayer: s.firstPlayer, state: s,
+    config: { mode: "local", loadedPosition: p.positionId }, source: "position" });
+  overlay.hidden = true;
+  resultFull.hidden = true;
+  paint();
+  toast("已载入局面，可继续对弈");
+}
+
+/** 独立复盘窗口：自绘棋盘，不改变当前对局状态。 */
+function openReplay(rec) {
+  const r = replayGame(rec);
+  if (!r.ok) { toast("复盘失败：" + r.error, true); return; }
+  const states = r.states;
+  let idx = 0;
+
+  const modal = glEl("div", "", "glModal");
+  const card = glEl("div", "", "glCard");
+  modal.appendChild(card);
+  document.body.appendChild(modal);
+
+  const head = glEl("div", "", "glRow");
+  head.append(glEl("h3", `复盘 · ${rec.gameId}`));
+  const x = glEl("button", "关闭", "glBtn");
+  x.onclick = () => modal.remove();
+  head.appendChild(x);
+  card.appendChild(head);
+
+  const board = glEl("div", "", "glBoard");
+  card.appendChild(board);
+  const moves = glEl("div", "", "glMoves");
+  card.appendChild(moves);
+  const ctrl = glEl("div", "", "glRow");
+  const b0 = glEl("button", "⏮ 开头", "glBtn");
+  const bp = glEl("button", "◀ 上一步", "glBtn");
+  const bn = glEl("button", "下一步 ▶", "glBtn");
+  const bl = glEl("button", "末尾 ⏭", "glBtn");
+  ctrl.append(b0, bp, bn, bl);
+  card.appendChild(ctrl);
+  const label = glEl("div", "");
+  card.appendChild(label);
+
+  function draw() {
+    const s = states[idx];
+    board.innerHTML = "";
+    for (let rr = 0; rr < ROWS; rr++) {
+      for (let cc = 0; cc < COLS; cc++) {
+        const d = glEl("div", "", "glCell");
+        if (cc > 0 && s.vWall[vIndex(cc - 1, rr)]) d.style.borderLeft = "3px solid #5b6b7f";
+        if (rr > 0 && s.hWall[hIndex(cc, rr - 1)]) d.style.borderTop = "3px solid #5b6b7f";
+        if (rr === 0 && s.topWall[cc]) d.style.background = "#9aa7b8";
+        const p0 = s.players[0], p1 = s.players[1];
+        if (p0.c === cc && p0.r === rr) d.textContent = "🟠";
+        if (p1.c === cc && p1.r === rr) d.textContent = "🟢";
+        board.appendChild(d);
+      }
+    }
+    [...moves.children].forEach((m, i) => m.classList.toggle("on", i === idx));
+    label.textContent = `${idx} / ${states.length - 1} 手` + (s.winner !== null ? ` · 终局 ${s.winner === "draw" ? "平" : s.winner === 0 ? "左胜" : "右胜"}` : "");
+  }
+
+  moves.appendChild(glEl("span", "起始", "glMove")).onclick = () => { idx = 0; draw(); };
+  for (let i = 0; i < rec.actions.length; i++) {
+    const m = glEl("span", `${i + 1}.${rec.actions[i].action.type === "move" ? rec.actions[i].action.dir : rec.actions[i].action.kind}`, "glMove");
+    m.onclick = () => { idx = i + 1; draw(); };
+    moves.appendChild(m);
+  }
+  b0.onclick = () => { idx = 0; draw(); };
+  bp.onclick = () => { idx = Math.max(0, idx - 1); draw(); };
+  bn.onclick = () => { idx = Math.min(states.length - 1, idx + 1); draw(); };
+  bl.onclick = () => { idx = states.length - 1; draw(); };
+  draw();
+}
+
+function jsonToStateExternal(obj) {
+  const s = JSON.parse(JSON.stringify(obj));
+  s.vWall = Uint8Array.from(s.vWall);
+  s.hWall = Uint8Array.from(s.hWall);
+  s.topWall = Uint8Array.from(s.topWall);
+  if (Array.isArray(s.wallLimit)) s.wallLimit = s.wallLimit.map((x) => (x === "unlimited" || x === null ? Infinity : x));
+  normalizeState(s);
+  return s;
+}
+
+glEnsureUI();
 
 window.__danteng = S;
 window.__ui = { cellEls, slotEls, pieceEls, showResult };
