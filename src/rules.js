@@ -5,22 +5,23 @@
  */
 
 import {
-  COLS, ROWS, V_COUNT, H_COUNT, TOP_COUNT,
-  vIndex, hIndex, topIndex,
+  COLS, ROWS, vIndex, hIndex, topIndex, vCount, hCount, validDims,
 } from "./board.js";
 import { distanceToGoal, hasPath } from "./path.js";
 import { M, now } from "./metrics.js";
 
 export const DIRS = ["up", "down", "left", "right"];
 
-export function createState(firstPlayer = 0, { tolerance = 1, wallLimit = Infinity, drawMode = "firstOnly" } = {}) {
+export function createState(firstPlayer = 0, { tolerance = 1, wallLimit = Infinity, drawMode = "firstOnly", cols = COLS, rows = ROWS } = {}) {
+  if (!validDims(cols, rows)) throw new Error(`bad board size ${cols}x${rows}`);
   return {
-    vWall: new Uint8Array(V_COUNT * ROWS),
-    hWall: new Uint8Array(H_COUNT * COLS),
-    topWall: new Uint8Array(TOP_COUNT),
+    cols, rows,
+    vWall: new Uint8Array(vCount(cols, rows)),
+    hWall: new Uint8Array(hCount(cols, rows)),
+    topWall: new Uint8Array(cols),
     players: [
-      { c: 0, r: ROWS - 1 },
-      { c: COLS - 1, r: ROWS - 1 },
+      { c: 0, r: rows - 1 },
+      { c: cols - 1, r: rows - 1 },
     ],
     turn: firstPlayer,
     firstPlayer,
@@ -36,6 +37,8 @@ export function createState(firstPlayer = 0, { tolerance = 1, wallLimit = Infini
 
 export function cloneState(s) {
   return {
+    cols: s.cols,
+    rows: s.rows,
     vWall: s.vWall.slice(),
     hWall: s.hWall.slice(),
     topWall: s.topWall.slice(),
@@ -58,13 +61,21 @@ export function cloneState(s) {
  */
 export function normalizeState(state) {
   if (!state || typeof state !== "object") return state;
+  if (!Number.isInteger(state.cols) || !Number.isInteger(state.rows)) {
+    const topLen = Array.isArray(state.topWall) || state.topWall?.length ? state.topWall.length : 10;
+    const cols = topLen;
+    const vLen = state.vWall?.length || 0;
+    const rows = cols > 1 ? Math.round(vLen / (cols - 1)) : 12;
+    state.cols = validDims(cols, rows) ? cols : 10;
+    state.rows = validDims(cols, rows) ? rows : 12;
+  }
   const u8 = (v, n) => {
     if (v instanceof Uint8Array && v.length === n) return v;
     return Uint8Array.from({ length: n }, (_, i) => Number(v?.[i]) || 0);
   };
-  state.vWall = u8(state.vWall, V_COUNT * ROWS);
-  state.hWall = u8(state.hWall, H_COUNT * COLS);
-  state.topWall = u8(state.topWall, TOP_COUNT);
+  state.vWall = u8(state.vWall, vCount(state.cols, state.rows));
+  state.hWall = u8(state.hWall, hCount(state.cols, state.rows));
+  state.topWall = u8(state.topWall, state.cols);
   const lim = Array.isArray(state.wallLimit) ? state.wallLimit : [state.wallLimit, state.wallLimit];
   state.wallLimit = [0, 1].map((i) => (typeof lim[i] === "number" && Number.isFinite(lim[i]) ? lim[i] : Infinity));
   if (!Array.isArray(state.wallsUsed)) state.wallsUsed = [0, 0];
@@ -74,7 +85,7 @@ export function normalizeState(state) {
   if (state.turn !== 0 && state.turn !== 1) state.turn = state.firstPlayer === 1 ? 1 : 0;
   if (state.firstPlayer !== 0 && state.firstPlayer !== 1) state.firstPlayer = state.turn;
   if (!Array.isArray(state.players) || state.players.length !== 2) {
-    state.players = [{ c: 0, r: ROWS - 1 }, { c: COLS - 1, r: ROWS - 1 }];
+    state.players = [{ c: 0, r: state.rows - 1 }, { c: state.cols - 1, r: state.rows - 1 }];
   } else {
     state.players = state.players.map((p) => ({ c: Number(p?.c) || 0, r: Number(p?.r) || 0 }));
   }
@@ -84,24 +95,24 @@ export function normalizeState(state) {
   return state;
 }
 
-export function wallPlaced(s, kind, c, r) {  if (kind === "v") return s.vWall[vIndex(c, r)] === 1;
-  if (kind === "h") return s.hWall[hIndex(c, r)] === 1;
+export function wallPlaced(s, kind, c, r) {  if (kind === "v") return s.vWall[vIndex(c, r, s.rows)] === 1;
+  if (kind === "h") return s.hWall[hIndex(c, r, s.rows)] === 1;
   if (kind === "top") return s.topWall[topIndex(c)] === 1;
   throw new Error(`unknown wall kind: ${kind}`);
 }
 
 export function setWall(s, kind, c, r) {
-  if (kind === "v") s.vWall[vIndex(c, r)] = 1;
-  else if (kind === "h") s.hWall[hIndex(c, r)] = 1;
+  if (kind === "v") s.vWall[vIndex(c, r, s.rows)] = 1;
+  else if (kind === "h") s.hWall[hIndex(c, r, s.rows)] = 1;
   else if (kind === "top") s.topWall[topIndex(c)] = 1;
   else throw new Error(`unknown wall kind: ${kind}`);
 }
 
 /** 墙位是否在合法范围内。 */
-export function wallInBounds(kind, c, r) {
-  if (kind === "v") return c >= 0 && c < V_COUNT && r >= 0 && r < ROWS;
-  if (kind === "h") return c >= 0 && c < COLS && r >= 0 && r < H_COUNT;
-  if (kind === "top") return c >= 0 && c < TOP_COUNT && r === 0;
+export function wallInBounds(kind, c, r, cols = COLS, rows = ROWS) {
+  if (kind === "v") return c >= 0 && c < cols - 1 && r >= 0 && r < rows;
+  if (kind === "h") return c >= 0 && c < cols && r >= 0 && r < rows - 1;
+  if (kind === "top") return c >= 0 && c < cols && r === 0;
   return false;
 }
 
@@ -111,21 +122,22 @@ export function wallInBounds(kind, c, r) {
  */
 export function stepTarget(state, c, r, dir) {
   const { vWall, hWall, topWall } = state;
+  const { cols, rows } = state;
   if (dir === "up") {
     if (r === 0) return topWall[c] === 0 ? { exit: true } : null;
-    return hWall[c * H_COUNT + (r - 1)] === 0 ? { c, r: r - 1 } : null;
+    return hWall[hIndex(c, r - 1, rows)] === 0 ? { c, r: r - 1 } : null;
   }
   if (dir === "down") {
-    if (r === ROWS - 1) return null;
-    return hWall[c * H_COUNT + r] === 0 ? { c, r: r + 1 } : null;
+    if (r === rows - 1) return null;
+    return hWall[hIndex(c, r, rows)] === 0 ? { c, r: r + 1 } : null;
   }
   if (dir === "left") {
     if (c === 0) return null;
-    return vWall[(c - 1) * ROWS + r] === 0 ? { c: c - 1, r } : null;
+    return vWall[vIndex(c - 1, r, rows)] === 0 ? { c: c - 1, r } : null;
   }
   if (dir === "right") {
-    if (c === COLS - 1) return null;
-    return vWall[c * ROWS + r] === 0 ? { c: c + 1, r } : null;
+    if (c === cols - 1) return null;
+    return vWall[vIndex(c, r, rows)] === 0 ? { c: c + 1, r } : null;
   }
   return null;
 }
@@ -154,7 +166,7 @@ function validateActionImpl(state, action) {
     if (state.wallsUsed[state.turn] >= state.wallLimit[state.turn]) {
       return { ok: false, error: "no-walls" };
     }
-    if (!wallInBounds(kind, c, r)) return { ok: false, error: "out-of-bounds" };
+    if (!wallInBounds(kind, c, r, state.cols, state.rows)) return { ok: false, error: "out-of-bounds" };
     if (wallPlaced(state, kind, c, r)) return { ok: false, error: "occupied" };
 
     const probe = cloneState(state);
@@ -220,17 +232,17 @@ export function legalActions(state) {
   if (state.wallsUsed[state.turn] >= state.wallLimit[state.turn]) {
     return out;
   }
-  for (let c = 0; c < V_COUNT; c++) {
-    for (let r = 0; r < ROWS; r++) {
+  for (let c = 0; c < state.cols - 1; c++) {
+    for (let r = 0; r < state.rows; r++) {
       if (!wallPlaced(state, "v", c, r)) out.push({ type: "wall", kind: "v", c, r });
     }
   }
-  for (let c = 0; c < COLS; c++) {
-    for (let r = 0; r < H_COUNT; r++) {
+  for (let c = 0; c < state.cols; c++) {
+    for (let r = 0; r < state.rows - 1; r++) {
       if (!wallPlaced(state, "h", c, r)) out.push({ type: "wall", kind: "h", c, r });
     }
   }
-  for (let c = 0; c < TOP_COUNT; c++) {
+  for (let c = 0; c < state.cols; c++) {
     if (!wallPlaced(state, "top", c, 0)) out.push({ type: "wall", kind: "top", c, r: 0 });
   }
   return out;

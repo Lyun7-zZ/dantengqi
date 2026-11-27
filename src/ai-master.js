@@ -3,14 +3,13 @@
  * 移植自朋友的分支（ai2.js），仅补上模块 import 与 path 内部常量。
  */
 
-import { COLS, ROWS, H_COUNT, allWallSlots } from "./board.js";
+import { allWallSlots, hIndex, vIndex } from "./board.js";
 import { distanceOf, legalDirs, applyAction, validateAction, cloneState, wallPlaced, stepTarget, autoMove, setWall } from "./rules.js";
 import { shortestPathWalls, distanceToGoal, hasPath } from "./path.js";
 import { randomAI } from "./ai-random.js";
 import { M, resetMetrics, snapshot } from "./metrics.js";
 import { enablePathCache, disablePathCache, cacheStats } from "./path-cache.js";
 
-const AI2_SIZE = COLS * ROWS;
 
 // 评估竞速模式：legacy（默认）/ race（E1a 实验）。
 let evalRaceMode = "legacy";
@@ -31,7 +30,6 @@ function exitAction(state) {
   if (!r.ok) return null;
   return { action: { type: "move", dir: "up" }, winner: r.state.winner };
 }
-const ai2Key = (c, r) => r * COLS + c;
 
 /**
  * 强 AI：迭代加深 αβ + 结构评估 + 锁路计划层。
@@ -50,7 +48,7 @@ function marginFor(state, p) {
 
 function countOpenExits(state) {
   let n = 0;
-  for (let c = 0; c < COLS; c++) if (state.topWall[c] === 0) n++;
+  for (let c = 0; c < state.cols; c++) if (state.topWall[c] === 0) n++;
   return n;
 }
 
@@ -58,12 +56,14 @@ function countOpenExits(state) {
 function pathCount(state, p, cap = 24) {
   const { vWall, hWall, topWall } = state;
   const pl = state.players[p];
-  const dist = new Int16Array(AI2_SIZE).fill(-1);
-  const ways = new Int16Array(AI2_SIZE);
-  const q = new Int16Array(AI2_SIZE * 2);
+  const size = state.cols * state.rows;
+  const keyOf = (c, r) => r * state.cols + c;
+  const dist = new Int16Array(size).fill(-1);
+  const ways = new Int16Array(size);
+  const q = new Int16Array(size * 2);
   let head = 0;
   let tail = 0;
-  const sk = ai2Key(pl.c, pl.r);
+  const sk = keyOf(pl.c, pl.r);
   dist[sk] = 0;
   ways[sk] = 1;
   q[tail++] = pl.c;
@@ -71,11 +71,11 @@ function pathCount(state, p, cap = 24) {
   while (head < tail) {
     const c = q[head++];
     const r = q[head++];
-    const k = ai2Key(c, r);
+    const k = keyOf(c, r);
     const d = dist[k];
     const w = ways[k];
     const relax = (nc, nr) => {
-      const nk = ai2Key(nc, nr);
+      const nk = keyOf(nc, nr);
       if (dist[nk] < 0) {
         dist[nk] = d + 1;
         ways[nk] = w;
@@ -85,23 +85,23 @@ function pathCount(state, p, cap = 24) {
         ways[nk] = Math.min(cap, ways[nk] + w);
       }
     };
-    if (r > 0 && hWall[c * H_COUNT + (r - 1)] === 0) relax(c, r - 1);
-    if (r < ROWS - 1 && hWall[c * H_COUNT + r] === 0) relax(c, r + 1);
-    if (c > 0 && vWall[(c - 1) * ROWS + r] === 0) relax(c - 1, r);
-    if (c < COLS - 1 && vWall[c * ROWS + r] === 0) relax(c + 1, r);
+    if (r > 0 && hWall[hIndex(c, r - 1, state.rows)] === 0) relax(c, r - 1);
+    if (r < state.rows - 1 && hWall[hIndex(c, r, state.rows)] === 0) relax(c, r + 1);
+    if (c > 0 && vWall[vIndex(c - 1, r, state.rows)] === 0) relax(c - 1, r);
+    if (c < state.cols - 1 && vWall[vIndex(c, r, state.rows)] === 0) relax(c + 1, r);
   }
   let gd = Infinity;
-  for (let c = 0; c < COLS; c++) {
+  for (let c = 0; c < state.cols; c++) {
     if (topWall[c] !== 0) continue;
-    const d = dist[ai2Key(c, 0)];
+    const d = dist[keyOf(c, 0)];
     if (d >= 0 && d + 1 < gd) gd = d + 1;
   }
   if (!Number.isFinite(gd)) return 0;
   let count = 0;
-  for (let c = 0; c < COLS; c++) {
+  for (let c = 0; c < state.cols; c++) {
     if (topWall[c] !== 0) continue;
-    const d = dist[ai2Key(c, 0)];
-    if (d + 1 === gd) count += ways[ai2Key(c, 0)];
+    const d = dist[keyOf(c, 0)];
+    if (d + 1 === gd) count += ways[keyOf(c, 0)];
   }
   return Math.min(cap, count);
 }
@@ -111,7 +111,7 @@ function pathCount(state, p, cap = 24) {
 function nearExits(state, p) {
   const pc = state.players[p].c;
   let n = 0;
-  for (let c = 0; c < COLS; c++) {
+  for (let c = 0; c < state.cols; c++) {
     if (state.topWall[c] === 0 && Math.abs(c - pc) <= 3) n++;
   }
   return n;
@@ -266,7 +266,7 @@ function candidatesAI(state, opts = {}) {
 
   if (opts.scanAll) {
     const scored = [];
-    for (const w of allWallSlots()) {
+    for (const w of allWallSlots(state.cols, state.rows)) {
       if (wallPlaced(state, w.kind, w.c, w.r)) continue;
       if ((w.kind === "top" || w.kind === "t") && state.plies < topWallMinPlies) continue;
       const probe = cloneState(state);
@@ -287,7 +287,7 @@ function candidatesAI(state, opts = {}) {
   }
   if ((opts.topWalls || marginFor(state, me) <= 0) && state.plies >= topWallMinPlies) {
     const topKind = opts.topWallKind === "top" ? "top" : "t";
-    for (let c = 0; c < COLS; c++) {
+    for (let c = 0; c < state.cols; c++) {
       if (state.topWall[c] !== 0) continue;
       const w = { type: "wall", kind: topKind, c, r: 0 };
       if (topKind === "top") addWall(w, true);
@@ -311,7 +311,7 @@ function routeCutCandidates(state, n) {
   const opp = 1 - state.turn;
   const base = pathCount(state, opp, 24);
   const out = [];
-  for (const w of allWallSlots()) {
+  for (const w of allWallSlots(state.cols, state.rows)) {
     if (wallPlaced(state, w.kind, w.c, w.r)) continue;
     const a = { type: "wall", kind: w.kind, c: w.c, r: w.r };
     if (!validateAction(state, a).ok) continue;
@@ -382,8 +382,8 @@ function rootSearch(state, rng, timeMs, maxDepth, opts = {}) {
     let s = orderScore(r.state);
     if (a.type === "move") s += 0.01;
     if (startWallBias && state.plies < startWallPlies && a.type === "wall") {
-      if (a.kind === "h" && a.r >= ROWS - 3) s += startWallBias;
-      else if (a.kind === "h" && a.r >= ROWS - 6) s += startWallBias * 0.4;
+      if (a.kind === "h" && a.r >= state.rows - 3) s += startWallBias;
+      else if (a.kind === "h" && a.r >= state.rows - 6) s += startWallBias * 0.4;
       else if (a.kind === "top") s -= startWallBias;
       else if (a.kind === "h" && a.r <= 2) s -= startWallBias * 0.6;
     }
@@ -422,7 +422,7 @@ function rootSearch(state, rng, timeMs, maxDepth, opts = {}) {
       // 两格来回：最近回到过的格子（墙数没变）降权。
       if (repeatSet && repeatPenalty > 0 && item.a.type === "move") {
         const np = item.st.players[me];
-        const key = `${np.r * COLS + np.c}:${item.st.wallsPlaced}`;
+        const key = `${np.r * state.cols + np.c}:${item.st.wallsPlaced}`;
         if (repeatSet.has(key)) v -= repeatPenalty;
       }
       if (v > localScore) {
@@ -520,9 +520,10 @@ function simulatePlanLegacy(state, walls, me) {
 /** BFS：从 (c0,r0) 出发、绕开 avoid 格，是否还能到终点。 */
 function hasPathAvoiding(state, c0, r0, ac, ar) {
   const { vWall, hWall, topWall } = state;
-  const seen = new Uint8Array(AI2_SIZE);
+  const keyOf = (c, r) => r * state.cols + c;
+  const seen = new Uint8Array(state.cols * state.rows);
   const q = [];
-  const startK = ai2Key(c0, r0);
+  const startK = keyOf(c0, r0);
   seen[startK] = 1;
   q.push(c0, r0);
   for (let head = 0; head < q.length; head += 2) {
@@ -531,15 +532,15 @@ function hasPathAvoiding(state, c0, r0, ac, ar) {
     if (r === 0 && topWall[c] === 0) return true;
     const tryCell = (nc, nr) => {
       if (nc === ac && nr === ar) return;
-      const k = ai2Key(nc, nr);
+      const k = keyOf(nc, nr);
       if (seen[k]) return;
       seen[k] = 1;
       q.push(nc, nr);
     };
-    if (r > 0 && hWall[c * H_COUNT + (r - 1)] === 0) tryCell(c, r - 1);
-    if (r < ROWS - 1 && hWall[c * H_COUNT + r] === 0) tryCell(c, r + 1);
-    if (c > 0 && vWall[(c - 1) * ROWS + r] === 0) tryCell(c - 1, r);
-    if (c < COLS - 1 && vWall[c * ROWS + r] === 0) tryCell(c + 1, r);
+    if (r > 0 && hWall[hIndex(c, r - 1, state.rows)] === 0) tryCell(c, r - 1);
+    if (r < state.rows - 1 && hWall[hIndex(c, r, state.rows)] === 0) tryCell(c, r + 1);
+    if (c > 0 && vWall[vIndex(c - 1, r, state.rows)] === 0) tryCell(c - 1, r);
+    if (c < state.cols - 1 && vWall[vIndex(c, r, state.rows)] === 0) tryCell(c + 1, r);
   }
   return false;
 }
@@ -638,19 +639,19 @@ function makePlanAI(state, opts = {}) {
   if (dop - dm < 2 || dop - dm > 4) return null; // 只在领先脆弱时锁路；大幅领先直接冲线
   if (dop <= 1) return null;
   if (dm <= 3) return null;                      // 自己已很近，冲线更快
-  if (my.r > 10) return null;
+  if (my.r > state.rows - 2) return null;
 
   let best = null;
   const rows = [];
-  if (opts.startPlan && my.r >= 8) rows.push(10, 9);
+  if (opts.startPlan && my.r >= state.rows - 4) rows.push(state.rows - 2, state.rows - 3);
   rows.push(my.r, my.r - 1);
   const uniqRows = [...new Set(rows)];
   for (const row of uniqRows) {
-    if (row < 1 || row > 10) continue;
+    if (row < 1 || row > state.rows - 2) continue;
     if (op.r <= row) continue;
-    for (const gap of [0, 9, my.c]) {
+    for (const gap of [0, state.cols - 1, my.c]) {
       const walls = [];
-      for (let c = 0; c < COLS; c++) {
+      for (let c = 0; c < state.cols; c++) {
         if (c === gap) continue;
         if (wallPlaced(state, "h", c, row)) continue;
         walls.push({ type: "wall", kind: "h", c, r: row });
@@ -778,7 +779,7 @@ function createMasterAI({
     const safeDraw = smartExit && exit && exit.winner === "draw" ? exit.action : null;
 
     if (avoidRepeat) {
-      history.push(`${mePos.r * COLS + mePos.c}:${state.wallsPlaced}`);
+      history.push(`${mePos.r * state.cols + mePos.c}:${state.wallsPlaced}`);
       if (history.length > 12) history.shift();
     }
     const repeatSet = avoidRepeat ? new Set(history.slice(0, -1)) : undefined;

@@ -23,6 +23,8 @@ export function wallHash(state) {
   let a = 0x9e3779b9;
   let b = 0x85ebca6b;
   let c = 0xc2b2ae35;
+  a = Math.imul(a ^ state.cols, 0x01000193);
+  b = Math.imul(b ^ state.rows, 0x85ebca6b);
   const v = state.vWall, hh = state.hWall, t = state.topWall;
   for (let i = 0; i < v.length; i++) {
     a = Math.imul(a ^ v[i], 0x01000193);
