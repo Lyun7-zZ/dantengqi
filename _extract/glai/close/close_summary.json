@@ -1,0 +1,384 @@
+{
+ "total": 720,
+ "bySeat": {
+  "seat0": {
+   "w": 297,
+   "d": 5,
+   "l": 0,
+   "u": 95
+  },
+  "seat1": {
+   "w": 323,
+   "d": 5,
+   "l": 0,
+   "u": 95
+  }
+ },
+ "byLevel": {
+  "easy": {
+   "n": 200,
+   "w": 3,
+   "d": 0,
+   "l": 167,
+   "u": 30
+  },
+  "normal": {
+   "n": 200,
+   "w": 27,
+   "d": 0,
+   "l": 153,
+   "u": 20
+  },
+  "hard": {
+   "n": 200,
+   "w": 111,
+   "d": 0,
+   "l": 62,
+   "u": 27
+  },
+  "master": {
+   "n": 200,
+   "w": 104,
+   "d": 4,
+   "l": 82,
+   "u": 10
+  },
+  "grandmaster": {
+   "n": 200,
+   "w": 116,
+   "d": 3,
+   "l": 52,
+   "u": 29
+  },
+  "grandmasterPlus": {
+   "n": 200,
+   "w": 164,
+   "d": 3,
+   "l": 9,
+   "u": 24
+  }
+ },
+ "self": {
+  "easy": {
+   "n": 20,
+   "w0": 4,
+   "w1": 7,
+   "d": 0,
+   "u": 9
+  },
+  "normal": {
+   "n": 20,
+   "w0": 4,
+   "w1": 6,
+   "d": 0,
+   "u": 10
+  },
+  "hard": {
+   "n": 20,
+   "w0": 8,
+   "w1": 12,
+   "d": 0,
+   "u": 0
+  },
+  "master": {
+   "n": 20,
+   "w0": 8,
+   "w1": 12,
+   "d": 0,
+   "u": 0
+  },
+  "grandmaster": {
+   "n": 20,
+   "w0": 2,
+   "w1": 14,
+   "d": 0,
+   "u": 4
+  },
+  "grandmasterPlus": {
+   "n": 20,
+   "w0": 10,
+   "w1": 8,
+   "d": 0,
+   "u": 2
+  }
+ },
+ "hardWins": 36,
+ "u": 95,
+ "uKinds": {
+  "收官/推进不足": 85,
+  "持续封墙/无进展": 9,
+  "重复/循环": 1
+ },
+ "hardWinsList": [
+  {
+   "gameId": "glai-pilot-2-3-400-s",
+   "opponent": "master",
+   "levels": [
+    "master",
+    "hard"
+   ],
+   "plies": 188
+  },
+  {
+   "gameId": "glai-full-2-3-402-n",
+   "opponent": "master",
+   "levels": [
+    "hard",
+    "master"
+   ],
+   "plies": 141
+  },
+  {
+   "gameId": "glai-full-2-3-404-s",
+   "opponent": "master",
+   "levels": [
+    "master",
+    "hard"
+   ],
+   "plies": 188
+  },
+  {
+   "gameId": "glai-full-2-3-405-n",
+   "opponent": "master",
+   "levels": [
+    "hard",
+    "master"
+   ],
+   "plies": 189
+  },
+  {
+   "gameId": "glai-full-2-3-406-n",
+   "opponent": "master",
+   "levels": [
+    "hard",
+    "master"
+   ],
+   "plies": 141
+  },
+  {
+   "gameId": "glai-full-2-3-407-n",
+   "opponent": "master",
+   "levels": [
+    "hard",
+    "master"
+   ],
+   "plies": 177
+  },
+  {
+   "gameId": "glai-full-2-3-408-s",
+   "opponent": "master",
+   "levels": [
+    "master",
+    "hard"
+   ],
+   "plies": 72
+  },
+  {
+   "gameId": "glai-full-2-3-409-n",
+   "opponent": "master",
+   "levels": [
+    "hard",
+    "master"
+   ],
+   "plies": 177
+  },
+  {
+   "gameId": "glai-full-2-3-500-s",
+   "opponent": "master",
+   "levels": [
+    "master",
+    "hard"
+   ],
+   "plies": 198
+  },
+  {
+   "gameId": "glai-full-2-3-501-n",
+   "opponent": "master",
+   "levels": [
+    "hard",
+    "master"
+   ],
+   "plies": 175
+  },
+  {
+   "gameId": "glai-full-2-3-502-n",
+   "opponent": "master",
+   "levels": [
+    "hard",
+    "master"
+   ],
+   "plies": 189
+  },
+  {
+   "gameId": "glai-full-2-3-504-n",
+   "opponent": "master",
+   "levels": [
+    "hard",
+    "master"
+   ],
+   "plies": 141
+  },
+  {
+   "gameId": "glai-full-2-3-505-n",
+   "opponent": "master",
+   "levels": [
+    "hard",
+    "master"
+   ],
+   "plies": 175
+  },
+  {
+   "gameId": "glai-full-2-3-506-n",
+   "opponent": "master",
+   "levels": [
+    "hard",
+    "master"
+   ],
+   "plies": 189
+  },
+  {
+   "gameId": "glai-full-2-3-507-s",
+   "opponent": "master",
+   "levels": [
+    "master",
+    "hard"
+   ],
+   "plies": 202
+  },
+  {
+   "gameId": "glai-full-2-3-508-n",
+   "opponent": "master",
+   "levels": [
+    "hard",
+    "master"
+   ],
+   "plies": 147
+  },
+  {
+   "gameId": "glai-full-2-3-509-n",
+   "opponent": "master",
+   "levels": [
+    "hard",
+    "master"
+   ],
+   "plies": 189
+  },
+  {
+   "gameId": "glai-full-2-4-402-n",
+   "opponent": "grandmaster",
+   "levels": [
+    "hard",
+    "grandmaster"
+   ],
+   "plies": 147
+  },
+  {
+   "gameId": "glai-full-2-4-402-s",
+   "opponent": "grandmaster",
+   "levels": [
+    "grandmaster",
+    "hard"
+   ],
+   "plies": 140
+  },
+  {
+   "gameId": "glai-full-2-4-403-s",
+   "opponent": "grandmaster",
+   "levels": [
+    "grandmaster",
+    "hard"
+   ],
+   "plies": 188
+  },
+  {
+   "gameId": "glai-full-2-4-405-s",
+   "opponent": "grandmaster",
+   "levels": [
+    "grandmaster",
+    "hard"
+   ],
+   "plies": 158
+  },
+  {
+   "gameId": "glai-full-2-4-406-n",
+   "opponent": "grandmaster",
+   "levels": [
+    "hard",
+    "grandmaster"
+   ],
+   "plies": 147
+  },
+  {
+   "gameId": "glai-full-2-4-510-n",
+   "opponent": "grandmaster",
+   "levels": [
+    "hard",
+    "grandmaster"
+   ],
+   "plies": 147
+  },
+  {
+   "gameId": "glai-full-2-4-510-s",
+   "opponent": "grandmaster",
+   "levels": [
+    "grandmaster",
+    "hard"
+   ],
+   "plies": 140
+  },
+  {
+   "gameId": "glai-full-2-4-511-s",
+   "opponent": "grandmaster",
+   "levels": [
+    "grandmaster",
+    "hard"
+   ],
+   "plies": 222
+  },
+  {
+   "gameId": "glai-full-2-4-512-s",
+   "opponent": "grandmaster",
+   "levels": [
+    "grandmaster",
+    "hard"
+   ],
+   "plies": 166
+  },
+  {
+   "gameId": "glai-full-2-4-513-s",
+   "opponent": "grandmaster",
+   "levels": [
+    "grandmaster",
+    "hard"
+   ],
+   "plies": 122
+  },
+  {
+   "gameId": "glai-full-2-4-514-n",
+   "opponent": "grandmaster",
+   "levels": [
+    "hard",
+    "grandmaster"
+   ],
+   "plies": 39
+  },
+  {
+   "gameId": "glai-full-2-4-515-s",
+   "opponent": "grandmaster",
+   "levels": [
+    "grandmaster",
+    "hard"
+   ],
+   "plies": 212
+  },
+  {
+   "gameId": "glai-full-2-4-517-n",
+   "opponent": "grandmaster",
+   "levels": [
+    "hard",
+    "grandmaster"
+   ],
+   "plies": 39
+  }
+ ]
+}
