@@ -79,6 +79,22 @@ export function buildStates() {
   return [...out, ...extra];
 }
 
+/** 16 个新资格状态：B2b 中未用于开发/保留的剩余对局。 */
+export function buildNew16() {
+  const used = new Set(buildStates().filter((x) => x.category.startsWith("historical")).map((x) => x.name.replace(/^hist-(risk|win)-/, "")));
+  const out = [];
+  const risk = h1.filter((r) => RISK.has(r.result)).sort((a, b) => a.openingId - b.openingId || a.seat - b.seat)
+    .filter((r) => !used.has(`${r.openingId}-${r.seat}`)).slice(0, 8);
+  const wins = h1.filter((r) => r.result === "hell_win").sort((a, b) => a.openingId - b.openingId || a.seat - b.seat)
+    .filter((r) => !used.has(`${r.openingId}-${r.seat}`)).slice(0, 8);
+  for (const r of [...risk, ...wins]) {
+    const st = stateAt(r, 0.55);
+    if (st) out.push({ name: `new-${RISK.has(r.result) ? "risk" : "win"}-${r.openingId}-${r.seat}`,
+      category: RISK.has(r.result) ? "new-risk" : "new-win", state: st });
+  }
+  return out;
+}
+
 /** 12 个保留状态：B2 批次（75–94），与开发集不同开局。 */
 export function buildHoldout() {
   const out = [];

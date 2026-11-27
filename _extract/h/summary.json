@@ -1,0 +1,62 @@
+{
+ "dev": {
+  "n": 24,
+  "illegal": 0,
+  "lossHbase": 0,
+  "lossHsafe": 0,
+  "lossHacs": 0,
+  "safetyTriggered": 0,
+  "acsOverride": 4,
+  "avgM": {
+   "hbase": 0.583,
+   "hsafe": 0.583,
+   "hacs": 0.375
+  },
+  "maxMs": 2857
+ },
+ "hold": {
+  "n": 12,
+  "illegal": 0,
+  "lossHbase": 0,
+  "lossHsafe": 0,
+  "lossHacs": 0,
+  "safetyTriggered": 0,
+  "acsOverride": 4,
+  "avgM": {
+   "hbase": 4.5,
+   "hsafe": 4.5,
+   "hacs": 4.083
+  },
+  "maxMs": 2855
+ },
+ "new": {
+  "n": 16,
+  "illegal": 0,
+  "lossHbase": 0,
+  "lossHsafe": 0,
+  "lossHacs": 0,
+  "safetyTriggered": 0,
+  "acsOverride": 2,
+  "avgM": {
+   "hbase": 1.813,
+   "hsafe": 1.813,
+   "hacs": 1.625
+  },
+  "maxMs": 2857
+ },
+ "all": {
+  "n": 52,
+  "illegal": 0,
+  "lossHbase": 0,
+  "lossHsafe": 0,
+  "lossHacs": 0,
+  "safetyTriggered": 0,
+  "acsOverride": 10,
+  "avgM": {
+   "hbase": 1.865,
+   "hsafe": 1.865,
+   "hacs": 1.615
+  },
+  "maxMs": 2857
+ }
+}

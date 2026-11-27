@@ -1,0 +1,94 @@
+{
+ "head": "S1-close",
+ "regret": {
+  "cases": 36,
+  "sumS1": 1999981,
+  "avgS1": 55555.02777777778,
+  "over1000": [
+   {
+    "name": "attack-near",
+    "regret": 999990,
+    "refBest": -10,
+    "s1": {
+     "type": "move",
+     "dir": "up"
+    },
+    "h1": {
+     "type": "wall",
+     "kind": "top",
+     "c": 5,
+     "r": 0
+    },
+    "h1Ref": -10,
+    "s1Ref": -1000000
+   },
+   {
+    "name": "attack-near-2",
+    "regret": 999990,
+    "refBest": -10,
+    "s1": {
+     "type": "move",
+     "dir": "up"
+    },
+    "h1": {
+     "type": "wall",
+     "kind": "top",
+     "c": 4,
+     "r": 0
+    },
+    "h1Ref": -10,
+    "s1Ref": -1000000
+   }
+  ],
+  "note": "平均后悔按全部 24 个开发状态为分母；两个 999,990 案例贡献 1,999,980/24=83,332.5。"
+ },
+ "attackNear": {
+  "rootCount": 34,
+  "topWallGenerated": true,
+  "topWallSource": "attack",
+  "evWall": {
+   "value": -10,
+   "nodes": 25,
+   "aborted": false
+  },
+  "evUp": {
+   "value": -1000000,
+   "nodes": 16,
+   "aborted": false
+  },
+  "chosen": {
+   "action": {
+    "type": "move",
+    "dir": "up"
+   },
+   "source": "advance",
+   "score": -1000000,
+   "depth": 5,
+   "nodes": 9088,
+   "elapsed": 2905,
+   "generated": 34,
+   "mode": "s1"
+  },
+  "distances": [
+   12,
+   1
+  ]
+ },
+ "fixtures": {
+  "complexUp": {
+   "ok": false,
+   "error": "blocked"
+  },
+  "complexDistances": [
+   13,
+   12
+  ],
+  "pocketDistances": [
+   13,
+   14
+  ],
+  "pocketSelf": {
+   "ok": true
+  }
+ }
+}
