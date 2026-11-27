@@ -48,8 +48,12 @@ test("GL4：上传校验、去重、管理读取与匿名删除", async () => {
 
   const forbidden = await fetch(`${base}/api/v1/admin/games`);
   assert.equal(forbidden.status, 403);
+  const queryForbidden = await fetch(`${base}/api/v1/admin/games?token=secret`);
+  assert.equal(queryForbidden.status, 403);
 
-  const admin = await fetch(`${base}/api/v1/admin/games?token=secret`);
+  const admin = await fetch(`${base}/api/v1/admin/games`, {
+    headers: { Authorization: "Bearer secret" },
+  });
   const aj = await admin.json();
   assert.equal(admin.status, 200);
   assert.equal(aj.counts.games, 1);

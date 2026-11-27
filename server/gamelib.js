@@ -127,7 +127,7 @@ export function createGameLibrary({ dataDir, adminToken = process.env.GL_ADMIN_T
 
     if (req.method === "GET" && url.pathname === "/api/v1/admin/games") {
       const auth = req.headers.authorization || "";
-      const token = url.searchParams.get("token") || (auth.startsWith("Bearer ") ? auth.slice(7) : "");
+      const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
       if (!adminToken || token !== adminToken) { json(res, 403, { ok: false, error: "forbidden" }); return true; }
       const games = loadLines(gamesFile).map((x) => ({ id: x.id, kind: x.kind, storedAt: x.storedAt, source: x.source, contentHash: x.contentHash }));
       const positions = loadLines(posFile).map((x) => ({ id: x.id, kind: x.kind, storedAt: x.storedAt, source: x.source, contentHash: x.contentHash }));
@@ -137,7 +137,7 @@ export function createGameLibrary({ dataDir, adminToken = process.env.GL_ADMIN_T
 
     if (req.method === "GET" && url.pathname === "/api/v1/admin/export") {
       const auth = req.headers.authorization || "";
-      const token = url.searchParams.get("token") || (auth.startsWith("Bearer ") ? auth.slice(7) : "");
+      const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
       if (!adminToken || token !== adminToken) { json(res, 403, { ok: false, error: "forbidden" }); return true; }
       json(res, 200, { ok: true, games: loadLines(gamesFile), positions: loadLines(posFile) });
       return true;

@@ -28,6 +28,7 @@ export function createGrandmasterPlusConfig(overrides = {}) {
   return createHellConfig({
     timeMs: GRANDMASTER_PLUS_MS,
     returnBuffer: 100,
+    evalRaceMode: "legacy",
     ...overrides,
   });
 }
@@ -37,6 +38,7 @@ export function createGrandmasterPlusA0Config(overrides = {}) {
   return createHellA0Config({
     timeMs: GRANDMASTER_PLUS_MS,
     returnBuffer: 100,
+    evalRaceMode: "legacy",
     ...overrides,
   });
 }
