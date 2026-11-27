@@ -30,7 +30,7 @@ export class Rooms {
   }
 
   /** 创建房间：创建者成为房主，座位随机。 */
-  create(conn) {
+  create(conn, { cols = 10, rows = 12 } = {}) {
     let code = makeRoomCode(this.random);
     let guard = 0;
     while (this.map.has(code) && guard++ < 100) code = makeRoomCode(this.random);
@@ -42,6 +42,7 @@ export class Rooms {
       updatedAt: this.now(),
       phase: "waiting",
       hostSeat: seat,
+      cols, rows,
       seats: [null, null],
       dice: null,
       pending: null,

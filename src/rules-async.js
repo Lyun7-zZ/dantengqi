@@ -7,21 +7,22 @@
  */
 
 import {
-  COLS, ROWS, V_COUNT, H_COUNT, TOP_COUNT,
-  vIndex, hIndex, topIndex,
+  COLS, ROWS, vIndex, hIndex, topIndex, vCount, hCount, validDims,
 } from "./board.js";
 import { blocksMover, distanceToGoal, hasPath } from "./path-async.js";
 
 export const DIRS = ["up", "down", "left", "right"];
 
-export function createState(_firstPlayer = 0, { wallLimit = Infinity } = {}) {
+export function createState(_firstPlayer = 0, { wallLimit = Infinity, cols = COLS, rows = ROWS } = {}) {
+  if (!validDims(cols, rows)) throw new Error(`bad board size ${cols}x${rows}`);
   return {
-    vWall: new Uint8Array(V_COUNT * ROWS),
-    hWall: new Uint8Array(H_COUNT * COLS),
-    topWall: new Uint8Array(TOP_COUNT),
+    cols, rows,
+    vWall: new Uint8Array(vCount(cols, rows)),
+    hWall: new Uint8Array(hCount(cols, rows)),
+    topWall: new Uint8Array(cols),
     players: [
-      { c: 0, r: ROWS - 1 },
-      { c: COLS - 1, r: ROWS - 1 },
+      { c: 0, r: rows - 1 },
+      { c: cols - 1, r: rows - 1 },
     ],
     bank: [0, 0],
     wallLimit: Array.isArray(wallLimit) ? [wallLimit[0], wallLimit[1]] : [wallLimit, wallLimit],
@@ -34,6 +35,8 @@ export function createState(_firstPlayer = 0, { wallLimit = Infinity } = {}) {
 
 export function cloneState(s) {
   return {
+    cols: s.cols,
+    rows: s.rows,
     vWall: s.vWall.slice(),
     hWall: s.hWall.slice(),
     topWall: s.topWall.slice(),
@@ -48,8 +51,8 @@ export function cloneState(s) {
 }
 
 function wallValue(s, kind, c, r) {
-  if (kind === "v") return s.vWall[vIndex(c, r)];
-  if (kind === "h") return s.hWall[hIndex(c, r)];
+  if (kind === "v") return s.vWall[vIndex(c, r, s.rows)];
+  if (kind === "h") return s.hWall[hIndex(c, r, s.rows)];
   if (kind === "top") return s.topWall[topIndex(c)];
   throw new Error(`unknown wall kind: ${kind}`);
 }
@@ -69,16 +72,16 @@ export function setWall(s, kind, c, r, owner = 0) {
 
 /** 墙值：0 空，1 只挡玩家 1，2 只挡玩家 0，3 两边都放了，谁都过不去。 */
 function setWallValue(s, kind, c, r, v) {
-  if (kind === "v") s.vWall[vIndex(c, r)] = v;
-  else if (kind === "h") s.hWall[hIndex(c, r)] = v;
+  if (kind === "v") s.vWall[vIndex(c, r, s.rows)] = v;
+  else if (kind === "h") s.hWall[hIndex(c, r, s.rows)] = v;
   else if (kind === "top") s.topWall[topIndex(c)] = v;
   else throw new Error(`unknown wall kind: ${kind}`);
 }
 
-export function wallInBounds(kind, c, r) {
-  if (kind === "v") return c >= 0 && c < V_COUNT && r >= 0 && r < ROWS;
-  if (kind === "h") return c >= 0 && c < COLS && r >= 0 && r < H_COUNT;
-  if (kind === "top") return c >= 0 && c < TOP_COUNT && r === 0;
+export function wallInBounds(kind, c, r, cols = COLS, rows = ROWS) {
+  if (kind === "v") return c >= 0 && c < cols - 1 && r >= 0 && r < rows;
+  if (kind === "h") return c >= 0 && c < cols && r >= 0 && r < rows - 1;
+  if (kind === "top") return c >= 0 && c < cols && r === 0;
   return false;
 }
 
@@ -88,21 +91,22 @@ export function wallInBounds(kind, c, r) {
  */
 export function stepTarget(state, c, r, dir, mover = 0) {
   const { vWall, hWall, topWall } = state;
+  const { cols, rows } = state;
   if (dir === "up") {
     if (r === 0) return blocksMover(topWall[c], mover) ? null : { exit: true };
-    return blocksMover(hWall[c * H_COUNT + (r - 1)], mover) ? null : { c, r: r - 1 };
+    return blocksMover(hWall[hIndex(c, r - 1, rows)], mover) ? null : { c, r: r - 1 };
   }
   if (dir === "down") {
-    if (r === ROWS - 1) return null;
-    return blocksMover(hWall[c * H_COUNT + r], mover) ? null : { c, r: r + 1 };
+    if (r === rows - 1) return null;
+    return blocksMover(hWall[hIndex(c, r, rows)], mover) ? null : { c, r: r + 1 };
   }
   if (dir === "left") {
     if (c === 0) return null;
-    return blocksMover(vWall[(c - 1) * ROWS + r], mover) ? null : { c: c - 1, r };
+    return blocksMover(vWall[vIndex(c - 1, r, rows)], mover) ? null : { c: c - 1, r };
   }
   if (dir === "right") {
-    if (c === COLS - 1) return null;
-    return blocksMover(vWall[c * ROWS + r], mover) ? null : { c: c + 1, r };
+    if (c === cols - 1) return null;
+    return blocksMover(vWall[vIndex(c, r, rows)], mover) ? null : { c: c + 1, r };
   }
   return null;
 }
@@ -174,7 +178,7 @@ export function validateAction(state, player, action) {
   if (action.type === "wall") {
     const { kind, c, r } = action;
     if (state.wallsUsed[player] >= state.wallLimit[player]) return { ok: false, error: "no-walls" };
-    if (!wallInBounds(kind, c, r)) return { ok: false, error: "out-of-bounds" };
+    if (!wallInBounds(kind, c, r, state.cols, state.rows)) return { ok: false, error: "out-of-bounds" };
     if (wallPlaced(state, kind, c, r)) return { ok: false, error: "occupied" };
     if (wallSeals(state, [{ kind, c, r, owner: player }])) return { ok: false, error: "blocks-path" };
     return { ok: true };
@@ -292,19 +296,19 @@ export function legalActions(state, player) {
   if (state.bank[player] === 0) out.push({ type: "store" });
   if (canExit(state, player)) out.push({ type: "exit" });
   if (state.wallsUsed[player] < state.wallLimit[player]) {
-    for (let c = 0; c < V_COUNT; c++) {
-      for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < state.cols - 1; c++) {
+      for (let r = 0; r < state.rows; r++) {
         const a = { type: "wall", kind: "v", c, r };
         if (validateAction(state, player, a).ok) out.push(a);
       }
     }
-    for (let c = 0; c < COLS; c++) {
-      for (let r = 0; r < H_COUNT; r++) {
+    for (let c = 0; c < state.cols; c++) {
+      for (let r = 0; r < state.rows - 1; r++) {
         const a = { type: "wall", kind: "h", c, r };
         if (validateAction(state, player, a).ok) out.push(a);
       }
     }
-    for (let c = 0; c < TOP_COUNT; c++) {
+    for (let c = 0; c < state.cols; c++) {
       const a = { type: "wall", kind: "top", c, r: 0 };
       if (validateAction(state, player, a).ok) out.push(a);
     }

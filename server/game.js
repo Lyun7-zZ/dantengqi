@@ -63,8 +63,8 @@ export function resolveChoice({ chooserSeat, pickerSeat, priority, side }) {
 }
 
 /** 开新局：firstSide 是棋盘边（0=左先手）。 */
-export function createGame({ firstSide, perMove = 30, bank = 300 }) {
-  const state = createState(firstSide);
+export function createGame({ firstSide, perMove = 30, bank = 300, cols = 10, rows = 12 }) {
+  const state = createState(firstSide, { cols, rows });
   return {
     state,
     clocks: createClock({ perMove, bank }),

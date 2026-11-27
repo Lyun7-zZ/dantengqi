@@ -5,10 +5,7 @@
  * 终点是第 1 行再向上一步；该列上端若是对方的墙，则不能从这里越线。
  */
 
-import { COLS, ROWS, V_COUNT, H_COUNT } from "./board.js";
-
-const SIZE = COLS * ROWS;
-const key = (c, r) => r * COLS + c;
+import { hIndex, vIndex } from "./board.js";
 
 /** 墙值：0 空，1 只挡玩家 1，2 只挡玩家 0，3 谁都挡。 */
 export function blocksMover(wallVal, mover) {
@@ -21,8 +18,11 @@ export function blocksMover(wallVal, mover) {
  */
 export function distanceToGoal(state, c0, r0, mover = 0) {
   const { vWall, hWall, topWall } = state;
-  const dist = new Int16Array(SIZE).fill(-1);
-  const q = new Int16Array(SIZE * 2);
+  const { cols, rows } = state;
+  const size = cols * rows;
+  const key = (c, r) => r * cols + c;
+  const dist = new Int16Array(size).fill(-1);
+  const q = new Int16Array(size * 2);
   let head = 0;
   let tail = 0;
 
@@ -37,7 +37,7 @@ export function distanceToGoal(state, c0, r0, mover = 0) {
 
     if (r === 0 && !blocksMover(topWall[c], mover)) return d + 1;
 
-    if (r > 0 && !blocksMover(hWall[c * H_COUNT + (r - 1)], mover)) {
+    if (r > 0 && !blocksMover(hWall[hIndex(c, r - 1, rows)], mover)) {
       const k = key(c, r - 1);
       if (dist[k] < 0) {
         dist[k] = d + 1;
@@ -45,7 +45,7 @@ export function distanceToGoal(state, c0, r0, mover = 0) {
         q[tail++] = r - 1;
       }
     }
-    if (r < ROWS - 1 && !blocksMover(hWall[c * H_COUNT + r], mover)) {
+    if (r < rows - 1 && !blocksMover(hWall[hIndex(c, r, rows)], mover)) {
       const k = key(c, r + 1);
       if (dist[k] < 0) {
         dist[k] = d + 1;
@@ -53,7 +53,7 @@ export function distanceToGoal(state, c0, r0, mover = 0) {
         q[tail++] = r + 1;
       }
     }
-    if (c > 0 && !blocksMover(vWall[(c - 1) * ROWS + r], mover)) {
+    if (c > 0 && !blocksMover(vWall[vIndex(c - 1, r, rows)], mover)) {
       const k = key(c - 1, r);
       if (dist[k] < 0) {
         dist[k] = d + 1;
@@ -61,7 +61,7 @@ export function distanceToGoal(state, c0, r0, mover = 0) {
         q[tail++] = r;
       }
     }
-    if (c < COLS - 1 && !blocksMover(vWall[c * ROWS + r], mover)) {
+    if (c < cols - 1 && !blocksMover(vWall[vIndex(c, r, rows)], mover)) {
       const k = key(c + 1, r);
       if (dist[k] < 0) {
         dist[k] = d + 1;
@@ -83,9 +83,12 @@ export function hasPath(state, c, r, mover = 0) {
  */
 export function shortestPathWalls(state, c0, r0, mover = 0) {
   const { vWall, hWall, topWall } = state;
-  const dist = new Int16Array(SIZE).fill(-1);
-  const prev = new Int16Array(SIZE).fill(-1);
-  const q = new Int16Array(SIZE * 2);
+  const { cols, rows } = state;
+  const size = cols * rows;
+  const key = (c, r) => r * cols + c;
+  const dist = new Int16Array(size).fill(-1);
+  const prev = new Int16Array(size).fill(-1);
+  const q = new Int16Array(size * 2);
   let head = 0;
   let tail = 0;
   q[tail++] = c0;
@@ -110,10 +113,10 @@ export function shortestPathWalls(state, c0, r0, mover = 0) {
         q[tail++] = nr;
       }
     };
-    if (r > 0 && !blocksMover(hWall[c * H_COUNT + (r - 1)], mover)) relax(c, r - 1);
-    if (r < ROWS - 1 && !blocksMover(hWall[c * H_COUNT + r], mover)) relax(c, r + 1);
-    if (c > 0 && !blocksMover(vWall[(c - 1) * ROWS + r], mover)) relax(c - 1, r);
-    if (c < COLS - 1 && !blocksMover(vWall[c * ROWS + r], mover)) relax(c + 1, r);
+    if (r > 0 && !blocksMover(hWall[hIndex(c, r - 1, rows)], mover)) relax(c, r - 1);
+    if (r < rows - 1 && !blocksMover(hWall[hIndex(c, r, rows)], mover)) relax(c, r + 1);
+    if (c > 0 && !blocksMover(vWall[vIndex(c - 1, r, rows)], mover)) relax(c - 1, r);
+    if (c < cols - 1 && !blocksMover(vWall[vIndex(c, r, rows)], mover)) relax(c + 1, r);
   }
 
   if (goalIdx < 0) return [];
@@ -130,10 +133,10 @@ export function shortestPathWalls(state, c0, r0, mover = 0) {
   for (let i = 1; i < cells.length; i++) {
     const a = cells[i - 1];
     const b = cells[i];
-    const ac = a % COLS;
-    const ar = Math.floor(a / COLS);
-    const bc = b % COLS;
-    const br = Math.floor(b / COLS);
+    const ac = a % cols;
+    const ar = Math.floor(a / cols);
+    const bc = b % cols;
+    const br = Math.floor(b / cols);
     if (ar === br) {
       const left = Math.min(ac, bc);
       walls.push({ kind: "v", c: left, r: ar });
@@ -143,7 +146,7 @@ export function shortestPathWalls(state, c0, r0, mover = 0) {
     }
   }
   const last = cells[cells.length - 1];
-  const lc = last % COLS;
+  const lc = last % cols;
   walls.push({ kind: "top", c: lc, r: 0 });
   return walls;
 }

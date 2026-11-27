@@ -4177,6 +4177,8 @@ function uid(prefix) { return `${prefix}${Date.now().toString(36)}${Math.random(
 /** 状态 JSON 化：保留墙图数组；Infinity 由 JSON 变 null，导入时 normalize 恢复。 */
 function stateToJson(state) {
   return {
+    cols: state.cols,
+    rows: state.rows,
     vWall: Array.from(state.vWall),
     hWall: Array.from(state.hWall),
     topWall: Array.from(state.topWall),
@@ -5825,7 +5827,7 @@ async function createRoom() {
   setNetStatus("正在连接服务器…");
   try {
     const c = await ensureSocket();
-    c.send({ t: "create" });
+    c.send({ t: "create", cols: S.boardCols, rows: S.boardRows });
   } catch (e) {
     setNetStatus("连不上服务器：" + e.message);
     toast("连不上服务器", true);
@@ -6016,6 +6018,8 @@ function startOnlineGame(snap, opts = {}) {
   S.aiThinking = false;
   S.aiSeat = null;
   S.state = snap.state;
+  S.boardCols = snap.state.cols; S.boardRows = snap.state.rows;
+  buildBoard();
   S.clocks = createClock({ perMove: snap.clocks.perMove, bank: snap.clocks.bank });
   clockRestore(S.clocks, {
     banks: snap.clocks.banks, moveLeft: snap.clocks.moveLeft, inBank: snap.clocks.inBank,
@@ -6811,9 +6815,6 @@ function allWallSlots(cols = COLS, rows = ROWS) {
  */
 
 
-const SIZE = COLS * ROWS;
-const key = (c, r) => r * COLS + c;
-
 /** 墙值：0 空，1 只挡玩家 1，2 只挡玩家 0，3 谁都挡。 */
 function blocksMover(wallVal, mover) {
   return wallVal !== 0 && wallVal !== mover + 1;
@@ -6825,8 +6826,11 @@ function blocksMover(wallVal, mover) {
  */
 function distanceToGoal(state, c0, r0, mover = 0) {
   const { vWall, hWall, topWall } = state;
-  const dist = new Int16Array(SIZE).fill(-1);
-  const q = new Int16Array(SIZE * 2);
+  const { cols, rows } = state;
+  const size = cols * rows;
+  const key = (c, r) => r * cols + c;
+  const dist = new Int16Array(size).fill(-1);
+  const q = new Int16Array(size * 2);
   let head = 0;
   let tail = 0;
 
@@ -6841,7 +6845,7 @@ function distanceToGoal(state, c0, r0, mover = 0) {
 
     if (r === 0 && !blocksMover(topWall[c], mover)) return d + 1;
 
-    if (r > 0 && !blocksMover(hWall[c * H_COUNT + (r - 1)], mover)) {
+    if (r > 0 && !blocksMover(hWall[hIndex(c, r - 1, rows)], mover)) {
       const k = key(c, r - 1);
       if (dist[k] < 0) {
         dist[k] = d + 1;
@@ -6849,7 +6853,7 @@ function distanceToGoal(state, c0, r0, mover = 0) {
         q[tail++] = r - 1;
       }
     }
-    if (r < ROWS - 1 && !blocksMover(hWall[c * H_COUNT + r], mover)) {
+    if (r < rows - 1 && !blocksMover(hWall[hIndex(c, r, rows)], mover)) {
       const k = key(c, r + 1);
       if (dist[k] < 0) {
         dist[k] = d + 1;
@@ -6857,7 +6861,7 @@ function distanceToGoal(state, c0, r0, mover = 0) {
         q[tail++] = r + 1;
       }
     }
-    if (c > 0 && !blocksMover(vWall[(c - 1) * ROWS + r], mover)) {
+    if (c > 0 && !blocksMover(vWall[vIndex(c - 1, r, rows)], mover)) {
       const k = key(c - 1, r);
       if (dist[k] < 0) {
         dist[k] = d + 1;
@@ -6865,7 +6869,7 @@ function distanceToGoal(state, c0, r0, mover = 0) {
         q[tail++] = r;
       }
     }
-    if (c < COLS - 1 && !blocksMover(vWall[c * ROWS + r], mover)) {
+    if (c < cols - 1 && !blocksMover(vWall[vIndex(c, r, rows)], mover)) {
       const k = key(c + 1, r);
       if (dist[k] < 0) {
         dist[k] = d + 1;
@@ -6887,9 +6891,12 @@ function hasPath(state, c, r, mover = 0) {
  */
 function shortestPathWalls(state, c0, r0, mover = 0) {
   const { vWall, hWall, topWall } = state;
-  const dist = new Int16Array(SIZE).fill(-1);
-  const prev = new Int16Array(SIZE).fill(-1);
-  const q = new Int16Array(SIZE * 2);
+  const { cols, rows } = state;
+  const size = cols * rows;
+  const key = (c, r) => r * cols + c;
+  const dist = new Int16Array(size).fill(-1);
+  const prev = new Int16Array(size).fill(-1);
+  const q = new Int16Array(size * 2);
   let head = 0;
   let tail = 0;
   q[tail++] = c0;
@@ -6914,10 +6921,10 @@ function shortestPathWalls(state, c0, r0, mover = 0) {
         q[tail++] = nr;
       }
     };
-    if (r > 0 && !blocksMover(hWall[c * H_COUNT + (r - 1)], mover)) relax(c, r - 1);
-    if (r < ROWS - 1 && !blocksMover(hWall[c * H_COUNT + r], mover)) relax(c, r + 1);
-    if (c > 0 && !blocksMover(vWall[(c - 1) * ROWS + r], mover)) relax(c - 1, r);
-    if (c < COLS - 1 && !blocksMover(vWall[c * ROWS + r], mover)) relax(c + 1, r);
+    if (r > 0 && !blocksMover(hWall[hIndex(c, r - 1, rows)], mover)) relax(c, r - 1);
+    if (r < rows - 1 && !blocksMover(hWall[hIndex(c, r, rows)], mover)) relax(c, r + 1);
+    if (c > 0 && !blocksMover(vWall[vIndex(c - 1, r, rows)], mover)) relax(c - 1, r);
+    if (c < cols - 1 && !blocksMover(vWall[vIndex(c, r, rows)], mover)) relax(c + 1, r);
   }
 
   if (goalIdx < 0) return [];
@@ -6934,10 +6941,10 @@ function shortestPathWalls(state, c0, r0, mover = 0) {
   for (let i = 1; i < cells.length; i++) {
     const a = cells[i - 1];
     const b = cells[i];
-    const ac = a % COLS;
-    const ar = Math.floor(a / COLS);
-    const bc = b % COLS;
-    const br = Math.floor(b / COLS);
+    const ac = a % cols;
+    const ar = Math.floor(a / cols);
+    const bc = b % cols;
+    const br = Math.floor(b / cols);
     if (ar === br) {
       const left = Math.min(ac, bc);
       walls.push({ kind: "v", c: left, r: ar });
@@ -6947,7 +6954,7 @@ function shortestPathWalls(state, c0, r0, mover = 0) {
     }
   }
   const last = cells[cells.length - 1];
-  const lc = last % COLS;
+  const lc = last % cols;
   walls.push({ kind: "top", c: lc, r: 0 });
   return walls;
 }
@@ -6964,14 +6971,16 @@ function shortestPathWalls(state, c0, r0, mover = 0) {
 
 const DIRS = ["up", "down", "left", "right"];
 
-function createState(_firstPlayer = 0, { wallLimit = Infinity } = {}) {
+function createState(_firstPlayer = 0, { wallLimit = Infinity, cols = COLS, rows = ROWS } = {}) {
+  if (!validDims(cols, rows)) throw new Error(`bad board size ${cols}x${rows}`);
   return {
-    vWall: new Uint8Array(V_COUNT * ROWS),
-    hWall: new Uint8Array(H_COUNT * COLS),
-    topWall: new Uint8Array(TOP_COUNT),
+    cols, rows,
+    vWall: new Uint8Array(vCount(cols, rows)),
+    hWall: new Uint8Array(hCount(cols, rows)),
+    topWall: new Uint8Array(cols),
     players: [
-      { c: 0, r: ROWS - 1 },
-      { c: COLS - 1, r: ROWS - 1 },
+      { c: 0, r: rows - 1 },
+      { c: cols - 1, r: rows - 1 },
     ],
     bank: [0, 0],
     wallLimit: Array.isArray(wallLimit) ? [wallLimit[0], wallLimit[1]] : [wallLimit, wallLimit],
@@ -6984,6 +6993,8 @@ function createState(_firstPlayer = 0, { wallLimit = Infinity } = {}) {
 
 function cloneState(s) {
   return {
+    cols: s.cols,
+    rows: s.rows,
     vWall: s.vWall.slice(),
     hWall: s.hWall.slice(),
     topWall: s.topWall.slice(),
@@ -6998,8 +7009,8 @@ function cloneState(s) {
 }
 
 function wallValue(s, kind, c, r) {
-  if (kind === "v") return s.vWall[vIndex(c, r)];
-  if (kind === "h") return s.hWall[hIndex(c, r)];
+  if (kind === "v") return s.vWall[vIndex(c, r, s.rows)];
+  if (kind === "h") return s.hWall[hIndex(c, r, s.rows)];
   if (kind === "top") return s.topWall[topIndex(c)];
   throw new Error(`unknown wall kind: ${kind}`);
 }
@@ -7019,16 +7030,16 @@ function setWall(s, kind, c, r, owner = 0) {
 
 /** 墙值：0 空，1 只挡玩家 1，2 只挡玩家 0，3 两边都放了，谁都过不去。 */
 function setWallValue(s, kind, c, r, v) {
-  if (kind === "v") s.vWall[vIndex(c, r)] = v;
-  else if (kind === "h") s.hWall[hIndex(c, r)] = v;
+  if (kind === "v") s.vWall[vIndex(c, r, s.rows)] = v;
+  else if (kind === "h") s.hWall[hIndex(c, r, s.rows)] = v;
   else if (kind === "top") s.topWall[topIndex(c)] = v;
   else throw new Error(`unknown wall kind: ${kind}`);
 }
 
-function wallInBounds(kind, c, r) {
-  if (kind === "v") return c >= 0 && c < V_COUNT && r >= 0 && r < ROWS;
-  if (kind === "h") return c >= 0 && c < COLS && r >= 0 && r < H_COUNT;
-  if (kind === "top") return c >= 0 && c < TOP_COUNT && r === 0;
+function wallInBounds(kind, c, r, cols = COLS, rows = ROWS) {
+  if (kind === "v") return c >= 0 && c < cols - 1 && r >= 0 && r < rows;
+  if (kind === "h") return c >= 0 && c < cols && r >= 0 && r < rows - 1;
+  if (kind === "top") return c >= 0 && c < cols && r === 0;
   return false;
 }
 
@@ -7038,21 +7049,22 @@ function wallInBounds(kind, c, r) {
  */
 function stepTarget(state, c, r, dir, mover = 0) {
   const { vWall, hWall, topWall } = state;
+  const { cols, rows } = state;
   if (dir === "up") {
     if (r === 0) return blocksMover(topWall[c], mover) ? null : { exit: true };
-    return blocksMover(hWall[c * H_COUNT + (r - 1)], mover) ? null : { c, r: r - 1 };
+    return blocksMover(hWall[hIndex(c, r - 1, rows)], mover) ? null : { c, r: r - 1 };
   }
   if (dir === "down") {
-    if (r === ROWS - 1) return null;
-    return blocksMover(hWall[c * H_COUNT + r], mover) ? null : { c, r: r + 1 };
+    if (r === rows - 1) return null;
+    return blocksMover(hWall[hIndex(c, r, rows)], mover) ? null : { c, r: r + 1 };
   }
   if (dir === "left") {
     if (c === 0) return null;
-    return blocksMover(vWall[(c - 1) * ROWS + r], mover) ? null : { c: c - 1, r };
+    return blocksMover(vWall[vIndex(c - 1, r, rows)], mover) ? null : { c: c - 1, r };
   }
   if (dir === "right") {
-    if (c === COLS - 1) return null;
-    return blocksMover(vWall[c * ROWS + r], mover) ? null : { c: c + 1, r };
+    if (c === cols - 1) return null;
+    return blocksMover(vWall[vIndex(c, r, rows)], mover) ? null : { c: c + 1, r };
   }
   return null;
 }
@@ -7124,7 +7136,7 @@ function validateAction(state, player, action) {
   if (action.type === "wall") {
     const { kind, c, r } = action;
     if (state.wallsUsed[player] >= state.wallLimit[player]) return { ok: false, error: "no-walls" };
-    if (!wallInBounds(kind, c, r)) return { ok: false, error: "out-of-bounds" };
+    if (!wallInBounds(kind, c, r, state.cols, state.rows)) return { ok: false, error: "out-of-bounds" };
     if (wallPlaced(state, kind, c, r)) return { ok: false, error: "occupied" };
     if (wallSeals(state, [{ kind, c, r, owner: player }])) return { ok: false, error: "blocks-path" };
     return { ok: true };
@@ -7242,19 +7254,19 @@ function legalActions(state, player) {
   if (state.bank[player] === 0) out.push({ type: "store" });
   if (canExit(state, player)) out.push({ type: "exit" });
   if (state.wallsUsed[player] < state.wallLimit[player]) {
-    for (let c = 0; c < V_COUNT; c++) {
-      for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < state.cols - 1; c++) {
+      for (let r = 0; r < state.rows; r++) {
         const a = { type: "wall", kind: "v", c, r };
         if (validateAction(state, player, a).ok) out.push(a);
       }
     }
-    for (let c = 0; c < COLS; c++) {
-      for (let r = 0; r < H_COUNT; r++) {
+    for (let c = 0; c < state.cols; c++) {
+      for (let r = 0; r < state.rows - 1; r++) {
         const a = { type: "wall", kind: "h", c, r };
         if (validateAction(state, player, a).ok) out.push(a);
       }
     }
-    for (let c = 0; c < TOP_COUNT; c++) {
+    for (let c = 0; c < state.cols; c++) {
       const a = { type: "wall", kind: "top", c, r: 0 };
       if (validateAction(state, player, a).ok) out.push(a);
     }
@@ -9148,7 +9160,7 @@ async function createRoom() {
   setNetStatus("正在连接服务器…");
   try {
     const c = await ensureSocket();
-    c.send({ t: "create", mode: "async" });
+    c.send({ t: "create", mode: "async", cols: S.boardCols, rows: S.boardRows });
   } catch (e) {
     setNetStatus("连不上服务器：" + e.message);
     toast("连不上服务器", true);
@@ -9345,6 +9357,8 @@ function startOnlineGame(snap) {
   S.paused = false;
   S.aiSeat = null;
   S.state = snap.state;
+  S.boardCols = snap.state.cols; S.boardRows = snap.state.rows;
+  buildBoard();
   S.clocks = createClock({ perMove: snap.clocks.perMove, bank: snap.clocks.bank });
   clockRestore(S.clocks, { banks: snap.clocks.banks, moveLeft: snap.clocks.moveLeft, inBank: snap.clocks.inBank });
   S.mySeat = snap.sides[NET.seat];

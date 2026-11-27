@@ -38,8 +38,8 @@ export function toWireState(state) {
   };
 }
 
-export function createAsyncGame({ firstSide = 0, perMove = 30, bank = 300 } = {}) {
-  const state = createState(firstSide);
+export function createAsyncGame({ firstSide = 0, perMove = 30, bank = 300, cols = 10, rows = 12 } = {}) {
+  const state = createState(firstSide, { cols, rows });
   return {
     state,
     clocks: createClock({ perMove, bank }),

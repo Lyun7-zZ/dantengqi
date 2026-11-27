@@ -470,6 +470,12 @@ try {
     (await evaluate("window.__danteng.state.cols * window.__danteng.state.rows")));
   await evaluate("document.querySelector('.glModal')?.remove(); true");
 
+  await click("#homeBtn", "菜单");
+  await evaluate("const p=document.getElementById('bsPreset'); p.value='custom'; p.dispatchEvent(new Event('change')); const c=document.getElementById('bsCols'); c.value=18; c.dispatchEvent(new Event('input')); const r=document.getElementById('bsRows'); r.value=8; r.dispatchEvent(new Event('input')); true");
+  await click("#menuLocal", "自定义18×8");
+  check("自定义 18×8 棋盘渲染", (await evaluate("document.querySelectorAll('#board .cell').length")) === 144);
+  check("自定义尺寸写入对局", (await evaluate("window.__danteng.boardCols===18 && window.__danteng.boardRows===8")) === true);
+
   ws.close();
 } catch (e) {
   console.error("UI-CHECK-ERROR", e && (e.stack || e.message || e));

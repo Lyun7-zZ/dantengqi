@@ -70,10 +70,26 @@ export function createGameLibrary({ dataDir, adminToken = process.env.GL_ADMIN_T
     return e.n <= RATE_MAX;
   }
 
+  function stateDims(st) {
+    if (!st || !Array.isArray(st.vWall) || !Array.isArray(st.hWall) || !Array.isArray(st.topWall)) return null;
+    let cols, rows;
+    if (st.cols !== undefined || st.rows !== undefined) {
+      cols = Number(st.cols); rows = Number(st.rows);
+    } else {
+      cols = st.topWall.length;
+      rows = cols > 1 ? st.vWall.length / (cols - 1) : 0;
+    }
+    if (!Number.isInteger(cols) || !Number.isInteger(rows) || cols < 8 || cols > 18 || rows < 8 || rows > 18) return null;
+    if (st.vWall.length !== (cols - 1) * rows) return null;
+    if (st.hWall.length !== cols * (rows - 1)) return null;
+    if (st.topWall.length !== cols) return null;
+    return { cols, rows };
+  }
   function validateGame(rec) {
     if (!rec || rec.kind !== "game" || rec.schemaVersion !== 2) return "bad-record";
     if (!Array.isArray(rec.actions) || rec.actions.length > MAX_ACTIONS) return "too-many-actions";
     if (!rec.result || typeof rec.result !== "object") return "missing-result";
+    if (!stateDims(rec.initialState)) return "bad-board-size";
     const reasons = new Set(["normal_terminal", "resign", "timeout", "disconnect", "ply_cap", "manual_stop", "unfinished"]);
     if (!reasons.has(rec.result.endReason)) return "bad-end-reason";
     if (rec.result.winner !== null && rec.result.winner !== 0 && rec.result.winner !== 1 && rec.result.winner !== "draw") return "bad-winner";
@@ -95,6 +111,7 @@ export function createGameLibrary({ dataDir, adminToken = process.env.GL_ADMIN_T
   }
   function validatePosition(rec) {
     if (!rec || rec.kind !== "position" || rec.schemaVersion !== 2) return "bad-record";
+    if (!stateDims(rec.state)) return "bad-board-size";
     try {
       const s = normalizeState(JSON.parse(JSON.stringify(rec.state)));
       if (!s || !Array.isArray(s.players)) return "bad-state";
@@ -134,6 +151,8 @@ export function createGameLibrary({ dataDir, adminToken = process.env.GL_ADMIN_T
         deleteTokenHash: tokenHash(delToken),
         source: String(rec.source || "unknown").slice(0, 40),
         schemaVersion: 2,
+        cols: stateDims(kind === "game" ? rec.initialState : rec.state)?.cols,
+        rows: stateDims(kind === "game" ? rec.initialState : rec.state)?.rows,
         data: rec,
       };
       append(file, stored);
@@ -146,8 +165,8 @@ export function createGameLibrary({ dataDir, adminToken = process.env.GL_ADMIN_T
       const auth = req.headers.authorization || "";
       const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
       if (!adminToken || token !== adminToken) { json(res, 403, { ok: false, error: "forbidden" }); return true; }
-      const games = loadLines(gamesFile).map((x) => ({ id: x.id, kind: x.kind, storedAt: x.storedAt, source: x.source, contentHash: x.contentHash }));
-      const positions = loadLines(posFile).map((x) => ({ id: x.id, kind: x.kind, storedAt: x.storedAt, source: x.source, contentHash: x.contentHash }));
+      const games = loadLines(gamesFile).map((x) => ({ id: x.id, kind: x.kind, storedAt: x.storedAt, source: x.source, contentHash: x.contentHash, cols: x.cols, rows: x.rows }));
+      const positions = loadLines(posFile).map((x) => ({ id: x.id, kind: x.kind, storedAt: x.storedAt, source: x.source, contentHash: x.contentHash, cols: x.cols, rows: x.rows }));
       json(res, 200, { ok: true, games, positions, counts: { games: games.length, positions: positions.length } });
       return true;
     }
@@ -156,7 +175,9 @@ export function createGameLibrary({ dataDir, adminToken = process.env.GL_ADMIN_T
       const auth = req.headers.authorization || "";
       const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
       if (!adminToken || token !== adminToken) { json(res, 403, { ok: false, error: "forbidden" }); return true; }
-      json(res, 200, { ok: true, games: loadLines(gamesFile), positions: loadLines(posFile) });
+      const fc = url.searchParams.get("cols"), fr = url.searchParams.get("rows");
+      const keep = (x) => (!fc || String(x.cols) === fc) && (!fr || String(x.rows) === fr);
+      json(res, 200, { ok: true, games: loadLines(gamesFile).filter(keep), positions: loadLines(posFile).filter(keep) });
       return true;
     }
 

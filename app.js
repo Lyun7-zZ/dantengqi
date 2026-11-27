@@ -1523,7 +1523,7 @@ async function createRoom() {
   setNetStatus("正在连接服务器…");
   try {
     const c = await ensureSocket();
-    c.send({ t: "create" });
+    c.send({ t: "create", cols: S.boardCols, rows: S.boardRows });
   } catch (e) {
     setNetStatus("连不上服务器：" + e.message);
     toast("连不上服务器", true);
@@ -1714,6 +1714,8 @@ function startOnlineGame(snap, opts = {}) {
   S.aiThinking = false;
   S.aiSeat = null;
   S.state = snap.state;
+  S.boardCols = snap.state.cols; S.boardRows = snap.state.rows;
+  buildBoard();
   S.clocks = createClock({ perMove: snap.clocks.perMove, bank: snap.clocks.bank });
   clockRestore(S.clocks, {
     banks: snap.clocks.banks, moveLeft: snap.clocks.moveLeft, inBank: snap.clocks.inBank,

@@ -300,7 +300,7 @@ export function startServer({
     if (room.mode === "async") {
       room.sides = sides;
       room.firstSeat = firstSeat;
-      room.game = createAsyncGame({ firstSide: sides[firstSeat], perMove, bank });
+      room.game = createAsyncGame({ firstSide: sides[firstSeat], perMove, bank, cols: room.cols, rows: room.rows });
       room.phase = "playing";
       room.lastTick = Date.now();
       room.updatedAt = Date.now();
@@ -321,7 +321,7 @@ export function startServer({
     }
     room.sides = sides;
     room.firstSeat = firstSeat;
-    room.game = createGame({ firstSide: sides[firstSeat], perMove, bank });
+    room.game = createGame({ firstSide: sides[firstSeat], perMove, bank, cols: room.cols, rows: room.rows });
     room.phase = "playing";
     room.lastTick = Date.now();
     room.updatedAt = Date.now();
@@ -653,7 +653,13 @@ export function startServer({
 
     if (msg.t === "create") {
       if (conn.room) { ws.send(errorMessage(ERR.BAD_MESSAGE, "already in room")); return; }
-      const room = rooms.create(conn);
+      const cols = msg.cols === undefined ? 10 : Number(msg.cols);
+      const rows = msg.rows === undefined ? 12 : Number(msg.rows);
+      if (!Number.isInteger(cols) || !Number.isInteger(rows) || cols < 8 || cols > 18 || rows < 8 || rows > 18) {
+        ws.send(errorMessage(ERR.BAD_MESSAGE, "bad board size"));
+        return;
+      }
+      const room = rooms.create(conn, { cols, rows });
       room.mode = msg.mode === "async" ? "async" : "turn";
       sendJson(ws, {
         t: "welcome", room: room.code, seat: conn.seat, token: conn.token,
