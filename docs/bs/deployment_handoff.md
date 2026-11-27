@@ -4,70 +4,90 @@
 
 | 项 | 值 |
 |---|---|
-| main | `34f47d4` |
-| 发布标签 | `release-bs-multisize-2026-11-27` → `34f47d4` |
+| main | `ce6163f` |
+| 产品代码提交 | `34f47d4` |
+| 发布标签 | `release-bs-multisize-2026-11-27` → `ce6163f` |
 | 回退标签 | `pre-bs-release-2026-11-27` → `01a65ca` |
-| 分支 | `bs-core`（检查点 `d3cb64c`） |
-| 构建产物 | `dist/蛋疼棋.html`，约 3.18MB |
+| 构建 | `dist/蛋疼棋.html`，约 3.18MB |
 
-## 变更
+## 实际安装参数（与 `deploy/install.sh` 一致）
 
-- 新建对局默认 **12×12**；
-- 预设 8×8、10×12 经典、12×12、18×18；自定义列/行 8–18 整数；
-- 规则、寻路、AI、异步规则、联机房间、GL4 均携带 `cols/rows`；
-- 旧 10×12 棋谱继续按 10×12 重放，不填充、不重标；
-- GL4 上传记录保存尺寸，管理导出支持 `?cols=&rows=` 过滤；
-- 管理令牌仍只从 `Authorization: Bearer` 读取。
+| 变量 | 默认值 |
+|---|---|
+| `APP_DIR` | `/opt/danteng` |
+| `SERVICE_NAME` | `danteng` |
+| systemd unit | `/etc/systemd/system/danteng.service` |
+| 环境文件 | `/etc/danteng.env`（600） |
+| 服务账号 | `danteng` |
+| 端口 | `6657` |
+| GL 数据目录 | `/opt/danteng/data/gamelib` |
 
-## 部署步骤
+安装脚本把 `server/`、`src/`、`dist/` 复制到 `APP_DIR`，不会创建工作区。**不要在 `/opt/danteng/src` 里执行 Git 命令**；源码更新在独立仓库目录完成。
+
+## 升级步骤
 
 ```bash
-# 1. 备份
-sudo systemctl stop dantengqi 2>/dev/null || true
-sudo tar -czf /opt/danteng/backup-$(date +%Y%m%d-%H%M).tgz \
-  /opt/danteng/app /opt/danteng/data 2>/dev/null || true
+set -euo pipefail
 
-# 2. 更新代码
-cd /opt/danteng/src && git fetch origin
+# 1. 备份（失败即停止）
+TS=$(date +%Y%m%d-%H%M)
+BACKUP=/opt/danteng/backup-$TS
+install -d -m 700 "$BACKUP"
+tar -czf "$BACKUP/data.tgz" -C /opt/danteng data
+tar -czf "$BACKUP/app.tgz" -C /opt/danteng app
+cp -a /etc/danteng.env "$BACKUP/danteng.env"
+chmod 600 "$BACKUP/danteng.env"
+test -s "$BACKUP/data.tgz"
+test -s "$BACKUP/app.tgz"
+
+# 2. 在独立源码目录更新（不是 APP_DIR）
+cd /opt/danteng-src
+git fetch origin
+git status --porcelain   # 必须为空，否则先人工处理
 git checkout main
-git reset --hard 34f47d4
+git merge --ff-only origin/main
+test "$(git rev-parse HEAD)" = "<部署提交>"
 
 # 3. 安装
-sudo bash deploy/install.sh
+sudo APP_DIR=/opt/danteng SERVICE_NAME=danteng PORT=6657 \
+  bash deploy/install.sh
 
-# 4. 确认环境文件未被覆盖
-sudo grep -E 'GL_DATA_DIR|GL_ADMIN_TOKEN' /etc/dantengqi.env
+# 4. 仅检查变量存在，不输出值
+sudo test -s /etc/danteng.env
+sudo systemctl is-active danteng
 ```
-
-`deploy/install.sh` 首次创建 `/etc/dantengqi.env`（600），升级不会覆盖；systemd 通过 `EnvironmentFile` 读取。
 
 ## 上线验证
 
 1. `GET /health` 正常；
-2. 新建对局默认 12×12，四预设与自定义可用；
-3. 8×8 与 18×18 房间可同时创建，互不串状态；
-4. 非法尺寸 7/19、非整数、数组长度不符被拒；
-5. 旧 10×12 棋谱可导入、复盘；
-6. GL4 上传 12×12 棋谱，服务端重放通过；
+2. 新建默认 12×12；四预设与自定义 8–18 可用；
+3. 8×8 与 18×18 房间同时创建、加入、行动与结算，互不串状态；
+4. 非法尺寸 7/19、非整数、数组长度不符、越界动作被拒；
+5. 旧 10×12 棋谱导入、复盘正常；
+6. 新尺寸棋谱上传、服务端重放、去重、匿名删除；
 7. 管理导出 `?cols=12&rows=12` 只返回对应尺寸；
-8. 删除令牌正确/错误行为符合预期；
-9. 断网时本地保存/复盘正常。
+8. 断网/服务不可用时本地保存与复盘不受影响。
 
 ## 回退
 
+回退前先单独备份新尺寸数据与 `/etc/danteng.env`，保留新数据不覆盖。
+
 ```bash
-sudo systemctl stop dantengqi
-cd /opt/danteng/src
+set -euo pipefail
+cd /opt/danteng-src
+git fetch origin
 git checkout pre-bs-release-2026-11-27
-sudo bash deploy/install.sh
-sudo systemctl start dantengqi
+test "$(git rev-parse HEAD)" = "01a65ca"
+sudo APP_DIR=/opt/danteng SERVICE_NAME=danteng PORT=6657 \
+  bash deploy/install.sh
+sudo systemctl restart danteng
 ```
 
-回退前备份 `/opt/danteng/data`；新版本写入的 `cols/rows` 字段不影响旧版本读取旧 10×12 数据，但不要用旧版本重写新尺寸棋谱。
+旧程序不应重写或误读新尺寸记录；失败时保留新数据并回退到确认的 `01a65ca` 或运维既有版本。
 
-## 注意
+## 安全
 
-- 本文件不表示已部署；服务器由团队负责人操作；
-- 不把用户棋谱、管理令牌写入 Git；
-- 生产开启 HTTPS 后限制后端直连；
-- 大棋盘 18×18 的 AI 决策更慢，保持原有预算，不额外加时。
+- 管理令牌只从 `Authorization: Bearer` 读取，不进前端、Git、日志；
+- 不输出 `/etc/danteng.env` 内容；
+- 生产开启 HTTPS，限制后端直连；
+- 不把用户棋谱或令牌提交 Git。
