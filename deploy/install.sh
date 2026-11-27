@@ -92,10 +92,25 @@ if ! id -u "$SERVICE_USER" >/dev/null 2>&1; then
   log "创建服务账号：$SERVICE_USER"
 fi
 
-mkdir -p "$APP_DIR/server" "$APP_DIR/src" "$APP_DIR/dist"
+mkdir -p "$APP_DIR/server" "$APP_DIR/src" "$APP_DIR/dist" "$APP_DIR/data/gamelib"
 cp -a "$SRC_DIR/server/." "$APP_DIR/server/"
 cp -a "$SRC_DIR/src/." "$APP_DIR/src/"
 cp -a "$SRC_DIR/dist/." "$APP_DIR/dist/"
+
+# 环境文件：只在不存在时创建，升级不覆盖令牌与数据目录
+ENV_FILE="/etc/${SERVICE_NAME}.env"
+if [ ! -f "$ENV_FILE" ]; then
+  TOKEN="$(openssl rand -hex 24 2>/dev/null || head -c 48 /dev/urandom | od -An -tx1 | tr -d ' \n')"
+  cat > "$ENV_FILE" <<EOF
+NODE_ENV=production
+GL_DATA_DIR=${APP_DIR}/data/gamelib
+GL_ADMIN_TOKEN=${TOKEN}
+EOF
+  chmod 600 "$ENV_FILE"
+  log "已创建环境文件 $ENV_FILE（请妥善保存管理令牌）"
+else
+  log "沿用已有环境文件 $ENV_FILE"
+fi
 log "已复制程序文件到 $APP_DIR"
 
 # 去掉开发用的测试目录，减小体积
@@ -105,6 +120,7 @@ rm -rf "$APP_DIR/server/test" "$APP_DIR/server/testlib"
 log "安装生产依赖（ws）..."
 ( cd "$APP_DIR/server" && npm install --omit=dev --no-audit --no-fund >/dev/null )
 chown -R "$SERVICE_USER":"$SERVICE_USER" "$APP_DIR"
+chmod 700 "$APP_DIR/data/gamelib" 2>/dev/null || true
 
 # ---------- 5. systemd ----------
 UNIT="/etc/systemd/system/${SERVICE_NAME}.service"
@@ -120,7 +136,7 @@ WorkingDirectory=${APP_DIR}/server
 ExecStart=${NODE_BIN} ${APP_DIR}/server/index.js --port ${PORT}
 Restart=always
 RestartSec=3
-Environment=NODE_ENV=production
+EnvironmentFile=-${ENV_FILE}
 
 [Install]
 WantedBy=multi-user.target

@@ -2018,6 +2018,20 @@ function glDownload(name, obj) {
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }
 
+async function glRemoteDelete(kind, id) {
+  try {
+    const map = JSON.parse(localStorage.getItem("danteng.gamelib.deleteTokens") || "{}");
+    const token = map[id];
+    if (!token) return false;
+    const res = await fetch(`/api/v1/${kind}/${id}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ deleteToken: token }),
+    });
+    if (res.ok) { delete map[id]; localStorage.setItem("danteng.gamelib.deleteTokens", JSON.stringify(map)); }
+    return res.ok;
+  } catch { return false; }
+}
 async function glUpload(rec) {
   const kind = rec.kind === "position" ? "positions" : "games";
   try {
@@ -2171,7 +2185,13 @@ function glEnsureUI() {
         const bUp = glEl("button", "贡献", "glBtn");
         bUp.onclick = () => { if (confirm("自愿贡献本局棋谱到研究库？不含姓名/邮箱。")) glUpload(g); };
         const bDel = glEl("button", "删除", "glBtn");
-        bDel.onclick = () => { if (confirm("删除这条棋谱？")) { deleteGame(g.gameId); openLibrary("games"); } };
+        bDel.onclick = async () => {
+          if (!confirm("删除这条棋谱？")) return;
+          const tokens = JSON.parse(localStorage.getItem("danteng.gamelib.deleteTokens") || "{}");
+          if (tokens[g.gameId] && confirm("同时删除研究库中的副本？")) await glRemoteDelete("games", g.gameId);
+          deleteGame(g.gameId);
+          openLibrary("games");
+        };
         acts.append(bReplay, bExp, bUp, bDel);
         row.append(info, acts);
         list.appendChild(row);
@@ -2203,7 +2223,13 @@ function glEnsureUI() {
         const bUp = glEl("button", "贡献", "glBtn");
         bUp.onclick = () => { if (confirm("自愿贡献该局面到研究库？不含姓名/邮箱。")) glUpload(p); };
         const bDel = glEl("button", "删除", "glBtn");
-        bDel.onclick = () => { if (confirm("删除这个局面？")) { deletePosition(p.positionId); openLibrary("positions"); } };
+        bDel.onclick = async () => {
+          if (!confirm("删除这个局面？")) return;
+          const tokens = JSON.parse(localStorage.getItem("danteng.gamelib.deleteTokens") || "{}");
+          if (tokens[p.positionId] && confirm("同时删除研究库中的副本？")) await glRemoteDelete("positions", p.positionId);
+          deletePosition(p.positionId);
+          openLibrary("positions");
+        };
         acts.append(bLoad, bExp, bUp, bDel);
         row.append(info, acts);
         list.appendChild(row);

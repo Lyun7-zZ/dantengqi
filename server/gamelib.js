@@ -3,7 +3,7 @@
  * 仅使用本地 JSON 文件，不依赖数据库；原始数据不进入 Git。
  */
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, mkdirSync, renameSync } from "node:fs";
 import { join } from "node:path";
 import { createHash, randomBytes } from "node:crypto";
 import { createState, applyAction, normalizeState } from "../src/rules.js";
@@ -15,6 +15,12 @@ const RATE_MAX = 30;
 
 function hash(s) { return createHash("sha256").update(s).digest("hex"); }
 function tokenHash(t) { return hash("gl-del:" + t); }
+function canonical(obj) {
+  if (obj === null || typeof obj !== "object") return JSON.stringify(obj);
+  if (Array.isArray(obj)) return "[" + obj.map(canonical).join(",") + "]";
+  const keys = Object.keys(obj).sort();
+  return "{" + keys.map((k) => JSON.stringify(k) + ":" + canonical(obj[k])).join(",") + "}";
+}
 
 function readJson(p, fallback) {
   try { return JSON.parse(readFileSync(p, "utf8")); } catch { return fallback; }
@@ -32,6 +38,11 @@ export function createGameLibrary({ dataDir, adminToken = process.env.GL_ADMIN_T
   }
   function append(file, obj) {
     writeFileSync(file, JSON.stringify(obj) + "\n", { flag: "a" });
+  }
+  function writeLines(file, arr) {
+    const tmp = file + ".tmp";
+    writeFileSync(tmp, arr.map((x) => JSON.stringify(x)).join("\n") + (arr.length ? "\n" : ""));
+    renameSync(tmp, file);
   }
   function readBody(req) {
     return new Promise((resolve, reject) => {
@@ -62,18 +73,24 @@ export function createGameLibrary({ dataDir, adminToken = process.env.GL_ADMIN_T
   function validateGame(rec) {
     if (!rec || rec.kind !== "game" || rec.schemaVersion !== 2) return "bad-record";
     if (!Array.isArray(rec.actions) || rec.actions.length > MAX_ACTIONS) return "too-many-actions";
+    if (!rec.result || typeof rec.result !== "object") return "missing-result";
+    const reasons = new Set(["normal_terminal", "resign", "timeout", "disconnect", "ply_cap", "manual_stop", "unfinished"]);
+    if (!reasons.has(rec.result.endReason)) return "bad-end-reason";
+    if (rec.result.winner !== null && rec.result.winner !== 0 && rec.result.winner !== 1 && rec.result.winner !== "draw") return "bad-winner";
     let s;
     try { s = normalizeState(JSON.parse(JSON.stringify(rec.initialState))); } catch { return "bad-initial-state"; }
-    if (!s || !Array.isArray(s.players)) return "bad-initial-state";
-    for (const step of rec.actions) {
+    if (!s || !Array.isArray(s.players) || s.winner !== null) return "bad-initial-state";
+    for (let i = 0; i < rec.actions.length; i++) {
+      const step = rec.actions[i];
+      if (!step || step.ply !== i + 1) return `bad-ply@${i + 1}`;
+      if (step.by !== s.turn) return `bad-acting-side@${step.ply}`;
       const r = applyAction(s, step.action);
       if (!r.ok) return `illegal-action@${step.ply}`;
       s = r.state;
     }
-    if (rec.result) {
-      if (rec.result.winner !== s.winner) return "result-mismatch";
-      if (rec.result.plies !== undefined && rec.result.plies !== s.plies) return "plies-mismatch";
-    }
+    if (rec.result.winner !== s.winner) return "result-mismatch";
+    if (rec.result.plies !== undefined && rec.result.plies !== s.plies) return "plies-mismatch";
+    if (rec.result.endReason === "normal_terminal" && s.winner === null) return "unfinished-terminal";
     return null;
   }
   function validatePosition(rec) {
@@ -100,10 +117,10 @@ export function createGameLibrary({ dataDir, adminToken = process.env.GL_ADMIN_T
       const kind = url.pathname.endsWith("games") ? "game" : "position";
       const err = kind === "game" ? validateGame(rec) : validatePosition(rec);
       if (err) { json(res, 400, { ok: false, error: err }); return true; }
-      const canonical = kind === "game"
+      const payload = kind === "game"
         ? { kind, initialState: rec.initialState, actions: rec.actions }
         : { kind, state: rec.state };
-      const h = hash(JSON.stringify(canonical));
+      const h = hash(canonical(payload));
       const file = kind === "game" ? gamesFile : posFile;
       const existing = loadLines(file);
       if (existing.some((x) => x.contentHash === h)) {
@@ -154,7 +171,23 @@ export function createGameLibrary({ dataDir, adminToken = process.env.GL_ADMIN_T
       if (idx < 0) { json(res, 404, { ok: false, error: "not-found" }); return true; }
       if (all[idx].deleteTokenHash !== tokenHash(token)) { json(res, 403, { ok: false, error: "forbidden" }); return true; }
       all.splice(idx, 1);
-      writeFileSync(gamesFile, all.map((x) => JSON.stringify(x)).join("\n") + (all.length ? "\n" : ""));
+      writeLines(gamesFile, all);
+      json(res, 200, { ok: true });
+      return true;
+    }
+
+    if (req.method === "DELETE" && url.pathname.startsWith("/api/v1/positions/")) {
+      const id = url.pathname.split("/").pop();
+      let body = "";
+      try { body = await readBody(req); } catch { /* ignore */ }
+      let token = "";
+      try { token = JSON.parse(body).deleteToken || ""; } catch { /* ignore */ }
+      const all = loadLines(posFile);
+      const idx = all.findIndex((x) => x.id === id);
+      if (idx < 0) { json(res, 404, { ok: false, error: "not-found" }); return true; }
+      if (all[idx].deleteTokenHash !== tokenHash(token)) { json(res, 403, { ok: false, error: "forbidden" }); return true; }
+      all.splice(idx, 1);
+      writeLines(posFile, all);
       json(res, 200, { ok: true });
       return true;
     }

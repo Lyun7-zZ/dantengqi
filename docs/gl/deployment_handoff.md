@@ -47,7 +47,9 @@ Environment=GL_DATA_DIR=/opt/danteng/data/gamelib
 
 - 管理令牌只通过 `Authorization: Bearer <token>` 传递；
 - 服务端已拒绝 URL `?token=`，避免进入访问日志；
-- 前端、Git、构建产物、日志中不得出现令牌。
+- 前端、Git、构建产物、日志中不得出现令牌；
+- `deploy/install.sh` 首次运行会创建 `/etc/danteng.env`（600 权限，含 `GL_ADMIN_TOKEN`、`GL_DATA_DIR`）；
+- 升级不会覆盖该文件；systemd unit 通过 `EnvironmentFile` 读取，不要手工把令牌写进 unit。
 
 ## 数据存储与备份
 
@@ -77,8 +79,9 @@ Environment=GL_DATA_DIR=/opt/danteng/data/gamelib
 8. 上传一局完成棋谱，返回 201 或 duplicate；
 9. 服务端文件出现该记录；管理接口用 Authorization 头可查询；
 10. 重复上传同局返回 duplicate；非法动作被 400 拒绝；
-11. 使用删除令牌可删除；无令牌/错令牌 403；
-12. 断网或服务不可用时，本地保存/复盘不受影响。
+11. 使用删除令牌可删除；无令牌/错令牌 403；对局与局面均支持；
+12. 上传棋谱缺少 `result`/`endReason`、行动方或逐手序号错误时返回 400；
+13. 断网或服务不可用时，本地保存/复盘不受影响。
 
 ## 回退
 

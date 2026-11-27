@@ -25,7 +25,7 @@ test("GL4：上传校验、去重、管理读取与匿名删除", async () => {
     recordAction(rec, a, by);
     s = r.state;
   }
-  finalizeGame(rec, s);
+  finalizeGame(rec, s, s.winner === null ? "unfinished" : "normal_terminal");
 
   const post = await fetch(`${base}/api/v1/games`, {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(rec),
@@ -63,6 +63,11 @@ test("GL4：上传校验、去重、管理读取与匿名删除", async () => {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(pos),
   });
   assert.equal(posRes.status, 201);
+  const posj = await posRes.json();
+  const posDel = await fetch(`${base}/api/v1/positions/${posj.id}`, {
+    method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ deleteToken: posj.deleteToken }),
+  });
+  assert.equal(posDel.status, 200);
 
   const del = await fetch(`${base}/api/v1/games/${pj.id}`, {
     method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ deleteToken: pj.deleteToken }),
