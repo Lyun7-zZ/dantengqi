@@ -1,0 +1,41 @@
+{
+ "schema": "glai-manifest-v1",
+ "createdAt": "2026-11-27T03:27:20.707Z",
+ "commit": "01a65ca7c2185f96f1fb40e128bf5fec958e1d1d",
+ "levels": [
+  "easy",
+  "normal",
+  "hard",
+  "master",
+  "grandmaster",
+  "grandmasterPlus"
+ ],
+ "names": [
+  "简单",
+  "普通",
+  "困难",
+  "大师",
+  "宗师",
+  "宗师+"
+ ],
+ "pools": {
+  "common": [
+   400,
+   401,
+   402,
+   403,
+   404,
+   405,
+   406,
+   407,
+   408,
+   409
+  ],
+  "pairCount": 150
+ },
+ "total": 720,
+ "pilot": 30,
+ "scheduleHash": "1d8a2de67285e4de16465d67645daee7c0213679c671ac6e9b3dbdf8248da628",
+ "pilotHash": "5d969a58b704a1aecba74d31d2c0d63afd805912f4936d4ac01cf9a4f8b083b1",
+ "levelsHash": "00406dabbb2bcab580f190d30b1b409b646a9a47a18d655eb0490d8c34cdd600"
+}

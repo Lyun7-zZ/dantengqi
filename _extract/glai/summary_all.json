@@ -1,0 +1,388 @@
+{
+ "schema": "glai-summary-v1",
+ "games": 720,
+ "invalidReplays": 0,
+ "uniqueOpenings": 160,
+ "duplicateGames": 0,
+ "results": {
+  "W1": 323,
+  "W0": 297,
+  "U": 95,
+  "D": 5
+ },
+ "avgMs": 63714,
+ "maxMs": 582707,
+ "avgPlies": 134.6,
+ "perLevel": {
+  "easy": {
+   "name": "简单",
+   "n": 200,
+   "w": 3,
+   "d": 0,
+   "l": 167,
+   "u": 30,
+   "score": 0.015,
+   "winRate": 0.015,
+   "lossRate": 0.835,
+   "risk": 0.985,
+   "avgMs": 37981,
+   "avgPlies": 130.6,
+   "avgWalls": 54.4,
+   "avgMoves": 76.2
+  },
+  "normal": {
+   "name": "普通",
+   "n": 200,
+   "w": 27,
+   "d": 0,
+   "l": 153,
+   "u": 20,
+   "score": 0.135,
+   "winRate": 0.135,
+   "lossRate": 0.765,
+   "risk": 0.865,
+   "avgMs": 39005,
+   "avgPlies": 122.7,
+   "avgWalls": 42.4,
+   "avgMoves": 80.3
+  },
+  "hard": {
+   "name": "困难",
+   "n": 200,
+   "w": 111,
+   "d": 0,
+   "l": 62,
+   "u": 27,
+   "score": 0.555,
+   "winRate": 0.555,
+   "lossRate": 0.31,
+   "risk": 0.445,
+   "avgMs": 47724,
+   "avgPlies": 142,
+   "avgWalls": 55.4,
+   "avgMoves": 86.5
+  },
+  "master": {
+   "name": "大师",
+   "n": 200,
+   "w": 104,
+   "d": 4,
+   "l": 82,
+   "u": 10,
+   "score": 0.53,
+   "winRate": 0.52,
+   "lossRate": 0.41,
+   "risk": 0.46,
+   "avgMs": 32214,
+   "avgPlies": 115.6,
+   "avgWalls": 38.5,
+   "avgMoves": 77.1
+  },
+  "grandmaster": {
+   "name": "宗师",
+   "n": 200,
+   "w": 116,
+   "d": 3,
+   "l": 52,
+   "u": 29,
+   "score": 0.5875,
+   "winRate": 0.58,
+   "lossRate": 0.26,
+   "risk": 0.405,
+   "avgMs": 62283,
+   "avgPlies": 129.2,
+   "avgWalls": 43.9,
+   "avgMoves": 85.3
+  },
+  "grandmasterPlus": {
+   "name": "宗师+",
+   "n": 200,
+   "w": 164,
+   "d": 3,
+   "l": 9,
+   "u": 24,
+   "score": 0.8275,
+   "winRate": 0.82,
+   "lossRate": 0.045,
+   "risk": 0.165,
+   "avgMs": 162615,
+   "avgPlies": 138.9,
+   "avgWalls": 51.2,
+   "avgMoves": 87.7
+  }
+ },
+ "matrix": {
+  "easy": {
+   "easy": {
+    "w": 0,
+    "d": 0,
+    "l": 0,
+    "u": 0
+   },
+   "normal": {
+    "w": 3,
+    "d": 0,
+    "l": 22,
+    "u": 15
+   },
+   "hard": {
+    "w": 0,
+    "d": 0,
+    "l": 39,
+    "u": 1
+   },
+   "master": {
+    "w": 0,
+    "d": 0,
+    "l": 34,
+    "u": 6
+   },
+   "grandmaster": {
+    "w": 0,
+    "d": 0,
+    "l": 33,
+    "u": 7
+   },
+   "grandmasterPlus": {
+    "w": 0,
+    "d": 0,
+    "l": 39,
+    "u": 1
+   }
+  },
+  "normal": {
+   "easy": {
+    "w": 22,
+    "d": 0,
+    "l": 3,
+    "u": 15
+   },
+   "normal": {
+    "w": 0,
+    "d": 0,
+    "l": 0,
+    "u": 0
+   },
+   "hard": {
+    "w": 4,
+    "d": 0,
+    "l": 36,
+    "u": 0
+   },
+   "master": {
+    "w": 1,
+    "d": 0,
+    "l": 38,
+    "u": 1
+   },
+   "grandmaster": {
+    "w": 0,
+    "d": 0,
+    "l": 39,
+    "u": 1
+   },
+   "grandmasterPlus": {
+    "w": 0,
+    "d": 0,
+    "l": 37,
+    "u": 3
+   }
+  },
+  "hard": {
+   "easy": {
+    "w": 39,
+    "d": 0,
+    "l": 0,
+    "u": 1
+   },
+   "normal": {
+    "w": 36,
+    "d": 0,
+    "l": 4,
+    "u": 0
+   },
+   "hard": {
+    "w": 0,
+    "d": 0,
+    "l": 0,
+    "u": 0
+   },
+   "master": {
+    "w": 17,
+    "d": 0,
+    "l": 21,
+    "u": 2
+   },
+   "grandmaster": {
+    "w": 14,
+    "d": 0,
+    "l": 14,
+    "u": 12
+   },
+   "grandmasterPlus": {
+    "w": 5,
+    "d": 0,
+    "l": 23,
+    "u": 12
+   }
+  },
+  "master": {
+   "easy": {
+    "w": 34,
+    "d": 0,
+    "l": 0,
+    "u": 6
+   },
+   "normal": {
+    "w": 38,
+    "d": 0,
+    "l": 1,
+    "u": 1
+   },
+   "hard": {
+    "w": 21,
+    "d": 0,
+    "l": 17,
+    "u": 2
+   },
+   "master": {
+    "w": 0,
+    "d": 0,
+    "l": 0,
+    "u": 0
+   },
+   "grandmaster": {
+    "w": 8,
+    "d": 2,
+    "l": 29,
+    "u": 1
+   },
+   "grandmasterPlus": {
+    "w": 3,
+    "d": 2,
+    "l": 35,
+    "u": 0
+   }
+  },
+  "grandmaster": {
+   "easy": {
+    "w": 33,
+    "d": 0,
+    "l": 0,
+    "u": 7
+   },
+   "normal": {
+    "w": 39,
+    "d": 0,
+    "l": 0,
+    "u": 1
+   },
+   "hard": {
+    "w": 14,
+    "d": 0,
+    "l": 14,
+    "u": 12
+   },
+   "master": {
+    "w": 29,
+    "d": 2,
+    "l": 8,
+    "u": 1
+   },
+   "grandmaster": {
+    "w": 0,
+    "d": 0,
+    "l": 0,
+    "u": 0
+   },
+   "grandmasterPlus": {
+    "w": 1,
+    "d": 1,
+    "l": 30,
+    "u": 8
+   }
+  },
+  "grandmasterPlus": {
+   "easy": {
+    "w": 39,
+    "d": 0,
+    "l": 0,
+    "u": 1
+   },
+   "normal": {
+    "w": 37,
+    "d": 0,
+    "l": 0,
+    "u": 3
+   },
+   "hard": {
+    "w": 23,
+    "d": 0,
+    "l": 5,
+    "u": 12
+   },
+   "master": {
+    "w": 35,
+    "d": 2,
+    "l": 3,
+    "u": 0
+   },
+   "grandmaster": {
+    "w": 30,
+    "d": 1,
+    "l": 1,
+    "u": 8
+   },
+   "grandmasterPlus": {
+    "w": 0,
+    "d": 0,
+    "l": 0,
+    "u": 0
+   }
+  }
+ },
+ "self": {
+  "easy": {
+   "n": 20,
+   "w0": 4,
+   "w1": 7,
+   "d": 0,
+   "u": 9
+  },
+  "normal": {
+   "n": 20,
+   "w0": 4,
+   "w1": 6,
+   "d": 0,
+   "u": 10
+  },
+  "hard": {
+   "n": 20,
+   "w0": 8,
+   "w1": 12,
+   "d": 0,
+   "u": 0
+  },
+  "master": {
+   "n": 20,
+   "w0": 8,
+   "w1": 12,
+   "d": 0,
+   "u": 0
+  },
+  "grandmaster": {
+   "n": 20,
+   "w0": 2,
+   "w1": 14,
+   "d": 0,
+   "u": 4
+  },
+  "grandmasterPlus": {
+   "n": 20,
+   "w0": 10,
+   "w1": 8,
+   "d": 0,
+   "u": 2
+  }
+ }
+}
