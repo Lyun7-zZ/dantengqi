@@ -2,88 +2,96 @@
 
 ## 版本
 
-| 项 | 值 |
+| 项 | 完整值 |
 |---|---|
-| main | `ce6163f` |
-| 产品代码提交 | `34f47d4` |
-| 发布标签 | `release-bs-multisize-2026-11-27` → `ce6163f` |
-| 回退标签 | `pre-bs-release-2026-11-27` → `01a65ca` |
+| main | `c79ba127cdcf033eb149dbba9d3b6dff2e631e20` |
+| 产品代码提交 | `34f47d4dd0efa56a6253e2aab0013b95af7d263f` |
+| 发布标签 | `release-bs-multisize-2026-11-27` → `c79ba127cdcf033eb149dbba9d3b6dff2e631e20` |
+| 回退标签 | `pre-bs-release-2026-11-27` → `01a65ca7c2185f96f1fb40e128bf5fec958e1d1d` |
 | 构建 | `dist/蛋疼棋.html`，约 3.18MB |
 
-## 实际安装参数（与 `deploy/install.sh` 一致）
+标签解引用后的完整 SHA 才是比较对象；不要用 7 位短码做 `test`。
 
-| 变量 | 默认值 |
+## 实际安装布局
+
+| 项 | 值 |
 |---|---|
 | `APP_DIR` | `/opt/danteng` |
-| `SERVICE_NAME` | `danteng` |
-| systemd unit | `/etc/systemd/system/danteng.service` |
+| 安装内容 | `${APP_DIR}/server`、`${APP_DIR}/src`、`${APP_DIR}/dist`、`${APP_DIR}/data/gamelib` |
+| systemd | `/etc/systemd/system/danteng.service` |
 | 环境文件 | `/etc/danteng.env`（600） |
 | 服务账号 | `danteng` |
 | 端口 | `6657` |
-| GL 数据目录 | `/opt/danteng/data/gamelib` |
+| 源码工作区 | 独立目录，例如 `/opt/danteng-src`；不是 `${APP_DIR}/src` |
 
-安装脚本把 `server/`、`src/`、`dist/` 复制到 `APP_DIR`，不会创建工作区。**不要在 `/opt/danteng/src` 里执行 Git 命令**；源码更新在独立仓库目录完成。
+安装脚本只复制程序文件，不创建 Git 工作区。
 
 ## 升级步骤
 
 ```bash
 set -euo pipefail
-
-# 1. 备份（失败即停止）
+APP_DIR=/opt/danteng
+ENV=/etc/danteng.env
 TS=$(date +%Y%m%d-%H%M)
 BACKUP=/opt/danteng/backup-$TS
 install -d -m 700 "$BACKUP"
-tar -czf "$BACKUP/data.tgz" -C /opt/danteng data
-tar -czf "$BACKUP/app.tgz" -C /opt/danteng app
-cp -a /etc/danteng.env "$BACKUP/danteng.env"
-chmod 600 "$BACKUP/danteng.env"
-test -s "$BACKUP/data.tgz"
-test -s "$BACKUP/app.tgz"
 
-# 2. 在独立源码目录更新（不是 APP_DIR）
+# 1. 一致性备份：程序三目录 + 实际 GL 数据 + 环境文件
+tar -czf "$BACKUP/server.tgz" -C "$APP_DIR" server
+tar -czf "$BACKUP/src.tgz" -C "$APP_DIR" src
+tar -czf "$BACKUP/dist.tgz" -C "$APP_DIR" dist
+tar -czf "$BACKUP/data.tgz" -C "$APP_DIR" data
+cp -a "$ENV" "$BACKUP/danteng.env"
+chmod 600 "$BACKUP/danteng.env"
+for f in server src dist data; do test -s "$BACKUP/$f.tgz"; done
+test -s "$BACKUP/danteng.env"
+
+# 2. 独立源码目录更新
 cd /opt/danteng-src
 git fetch origin
-git status --porcelain   # 必须为空，否则先人工处理
+test -z "$(git status --porcelain)"
 git checkout main
 git merge --ff-only origin/main
-test "$(git rev-parse HEAD)" = "<部署提交>"
+test "$(git rev-parse HEAD)" = "c79ba127cdcf033eb149dbba9d3b6dff2e631e20"
 
 # 3. 安装
 sudo APP_DIR=/opt/danteng SERVICE_NAME=danteng PORT=6657 \
   bash deploy/install.sh
 
-# 4. 仅检查变量存在，不输出值
-sudo test -s /etc/danteng.env
+# 4. 只做布尔检查，不输出值
+sudo test -f "$ENV"
+sudo grep -q '^GL_DATA_DIR=' "$ENV"
+sudo grep -q '^GL_ADMIN_TOKEN=' "$ENV"
 sudo systemctl is-active danteng
 ```
 
 ## 上线验证
 
 1. `GET /health` 正常；
-2. 新建默认 12×12；四预设与自定义 8–18 可用；
+2. 默认 12×12，四预设与自定义 8–18 可用；
 3. 8×8 与 18×18 房间同时创建、加入、行动与结算，互不串状态；
 4. 非法尺寸 7/19、非整数、数组长度不符、越界动作被拒；
 5. 旧 10×12 棋谱导入、复盘正常；
 6. 新尺寸棋谱上传、服务端重放、去重、匿名删除；
 7. 管理导出 `?cols=12&rows=12` 只返回对应尺寸；
-8. 断网/服务不可用时本地保存与复盘不受影响。
+8. 断网时本地保存与复盘不受影响。
 
 ## 回退
 
-回退前先单独备份新尺寸数据与 `/etc/danteng.env`，保留新数据不覆盖。
+回退前单独备份新尺寸数据与环境文件，保留新数据。
 
 ```bash
 set -euo pipefail
 cd /opt/danteng-src
 git fetch origin
 git checkout pre-bs-release-2026-11-27
-test "$(git rev-parse HEAD)" = "01a65ca"
+test "$(git rev-parse HEAD)" = "01a65ca7c2185f96f1fb40e128bf5fec958e1d1d"
 sudo APP_DIR=/opt/danteng SERVICE_NAME=danteng PORT=6657 \
   bash deploy/install.sh
 sudo systemctl restart danteng
 ```
 
-旧程序不应重写或误读新尺寸记录；失败时保留新数据并回退到确认的 `01a65ca` 或运维既有版本。
+旧程序不应重写或误读新尺寸记录；失败时保留新数据并回退到上述完整 SHA 或运维既有版本。
 
 ## 安全
 
