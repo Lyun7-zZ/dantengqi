@@ -1,0 +1,78 @@
+{
+ "games": 120,
+ "invalid": 0,
+ "by": {
+  "fb0|grandmaster": {
+   "rule": "fb0",
+   "algo": "grandmaster",
+   "n": 20,
+   "first": 6,
+   "second": 12,
+   "d": 0,
+   "u": 2,
+   "cut240": 6,
+   "score": 0.3,
+   "upper": 0.4
+  },
+  "fb0|grandmasterPlus": {
+   "rule": "fb0",
+   "algo": "grandmasterPlus",
+   "n": 20,
+   "first": 12,
+   "second": 7,
+   "d": 1,
+   "u": 0,
+   "cut240": 8,
+   "score": 0.625,
+   "upper": 0.625
+  },
+  "fb0|hard": {
+   "rule": "fb0",
+   "algo": "hard",
+   "n": 20,
+   "first": 12,
+   "second": 8,
+   "d": 0,
+   "u": 0,
+   "cut240": 5,
+   "score": 0.6,
+   "upper": 0.6
+  },
+  "fb1|grandmaster": {
+   "rule": "fb1",
+   "algo": "grandmaster",
+   "n": 20,
+   "first": 9,
+   "second": 9,
+   "d": 0,
+   "u": 2,
+   "cut240": 5,
+   "score": 0.45,
+   "upper": 0.55
+  },
+  "fb1|grandmasterPlus": {
+   "rule": "fb1",
+   "algo": "grandmasterPlus",
+   "n": 20,
+   "first": 12,
+   "second": 8,
+   "d": 0,
+   "u": 0,
+   "cut240": 6,
+   "score": 0.6,
+   "upper": 0.6
+  },
+  "fb1|hard": {
+   "rule": "fb1",
+   "algo": "hard",
+   "n": 20,
+   "first": 13,
+   "second": 7,
+   "d": 0,
+   "u": 0,
+   "cut240": 8,
+   "score": 0.65,
+   "upper": 0.65
+  }
+ }
+}

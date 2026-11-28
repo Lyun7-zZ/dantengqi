@@ -1,0 +1,208 @@
+[
+ {
+  "i": 0,
+  "bucket": "lead",
+  "action": {
+   "type": "move",
+   "dir": "down"
+  }
+ },
+ {
+  "i": 1,
+  "bucket": "lead",
+  "action": {
+   "type": "move",
+   "dir": "down"
+  }
+ },
+ {
+  "i": 2,
+  "bucket": "lead",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  }
+ },
+ {
+  "i": 3,
+  "bucket": "lead",
+  "action": {
+   "type": "move",
+   "dir": "down"
+  }
+ },
+ {
+  "i": 4,
+  "bucket": "lead",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  }
+ },
+ {
+  "i": 5,
+  "bucket": "lead",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  }
+ },
+ {
+  "i": 6,
+  "bucket": "lead",
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 9,
+   "r": 7
+  }
+ },
+ {
+  "i": 7,
+  "bucket": "lead",
+  "action": {
+   "type": "move",
+   "dir": "right"
+  }
+ },
+ {
+  "i": 8,
+  "bucket": "tie",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  }
+ },
+ {
+  "i": 9,
+  "bucket": "tie",
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 3,
+   "r": 1
+  }
+ },
+ {
+  "i": 10,
+  "bucket": "tie",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  }
+ },
+ {
+  "i": 11,
+  "bucket": "tie",
+  "action": {
+   "type": "move",
+   "dir": "right"
+  }
+ },
+ {
+  "i": 12,
+  "bucket": "tie",
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 4,
+   "r": 7
+  }
+ },
+ {
+  "i": 13,
+  "bucket": "tie",
+  "action": {
+   "type": "move",
+   "dir": "left"
+  }
+ },
+ {
+  "i": 14,
+  "bucket": "tie",
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 6,
+   "r": 4
+  }
+ },
+ {
+  "i": 15,
+  "bucket": "tie",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  }
+ },
+ {
+  "i": 16,
+  "bucket": "behind",
+  "action": {
+   "type": "wall",
+   "kind": "v",
+   "c": 2,
+   "r": 0
+  }
+ },
+ {
+  "i": 17,
+  "bucket": "behind",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  }
+ },
+ {
+  "i": 18,
+  "bucket": "behind",
+  "action": {
+   "type": "move",
+   "dir": "left"
+  }
+ },
+ {
+  "i": 19,
+  "bucket": "behind",
+  "action": {
+   "type": "wall",
+   "kind": "v",
+   "c": 0,
+   "r": 7
+  }
+ },
+ {
+  "i": 20,
+  "bucket": "behind",
+  "action": {
+   "type": "move",
+   "dir": "left"
+  }
+ },
+ {
+  "i": 21,
+  "bucket": "behind",
+  "action": {
+   "type": "move",
+   "dir": "up"
+  }
+ },
+ {
+  "i": 22,
+  "bucket": "behind",
+  "action": {
+   "type": "wall",
+   "kind": "h",
+   "c": 4,
+   "r": 2
+  }
+ },
+ {
+  "i": 23,
+  "bucket": "behind",
+  "action": {
+   "type": "move",
+   "dir": "left"
+  }
+ }
+]

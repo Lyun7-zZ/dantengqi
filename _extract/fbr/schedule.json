@@ -1,0 +1,6362 @@
+[
+ {
+  "gameId": "fbr-fb0-hard-0-p0",
+  "rule": "fb0",
+  "algo": "hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "firstPlayer": 0,
+  "family": 0,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 7
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 6,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 6
+   }
+  ],
+  "openingHash": "24560107fd68b73634c5e9003e9b0055c4255cf7157d2a6f11ea66c3140ff637",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-hard-0-p1",
+  "rule": "fb0",
+  "algo": "hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "firstPlayer": 1,
+  "family": 0,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 7
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 6,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 6
+   }
+  ],
+  "openingHash": "24560107fd68b73634c5e9003e9b0055c4255cf7157d2a6f11ea66c3140ff637",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-hard-1-p0",
+  "rule": "fb0",
+  "algo": "hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "firstPlayer": 0,
+  "family": 1,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 10
+   }
+  ],
+  "openingHash": "c5eda25ea849b36904cce305b2f39c3db34b999acb8669a2387b48a1b4703d28",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-hard-1-p1",
+  "rule": "fb0",
+  "algo": "hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "firstPlayer": 1,
+  "family": 1,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 10
+   }
+  ],
+  "openingHash": "c5eda25ea849b36904cce305b2f39c3db34b999acb8669a2387b48a1b4703d28",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-hard-2-p0",
+  "rule": "fb0",
+  "algo": "hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "firstPlayer": 0,
+  "family": 2,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 9,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 7
+   }
+  ],
+  "openingHash": "6c64cf7d732d25e56a26eae233318645c25f73eb8e04957196c7506a9e918d74",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-hard-2-p1",
+  "rule": "fb0",
+  "algo": "hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "firstPlayer": 1,
+  "family": 2,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 9,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 7
+   }
+  ],
+  "openingHash": "6c64cf7d732d25e56a26eae233318645c25f73eb8e04957196c7506a9e918d74",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-hard-3-p0",
+  "rule": "fb0",
+  "algo": "hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "firstPlayer": 0,
+  "family": 3,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 7,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 0
+   }
+  ],
+  "openingHash": "665aef032fc322e4c7762322ae91b4e74c142015b15410ab6bd9e262216557ef",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-hard-3-p1",
+  "rule": "fb0",
+  "algo": "hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "firstPlayer": 1,
+  "family": 3,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 7,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 0
+   }
+  ],
+  "openingHash": "665aef032fc322e4c7762322ae91b4e74c142015b15410ab6bd9e262216557ef",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-hard-4-p0",
+  "rule": "fb0",
+  "algo": "hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "firstPlayer": 0,
+  "family": 4,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 3,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 1
+   }
+  ],
+  "openingHash": "cf09f4971c0241d8ae105715980bd797fd3ce373d8cfa257b6dd944231060de7",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-hard-4-p1",
+  "rule": "fb0",
+  "algo": "hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "firstPlayer": 1,
+  "family": 4,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 3,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 1
+   }
+  ],
+  "openingHash": "cf09f4971c0241d8ae105715980bd797fd3ce373d8cfa257b6dd944231060de7",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-hard-5-p0",
+  "rule": "fb0",
+  "algo": "hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "firstPlayer": 0,
+  "family": 5,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 3,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 7,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 9
+   }
+  ],
+  "openingHash": "e00c187ea290d1f07136ae32b9a2612dd489a1ef0ffcabd994c868d78fd1883a",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-hard-5-p1",
+  "rule": "fb0",
+  "algo": "hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "firstPlayer": 1,
+  "family": 5,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 3,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 7,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 9
+   }
+  ],
+  "openingHash": "e00c187ea290d1f07136ae32b9a2612dd489a1ef0ffcabd994c868d78fd1883a",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-hard-6-p0",
+  "rule": "fb0",
+  "algo": "hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "firstPlayer": 0,
+  "family": 6,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 10
+   }
+  ],
+  "openingHash": "f4e8a520b34d4343888347bc24bec5373058463fd1d113fd0233f1c2060d4d9f",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-hard-6-p1",
+  "rule": "fb0",
+  "algo": "hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "firstPlayer": 1,
+  "family": 6,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 10
+   }
+  ],
+  "openingHash": "f4e8a520b34d4343888347bc24bec5373058463fd1d113fd0233f1c2060d4d9f",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-hard-7-p0",
+  "rule": "fb0",
+  "algo": "hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "firstPlayer": 0,
+  "family": 7,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 7,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 10,
+    "r": 1
+   }
+  ],
+  "openingHash": "9f25601407f9ef1a5a49d47e92c9d452d020c04cebf2b730ea1de60887e03b11",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-hard-7-p1",
+  "rule": "fb0",
+  "algo": "hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "firstPlayer": 1,
+  "family": 7,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 7,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 10,
+    "r": 1
+   }
+  ],
+  "openingHash": "9f25601407f9ef1a5a49d47e92c9d452d020c04cebf2b730ea1de60887e03b11",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-hard-8-p0",
+  "rule": "fb0",
+  "algo": "hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "firstPlayer": 0,
+  "family": 8,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 4,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 5
+   }
+  ],
+  "openingHash": "db097009f955abf739466052169cfeb191cdbecbda688d29d1257a9daab2242f",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-hard-8-p1",
+  "rule": "fb0",
+  "algo": "hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "firstPlayer": 1,
+  "family": 8,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 4,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 5
+   }
+  ],
+  "openingHash": "db097009f955abf739466052169cfeb191cdbecbda688d29d1257a9daab2242f",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-hard-9-p0",
+  "rule": "fb0",
+  "algo": "hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "firstPlayer": 0,
+  "family": 9,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "top",
+    "c": 5,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 4
+   }
+  ],
+  "openingHash": "692db1caa348231ff7ccac0bf7ee210f91d3da2467a55949bb9221892c6de2e5",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-hard-9-p1",
+  "rule": "fb0",
+  "algo": "hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "firstPlayer": 1,
+  "family": 9,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "top",
+    "c": 5,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 4
+   }
+  ],
+  "openingHash": "692db1caa348231ff7ccac0bf7ee210f91d3da2467a55949bb9221892c6de2e5",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-grandmaster-0-p0",
+  "rule": "fb0",
+  "algo": "grandmaster",
+  "levels": [
+   "grandmaster",
+   "grandmaster"
+  ],
+  "firstPlayer": 0,
+  "family": 0,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 7
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 6,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 6
+   }
+  ],
+  "openingHash": "24560107fd68b73634c5e9003e9b0055c4255cf7157d2a6f11ea66c3140ff637",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-grandmaster-0-p1",
+  "rule": "fb0",
+  "algo": "grandmaster",
+  "levels": [
+   "grandmaster",
+   "grandmaster"
+  ],
+  "firstPlayer": 1,
+  "family": 0,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 7
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 6,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 6
+   }
+  ],
+  "openingHash": "24560107fd68b73634c5e9003e9b0055c4255cf7157d2a6f11ea66c3140ff637",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-grandmaster-1-p0",
+  "rule": "fb0",
+  "algo": "grandmaster",
+  "levels": [
+   "grandmaster",
+   "grandmaster"
+  ],
+  "firstPlayer": 0,
+  "family": 1,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 10
+   }
+  ],
+  "openingHash": "c5eda25ea849b36904cce305b2f39c3db34b999acb8669a2387b48a1b4703d28",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-grandmaster-1-p1",
+  "rule": "fb0",
+  "algo": "grandmaster",
+  "levels": [
+   "grandmaster",
+   "grandmaster"
+  ],
+  "firstPlayer": 1,
+  "family": 1,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 10
+   }
+  ],
+  "openingHash": "c5eda25ea849b36904cce305b2f39c3db34b999acb8669a2387b48a1b4703d28",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-grandmaster-2-p0",
+  "rule": "fb0",
+  "algo": "grandmaster",
+  "levels": [
+   "grandmaster",
+   "grandmaster"
+  ],
+  "firstPlayer": 0,
+  "family": 2,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 9,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 7
+   }
+  ],
+  "openingHash": "6c64cf7d732d25e56a26eae233318645c25f73eb8e04957196c7506a9e918d74",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-grandmaster-2-p1",
+  "rule": "fb0",
+  "algo": "grandmaster",
+  "levels": [
+   "grandmaster",
+   "grandmaster"
+  ],
+  "firstPlayer": 1,
+  "family": 2,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 9,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 7
+   }
+  ],
+  "openingHash": "6c64cf7d732d25e56a26eae233318645c25f73eb8e04957196c7506a9e918d74",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-grandmaster-3-p0",
+  "rule": "fb0",
+  "algo": "grandmaster",
+  "levels": [
+   "grandmaster",
+   "grandmaster"
+  ],
+  "firstPlayer": 0,
+  "family": 3,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 7,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 0
+   }
+  ],
+  "openingHash": "665aef032fc322e4c7762322ae91b4e74c142015b15410ab6bd9e262216557ef",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-grandmaster-3-p1",
+  "rule": "fb0",
+  "algo": "grandmaster",
+  "levels": [
+   "grandmaster",
+   "grandmaster"
+  ],
+  "firstPlayer": 1,
+  "family": 3,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 7,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 0
+   }
+  ],
+  "openingHash": "665aef032fc322e4c7762322ae91b4e74c142015b15410ab6bd9e262216557ef",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-grandmaster-4-p0",
+  "rule": "fb0",
+  "algo": "grandmaster",
+  "levels": [
+   "grandmaster",
+   "grandmaster"
+  ],
+  "firstPlayer": 0,
+  "family": 4,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 3,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 1
+   }
+  ],
+  "openingHash": "cf09f4971c0241d8ae105715980bd797fd3ce373d8cfa257b6dd944231060de7",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-grandmaster-4-p1",
+  "rule": "fb0",
+  "algo": "grandmaster",
+  "levels": [
+   "grandmaster",
+   "grandmaster"
+  ],
+  "firstPlayer": 1,
+  "family": 4,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 3,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 1
+   }
+  ],
+  "openingHash": "cf09f4971c0241d8ae105715980bd797fd3ce373d8cfa257b6dd944231060de7",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-grandmaster-5-p0",
+  "rule": "fb0",
+  "algo": "grandmaster",
+  "levels": [
+   "grandmaster",
+   "grandmaster"
+  ],
+  "firstPlayer": 0,
+  "family": 5,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 3,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 7,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 9
+   }
+  ],
+  "openingHash": "e00c187ea290d1f07136ae32b9a2612dd489a1ef0ffcabd994c868d78fd1883a",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-grandmaster-5-p1",
+  "rule": "fb0",
+  "algo": "grandmaster",
+  "levels": [
+   "grandmaster",
+   "grandmaster"
+  ],
+  "firstPlayer": 1,
+  "family": 5,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 3,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 7,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 9
+   }
+  ],
+  "openingHash": "e00c187ea290d1f07136ae32b9a2612dd489a1ef0ffcabd994c868d78fd1883a",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-grandmaster-6-p0",
+  "rule": "fb0",
+  "algo": "grandmaster",
+  "levels": [
+   "grandmaster",
+   "grandmaster"
+  ],
+  "firstPlayer": 0,
+  "family": 6,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 10
+   }
+  ],
+  "openingHash": "f4e8a520b34d4343888347bc24bec5373058463fd1d113fd0233f1c2060d4d9f",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-grandmaster-6-p1",
+  "rule": "fb0",
+  "algo": "grandmaster",
+  "levels": [
+   "grandmaster",
+   "grandmaster"
+  ],
+  "firstPlayer": 1,
+  "family": 6,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 10
+   }
+  ],
+  "openingHash": "f4e8a520b34d4343888347bc24bec5373058463fd1d113fd0233f1c2060d4d9f",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-grandmaster-7-p0",
+  "rule": "fb0",
+  "algo": "grandmaster",
+  "levels": [
+   "grandmaster",
+   "grandmaster"
+  ],
+  "firstPlayer": 0,
+  "family": 7,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 7,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 10,
+    "r": 1
+   }
+  ],
+  "openingHash": "9f25601407f9ef1a5a49d47e92c9d452d020c04cebf2b730ea1de60887e03b11",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-grandmaster-7-p1",
+  "rule": "fb0",
+  "algo": "grandmaster",
+  "levels": [
+   "grandmaster",
+   "grandmaster"
+  ],
+  "firstPlayer": 1,
+  "family": 7,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 7,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 10,
+    "r": 1
+   }
+  ],
+  "openingHash": "9f25601407f9ef1a5a49d47e92c9d452d020c04cebf2b730ea1de60887e03b11",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-grandmaster-8-p0",
+  "rule": "fb0",
+  "algo": "grandmaster",
+  "levels": [
+   "grandmaster",
+   "grandmaster"
+  ],
+  "firstPlayer": 0,
+  "family": 8,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 4,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 5
+   }
+  ],
+  "openingHash": "db097009f955abf739466052169cfeb191cdbecbda688d29d1257a9daab2242f",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-grandmaster-8-p1",
+  "rule": "fb0",
+  "algo": "grandmaster",
+  "levels": [
+   "grandmaster",
+   "grandmaster"
+  ],
+  "firstPlayer": 1,
+  "family": 8,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 4,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 5
+   }
+  ],
+  "openingHash": "db097009f955abf739466052169cfeb191cdbecbda688d29d1257a9daab2242f",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-grandmaster-9-p0",
+  "rule": "fb0",
+  "algo": "grandmaster",
+  "levels": [
+   "grandmaster",
+   "grandmaster"
+  ],
+  "firstPlayer": 0,
+  "family": 9,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "top",
+    "c": 5,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 4
+   }
+  ],
+  "openingHash": "692db1caa348231ff7ccac0bf7ee210f91d3da2467a55949bb9221892c6de2e5",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-grandmaster-9-p1",
+  "rule": "fb0",
+  "algo": "grandmaster",
+  "levels": [
+   "grandmaster",
+   "grandmaster"
+  ],
+  "firstPlayer": 1,
+  "family": 9,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "top",
+    "c": 5,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 4
+   }
+  ],
+  "openingHash": "692db1caa348231ff7ccac0bf7ee210f91d3da2467a55949bb9221892c6de2e5",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-grandmasterPlus-0-p0",
+  "rule": "fb0",
+  "algo": "grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "firstPlayer": 0,
+  "family": 0,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 7
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 6,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 6
+   }
+  ],
+  "openingHash": "24560107fd68b73634c5e9003e9b0055c4255cf7157d2a6f11ea66c3140ff637",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-grandmasterPlus-0-p1",
+  "rule": "fb0",
+  "algo": "grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "firstPlayer": 1,
+  "family": 0,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 7
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 6,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 6
+   }
+  ],
+  "openingHash": "24560107fd68b73634c5e9003e9b0055c4255cf7157d2a6f11ea66c3140ff637",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-grandmasterPlus-1-p0",
+  "rule": "fb0",
+  "algo": "grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "firstPlayer": 0,
+  "family": 1,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 10
+   }
+  ],
+  "openingHash": "c5eda25ea849b36904cce305b2f39c3db34b999acb8669a2387b48a1b4703d28",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-grandmasterPlus-1-p1",
+  "rule": "fb0",
+  "algo": "grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "firstPlayer": 1,
+  "family": 1,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 10
+   }
+  ],
+  "openingHash": "c5eda25ea849b36904cce305b2f39c3db34b999acb8669a2387b48a1b4703d28",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-grandmasterPlus-2-p0",
+  "rule": "fb0",
+  "algo": "grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "firstPlayer": 0,
+  "family": 2,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 9,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 7
+   }
+  ],
+  "openingHash": "6c64cf7d732d25e56a26eae233318645c25f73eb8e04957196c7506a9e918d74",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-grandmasterPlus-2-p1",
+  "rule": "fb0",
+  "algo": "grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "firstPlayer": 1,
+  "family": 2,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 9,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 7
+   }
+  ],
+  "openingHash": "6c64cf7d732d25e56a26eae233318645c25f73eb8e04957196c7506a9e918d74",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-grandmasterPlus-3-p0",
+  "rule": "fb0",
+  "algo": "grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "firstPlayer": 0,
+  "family": 3,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 7,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 0
+   }
+  ],
+  "openingHash": "665aef032fc322e4c7762322ae91b4e74c142015b15410ab6bd9e262216557ef",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-grandmasterPlus-3-p1",
+  "rule": "fb0",
+  "algo": "grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "firstPlayer": 1,
+  "family": 3,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 7,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 0
+   }
+  ],
+  "openingHash": "665aef032fc322e4c7762322ae91b4e74c142015b15410ab6bd9e262216557ef",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-grandmasterPlus-4-p0",
+  "rule": "fb0",
+  "algo": "grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "firstPlayer": 0,
+  "family": 4,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 3,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 1
+   }
+  ],
+  "openingHash": "cf09f4971c0241d8ae105715980bd797fd3ce373d8cfa257b6dd944231060de7",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-grandmasterPlus-4-p1",
+  "rule": "fb0",
+  "algo": "grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "firstPlayer": 1,
+  "family": 4,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 3,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 1
+   }
+  ],
+  "openingHash": "cf09f4971c0241d8ae105715980bd797fd3ce373d8cfa257b6dd944231060de7",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-grandmasterPlus-5-p0",
+  "rule": "fb0",
+  "algo": "grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "firstPlayer": 0,
+  "family": 5,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 3,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 7,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 9
+   }
+  ],
+  "openingHash": "e00c187ea290d1f07136ae32b9a2612dd489a1ef0ffcabd994c868d78fd1883a",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-grandmasterPlus-5-p1",
+  "rule": "fb0",
+  "algo": "grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "firstPlayer": 1,
+  "family": 5,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 3,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 7,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 9
+   }
+  ],
+  "openingHash": "e00c187ea290d1f07136ae32b9a2612dd489a1ef0ffcabd994c868d78fd1883a",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-grandmasterPlus-6-p0",
+  "rule": "fb0",
+  "algo": "grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "firstPlayer": 0,
+  "family": 6,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 10
+   }
+  ],
+  "openingHash": "f4e8a520b34d4343888347bc24bec5373058463fd1d113fd0233f1c2060d4d9f",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-grandmasterPlus-6-p1",
+  "rule": "fb0",
+  "algo": "grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "firstPlayer": 1,
+  "family": 6,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 10
+   }
+  ],
+  "openingHash": "f4e8a520b34d4343888347bc24bec5373058463fd1d113fd0233f1c2060d4d9f",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-grandmasterPlus-7-p0",
+  "rule": "fb0",
+  "algo": "grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "firstPlayer": 0,
+  "family": 7,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 7,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 10,
+    "r": 1
+   }
+  ],
+  "openingHash": "9f25601407f9ef1a5a49d47e92c9d452d020c04cebf2b730ea1de60887e03b11",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-grandmasterPlus-7-p1",
+  "rule": "fb0",
+  "algo": "grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "firstPlayer": 1,
+  "family": 7,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 7,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 10,
+    "r": 1
+   }
+  ],
+  "openingHash": "9f25601407f9ef1a5a49d47e92c9d452d020c04cebf2b730ea1de60887e03b11",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-grandmasterPlus-8-p0",
+  "rule": "fb0",
+  "algo": "grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "firstPlayer": 0,
+  "family": 8,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 4,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 5
+   }
+  ],
+  "openingHash": "db097009f955abf739466052169cfeb191cdbecbda688d29d1257a9daab2242f",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-grandmasterPlus-8-p1",
+  "rule": "fb0",
+  "algo": "grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "firstPlayer": 1,
+  "family": 8,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 4,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 5
+   }
+  ],
+  "openingHash": "db097009f955abf739466052169cfeb191cdbecbda688d29d1257a9daab2242f",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-grandmasterPlus-9-p0",
+  "rule": "fb0",
+  "algo": "grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "firstPlayer": 0,
+  "family": 9,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "top",
+    "c": 5,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 4
+   }
+  ],
+  "openingHash": "692db1caa348231ff7ccac0bf7ee210f91d3da2467a55949bb9221892c6de2e5",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb0-grandmasterPlus-9-p1",
+  "rule": "fb0",
+  "algo": "grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "firstPlayer": 1,
+  "family": 9,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "top",
+    "c": 5,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 4
+   }
+  ],
+  "openingHash": "692db1caa348231ff7ccac0bf7ee210f91d3da2467a55949bb9221892c6de2e5",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-hard-0-p0",
+  "rule": "fb1",
+  "algo": "hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "firstPlayer": 0,
+  "family": 0,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 7
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 6,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 6
+   }
+  ],
+  "openingHash": "24560107fd68b73634c5e9003e9b0055c4255cf7157d2a6f11ea66c3140ff637",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-hard-0-p1",
+  "rule": "fb1",
+  "algo": "hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "firstPlayer": 1,
+  "family": 0,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 7
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 6,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 6
+   }
+  ],
+  "openingHash": "24560107fd68b73634c5e9003e9b0055c4255cf7157d2a6f11ea66c3140ff637",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-hard-1-p0",
+  "rule": "fb1",
+  "algo": "hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "firstPlayer": 0,
+  "family": 1,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 10
+   }
+  ],
+  "openingHash": "c5eda25ea849b36904cce305b2f39c3db34b999acb8669a2387b48a1b4703d28",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-hard-1-p1",
+  "rule": "fb1",
+  "algo": "hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "firstPlayer": 1,
+  "family": 1,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 10
+   }
+  ],
+  "openingHash": "c5eda25ea849b36904cce305b2f39c3db34b999acb8669a2387b48a1b4703d28",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-hard-2-p0",
+  "rule": "fb1",
+  "algo": "hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "firstPlayer": 0,
+  "family": 2,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 9,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 7
+   }
+  ],
+  "openingHash": "6c64cf7d732d25e56a26eae233318645c25f73eb8e04957196c7506a9e918d74",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-hard-2-p1",
+  "rule": "fb1",
+  "algo": "hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "firstPlayer": 1,
+  "family": 2,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 9,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 7
+   }
+  ],
+  "openingHash": "6c64cf7d732d25e56a26eae233318645c25f73eb8e04957196c7506a9e918d74",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-hard-3-p0",
+  "rule": "fb1",
+  "algo": "hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "firstPlayer": 0,
+  "family": 3,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 7,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 0
+   }
+  ],
+  "openingHash": "665aef032fc322e4c7762322ae91b4e74c142015b15410ab6bd9e262216557ef",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-hard-3-p1",
+  "rule": "fb1",
+  "algo": "hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "firstPlayer": 1,
+  "family": 3,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 7,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 0
+   }
+  ],
+  "openingHash": "665aef032fc322e4c7762322ae91b4e74c142015b15410ab6bd9e262216557ef",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-hard-4-p0",
+  "rule": "fb1",
+  "algo": "hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "firstPlayer": 0,
+  "family": 4,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 3,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 1
+   }
+  ],
+  "openingHash": "cf09f4971c0241d8ae105715980bd797fd3ce373d8cfa257b6dd944231060de7",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-hard-4-p1",
+  "rule": "fb1",
+  "algo": "hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "firstPlayer": 1,
+  "family": 4,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 3,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 1
+   }
+  ],
+  "openingHash": "cf09f4971c0241d8ae105715980bd797fd3ce373d8cfa257b6dd944231060de7",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-hard-5-p0",
+  "rule": "fb1",
+  "algo": "hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "firstPlayer": 0,
+  "family": 5,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 3,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 7,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 9
+   }
+  ],
+  "openingHash": "e00c187ea290d1f07136ae32b9a2612dd489a1ef0ffcabd994c868d78fd1883a",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-hard-5-p1",
+  "rule": "fb1",
+  "algo": "hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "firstPlayer": 1,
+  "family": 5,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 3,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 7,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 9
+   }
+  ],
+  "openingHash": "e00c187ea290d1f07136ae32b9a2612dd489a1ef0ffcabd994c868d78fd1883a",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-hard-6-p0",
+  "rule": "fb1",
+  "algo": "hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "firstPlayer": 0,
+  "family": 6,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 10
+   }
+  ],
+  "openingHash": "f4e8a520b34d4343888347bc24bec5373058463fd1d113fd0233f1c2060d4d9f",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-hard-6-p1",
+  "rule": "fb1",
+  "algo": "hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "firstPlayer": 1,
+  "family": 6,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 10
+   }
+  ],
+  "openingHash": "f4e8a520b34d4343888347bc24bec5373058463fd1d113fd0233f1c2060d4d9f",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-hard-7-p0",
+  "rule": "fb1",
+  "algo": "hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "firstPlayer": 0,
+  "family": 7,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 7,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 10,
+    "r": 1
+   }
+  ],
+  "openingHash": "9f25601407f9ef1a5a49d47e92c9d452d020c04cebf2b730ea1de60887e03b11",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-hard-7-p1",
+  "rule": "fb1",
+  "algo": "hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "firstPlayer": 1,
+  "family": 7,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 7,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 10,
+    "r": 1
+   }
+  ],
+  "openingHash": "9f25601407f9ef1a5a49d47e92c9d452d020c04cebf2b730ea1de60887e03b11",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-hard-8-p0",
+  "rule": "fb1",
+  "algo": "hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "firstPlayer": 0,
+  "family": 8,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 4,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 5
+   }
+  ],
+  "openingHash": "db097009f955abf739466052169cfeb191cdbecbda688d29d1257a9daab2242f",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-hard-8-p1",
+  "rule": "fb1",
+  "algo": "hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "firstPlayer": 1,
+  "family": 8,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 4,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 5
+   }
+  ],
+  "openingHash": "db097009f955abf739466052169cfeb191cdbecbda688d29d1257a9daab2242f",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-hard-9-p0",
+  "rule": "fb1",
+  "algo": "hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "firstPlayer": 0,
+  "family": 9,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "top",
+    "c": 5,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 4
+   }
+  ],
+  "openingHash": "692db1caa348231ff7ccac0bf7ee210f91d3da2467a55949bb9221892c6de2e5",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-hard-9-p1",
+  "rule": "fb1",
+  "algo": "hard",
+  "levels": [
+   "hard",
+   "hard"
+  ],
+  "firstPlayer": 1,
+  "family": 9,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "top",
+    "c": 5,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 4
+   }
+  ],
+  "openingHash": "692db1caa348231ff7ccac0bf7ee210f91d3da2467a55949bb9221892c6de2e5",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-grandmaster-0-p0",
+  "rule": "fb1",
+  "algo": "grandmaster",
+  "levels": [
+   "grandmaster",
+   "grandmaster"
+  ],
+  "firstPlayer": 0,
+  "family": 0,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 7
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 6,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 6
+   }
+  ],
+  "openingHash": "24560107fd68b73634c5e9003e9b0055c4255cf7157d2a6f11ea66c3140ff637",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-grandmaster-0-p1",
+  "rule": "fb1",
+  "algo": "grandmaster",
+  "levels": [
+   "grandmaster",
+   "grandmaster"
+  ],
+  "firstPlayer": 1,
+  "family": 0,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 7
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 6,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 6
+   }
+  ],
+  "openingHash": "24560107fd68b73634c5e9003e9b0055c4255cf7157d2a6f11ea66c3140ff637",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-grandmaster-1-p0",
+  "rule": "fb1",
+  "algo": "grandmaster",
+  "levels": [
+   "grandmaster",
+   "grandmaster"
+  ],
+  "firstPlayer": 0,
+  "family": 1,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 10
+   }
+  ],
+  "openingHash": "c5eda25ea849b36904cce305b2f39c3db34b999acb8669a2387b48a1b4703d28",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-grandmaster-1-p1",
+  "rule": "fb1",
+  "algo": "grandmaster",
+  "levels": [
+   "grandmaster",
+   "grandmaster"
+  ],
+  "firstPlayer": 1,
+  "family": 1,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 10
+   }
+  ],
+  "openingHash": "c5eda25ea849b36904cce305b2f39c3db34b999acb8669a2387b48a1b4703d28",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-grandmaster-2-p0",
+  "rule": "fb1",
+  "algo": "grandmaster",
+  "levels": [
+   "grandmaster",
+   "grandmaster"
+  ],
+  "firstPlayer": 0,
+  "family": 2,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 9,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 7
+   }
+  ],
+  "openingHash": "6c64cf7d732d25e56a26eae233318645c25f73eb8e04957196c7506a9e918d74",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-grandmaster-2-p1",
+  "rule": "fb1",
+  "algo": "grandmaster",
+  "levels": [
+   "grandmaster",
+   "grandmaster"
+  ],
+  "firstPlayer": 1,
+  "family": 2,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 9,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 7
+   }
+  ],
+  "openingHash": "6c64cf7d732d25e56a26eae233318645c25f73eb8e04957196c7506a9e918d74",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-grandmaster-3-p0",
+  "rule": "fb1",
+  "algo": "grandmaster",
+  "levels": [
+   "grandmaster",
+   "grandmaster"
+  ],
+  "firstPlayer": 0,
+  "family": 3,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 7,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 0
+   }
+  ],
+  "openingHash": "665aef032fc322e4c7762322ae91b4e74c142015b15410ab6bd9e262216557ef",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-grandmaster-3-p1",
+  "rule": "fb1",
+  "algo": "grandmaster",
+  "levels": [
+   "grandmaster",
+   "grandmaster"
+  ],
+  "firstPlayer": 1,
+  "family": 3,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 7,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 0
+   }
+  ],
+  "openingHash": "665aef032fc322e4c7762322ae91b4e74c142015b15410ab6bd9e262216557ef",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-grandmaster-4-p0",
+  "rule": "fb1",
+  "algo": "grandmaster",
+  "levels": [
+   "grandmaster",
+   "grandmaster"
+  ],
+  "firstPlayer": 0,
+  "family": 4,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 3,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 1
+   }
+  ],
+  "openingHash": "cf09f4971c0241d8ae105715980bd797fd3ce373d8cfa257b6dd944231060de7",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-grandmaster-4-p1",
+  "rule": "fb1",
+  "algo": "grandmaster",
+  "levels": [
+   "grandmaster",
+   "grandmaster"
+  ],
+  "firstPlayer": 1,
+  "family": 4,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 3,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 1
+   }
+  ],
+  "openingHash": "cf09f4971c0241d8ae105715980bd797fd3ce373d8cfa257b6dd944231060de7",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-grandmaster-5-p0",
+  "rule": "fb1",
+  "algo": "grandmaster",
+  "levels": [
+   "grandmaster",
+   "grandmaster"
+  ],
+  "firstPlayer": 0,
+  "family": 5,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 3,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 7,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 9
+   }
+  ],
+  "openingHash": "e00c187ea290d1f07136ae32b9a2612dd489a1ef0ffcabd994c868d78fd1883a",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-grandmaster-5-p1",
+  "rule": "fb1",
+  "algo": "grandmaster",
+  "levels": [
+   "grandmaster",
+   "grandmaster"
+  ],
+  "firstPlayer": 1,
+  "family": 5,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 3,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 7,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 9
+   }
+  ],
+  "openingHash": "e00c187ea290d1f07136ae32b9a2612dd489a1ef0ffcabd994c868d78fd1883a",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-grandmaster-6-p0",
+  "rule": "fb1",
+  "algo": "grandmaster",
+  "levels": [
+   "grandmaster",
+   "grandmaster"
+  ],
+  "firstPlayer": 0,
+  "family": 6,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 10
+   }
+  ],
+  "openingHash": "f4e8a520b34d4343888347bc24bec5373058463fd1d113fd0233f1c2060d4d9f",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-grandmaster-6-p1",
+  "rule": "fb1",
+  "algo": "grandmaster",
+  "levels": [
+   "grandmaster",
+   "grandmaster"
+  ],
+  "firstPlayer": 1,
+  "family": 6,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 10
+   }
+  ],
+  "openingHash": "f4e8a520b34d4343888347bc24bec5373058463fd1d113fd0233f1c2060d4d9f",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-grandmaster-7-p0",
+  "rule": "fb1",
+  "algo": "grandmaster",
+  "levels": [
+   "grandmaster",
+   "grandmaster"
+  ],
+  "firstPlayer": 0,
+  "family": 7,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 7,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 10,
+    "r": 1
+   }
+  ],
+  "openingHash": "9f25601407f9ef1a5a49d47e92c9d452d020c04cebf2b730ea1de60887e03b11",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-grandmaster-7-p1",
+  "rule": "fb1",
+  "algo": "grandmaster",
+  "levels": [
+   "grandmaster",
+   "grandmaster"
+  ],
+  "firstPlayer": 1,
+  "family": 7,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 7,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 10,
+    "r": 1
+   }
+  ],
+  "openingHash": "9f25601407f9ef1a5a49d47e92c9d452d020c04cebf2b730ea1de60887e03b11",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-grandmaster-8-p0",
+  "rule": "fb1",
+  "algo": "grandmaster",
+  "levels": [
+   "grandmaster",
+   "grandmaster"
+  ],
+  "firstPlayer": 0,
+  "family": 8,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 4,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 5
+   }
+  ],
+  "openingHash": "db097009f955abf739466052169cfeb191cdbecbda688d29d1257a9daab2242f",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-grandmaster-8-p1",
+  "rule": "fb1",
+  "algo": "grandmaster",
+  "levels": [
+   "grandmaster",
+   "grandmaster"
+  ],
+  "firstPlayer": 1,
+  "family": 8,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 4,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 5
+   }
+  ],
+  "openingHash": "db097009f955abf739466052169cfeb191cdbecbda688d29d1257a9daab2242f",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-grandmaster-9-p0",
+  "rule": "fb1",
+  "algo": "grandmaster",
+  "levels": [
+   "grandmaster",
+   "grandmaster"
+  ],
+  "firstPlayer": 0,
+  "family": 9,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "top",
+    "c": 5,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 4
+   }
+  ],
+  "openingHash": "692db1caa348231ff7ccac0bf7ee210f91d3da2467a55949bb9221892c6de2e5",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-grandmaster-9-p1",
+  "rule": "fb1",
+  "algo": "grandmaster",
+  "levels": [
+   "grandmaster",
+   "grandmaster"
+  ],
+  "firstPlayer": 1,
+  "family": 9,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "top",
+    "c": 5,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 4
+   }
+  ],
+  "openingHash": "692db1caa348231ff7ccac0bf7ee210f91d3da2467a55949bb9221892c6de2e5",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-grandmasterPlus-0-p0",
+  "rule": "fb1",
+  "algo": "grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "firstPlayer": 0,
+  "family": 0,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 7
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 6,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 6
+   }
+  ],
+  "openingHash": "24560107fd68b73634c5e9003e9b0055c4255cf7157d2a6f11ea66c3140ff637",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-grandmasterPlus-0-p1",
+  "rule": "fb1",
+  "algo": "grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "firstPlayer": 1,
+  "family": 0,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 7
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 6,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 6
+   }
+  ],
+  "openingHash": "24560107fd68b73634c5e9003e9b0055c4255cf7157d2a6f11ea66c3140ff637",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-grandmasterPlus-1-p0",
+  "rule": "fb1",
+  "algo": "grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "firstPlayer": 0,
+  "family": 1,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 10
+   }
+  ],
+  "openingHash": "c5eda25ea849b36904cce305b2f39c3db34b999acb8669a2387b48a1b4703d28",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-grandmasterPlus-1-p1",
+  "rule": "fb1",
+  "algo": "grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "firstPlayer": 1,
+  "family": 1,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 1,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 10
+   }
+  ],
+  "openingHash": "c5eda25ea849b36904cce305b2f39c3db34b999acb8669a2387b48a1b4703d28",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-grandmasterPlus-2-p0",
+  "rule": "fb1",
+  "algo": "grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "firstPlayer": 0,
+  "family": 2,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 9,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 7
+   }
+  ],
+  "openingHash": "6c64cf7d732d25e56a26eae233318645c25f73eb8e04957196c7506a9e918d74",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-grandmasterPlus-2-p1",
+  "rule": "fb1",
+  "algo": "grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "firstPlayer": 1,
+  "family": 2,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 9,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 7
+   }
+  ],
+  "openingHash": "6c64cf7d732d25e56a26eae233318645c25f73eb8e04957196c7506a9e918d74",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-grandmasterPlus-3-p0",
+  "rule": "fb1",
+  "algo": "grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "firstPlayer": 0,
+  "family": 3,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 7,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 0
+   }
+  ],
+  "openingHash": "665aef032fc322e4c7762322ae91b4e74c142015b15410ab6bd9e262216557ef",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-grandmasterPlus-3-p1",
+  "rule": "fb1",
+  "algo": "grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "firstPlayer": 1,
+  "family": 3,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 7,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 6,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 0
+   }
+  ],
+  "openingHash": "665aef032fc322e4c7762322ae91b4e74c142015b15410ab6bd9e262216557ef",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-grandmasterPlus-4-p0",
+  "rule": "fb1",
+  "algo": "grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "firstPlayer": 0,
+  "family": 4,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 3,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 1
+   }
+  ],
+  "openingHash": "cf09f4971c0241d8ae105715980bd797fd3ce373d8cfa257b6dd944231060de7",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-grandmasterPlus-4-p1",
+  "rule": "fb1",
+  "algo": "grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "firstPlayer": 1,
+  "family": 4,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 3,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 9,
+    "r": 1
+   }
+  ],
+  "openingHash": "cf09f4971c0241d8ae105715980bd797fd3ce373d8cfa257b6dd944231060de7",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-grandmasterPlus-5-p0",
+  "rule": "fb1",
+  "algo": "grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "firstPlayer": 0,
+  "family": 5,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 3,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 7,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 9
+   }
+  ],
+  "openingHash": "e00c187ea290d1f07136ae32b9a2612dd489a1ef0ffcabd994c868d78fd1883a",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-grandmasterPlus-5-p1",
+  "rule": "fb1",
+  "algo": "grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "firstPlayer": 1,
+  "family": 5,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 3,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 7,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 9
+   }
+  ],
+  "openingHash": "e00c187ea290d1f07136ae32b9a2612dd489a1ef0ffcabd994c868d78fd1883a",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-grandmasterPlus-6-p0",
+  "rule": "fb1",
+  "algo": "grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "firstPlayer": 0,
+  "family": 6,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 10
+   }
+  ],
+  "openingHash": "f4e8a520b34d4343888347bc24bec5373058463fd1d113fd0233f1c2060d4d9f",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-grandmasterPlus-6-p1",
+  "rule": "fb1",
+  "algo": "grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "firstPlayer": 1,
+  "family": 6,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 10
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 10,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 2,
+    "r": 10
+   }
+  ],
+  "openingHash": "f4e8a520b34d4343888347bc24bec5373058463fd1d113fd0233f1c2060d4d9f",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-grandmasterPlus-7-p0",
+  "rule": "fb1",
+  "algo": "grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "firstPlayer": 0,
+  "family": 7,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 7,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 10,
+    "r": 1
+   }
+  ],
+  "openingHash": "9f25601407f9ef1a5a49d47e92c9d452d020c04cebf2b730ea1de60887e03b11",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-grandmasterPlus-7-p1",
+  "rule": "fb1",
+  "algo": "grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "firstPlayer": 1,
+  "family": 7,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 5
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 7,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 0,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 10,
+    "r": 1
+   }
+  ],
+  "openingHash": "9f25601407f9ef1a5a49d47e92c9d452d020c04cebf2b730ea1de60887e03b11",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-grandmasterPlus-8-p0",
+  "rule": "fb1",
+  "algo": "grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "firstPlayer": 0,
+  "family": 8,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 4,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 5
+   }
+  ],
+  "openingHash": "db097009f955abf739466052169cfeb191cdbecbda688d29d1257a9daab2242f",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-grandmasterPlus-8-p1",
+  "rule": "fb1",
+  "algo": "grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "firstPlayer": 1,
+  "family": 8,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 2,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 4,
+    "r": 9
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 8
+   },
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 8,
+    "r": 6
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 8,
+    "r": 5
+   }
+  ],
+  "openingHash": "db097009f955abf739466052169cfeb191cdbecbda688d29d1257a9daab2242f",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-grandmasterPlus-9-p0",
+  "rule": "fb1",
+  "algo": "grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "firstPlayer": 0,
+  "family": 9,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "top",
+    "c": 5,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 4
+   }
+  ],
+  "openingHash": "692db1caa348231ff7ccac0bf7ee210f91d3da2467a55949bb9221892c6de2e5",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ },
+ {
+  "gameId": "fbr-fb1-grandmasterPlus-9-p1",
+  "rule": "fb1",
+  "algo": "grandmasterPlus",
+  "levels": [
+   "grandmasterPlus",
+   "grandmasterPlus"
+  ],
+  "firstPlayer": 1,
+  "family": 9,
+  "openingActions": [
+   {
+    "type": "wall",
+    "kind": "v",
+    "c": 5,
+    "r": 2
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 1,
+    "r": 3
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 3,
+    "r": 4
+   },
+   {
+    "type": "wall",
+    "kind": "top",
+    "c": 5,
+    "r": 0
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 5,
+    "r": 1
+   },
+   {
+    "type": "wall",
+    "kind": "h",
+    "c": 11,
+    "r": 4
+   }
+  ],
+  "openingHash": "692db1caa348231ff7ccac0bf7ee210f91d3da2467a55949bb9221892c6de2e5",
+  "cols": 12,
+  "rows": 12,
+  "cap": 360
+ }
+]

@@ -9,9 +9,9 @@ import { AI } from "../../src/ai.js";
 
 const arg = (n, d) => { const i = process.argv.indexOf("--" + n); return i >= 0 ? process.argv[i + 1] : d; };
 const shard = Number(arg("shard", 0)), shards = Number(arg("shards", 1));
-const OUT = "_extract/fb/run";
+const OUT = arg("out", "_extract/fb/run");
 mkdirSync(`${OUT}/games`, { recursive: true });
-const schedule = JSON.parse(readFileSync("_extract/fb/schedule.json", "utf8"));
+const schedule = JSON.parse(readFileSync(arg("schedule", "_extract/fb/schedule.json"), "utf8"));
 const mine = schedule.filter((_, i) => i % shards === shard);
 const atomic = (p, text) => { const t = p + ".tmp"; writeFileSync(t, text); renameSync(t, p); };
 
