@@ -1,0 +1,465 @@
+{
+ "games": 23,
+ "invalid": 0,
+ "u": 0,
+ "by": {
+  "12x12|grandmasterPlus-hell": {
+   "n": 2,
+   "w0": 1,
+   "w1": 1,
+   "d": 0,
+   "u": 0,
+   "ms": 3692916,
+   "plies": 408,
+   "avgMs": 1846458,
+   "avgPlies": 204
+  },
+  "12x12|hard-grandmasterPlus": {
+   "n": 2,
+   "w0": 1,
+   "w1": 1,
+   "d": 0,
+   "u": 0,
+   "ms": 352487,
+   "plies": 356,
+   "avgMs": 176244,
+   "avgPlies": 178
+  },
+  "12x12|self-easy": {
+   "n": 2,
+   "w0": 2,
+   "w1": 0,
+   "d": 0,
+   "u": 0,
+   "ms": 105,
+   "plies": 645,
+   "avgMs": 53,
+   "avgPlies": 322.5
+  },
+  "12x12|self-grandmasterPlus": {
+   "n": 2,
+   "w0": 1,
+   "w1": 1,
+   "d": 0,
+   "u": 0,
+   "ms": 798607,
+   "plies": 384,
+   "avgMs": 399304,
+   "avgPlies": 192
+  },
+  "18x18|grandmasterPlus-hell": {
+   "n": 1,
+   "w0": 0,
+   "w1": 1,
+   "d": 0,
+   "u": 0,
+   "ms": 2417880,
+   "plies": 232,
+   "avgMs": 2417880,
+   "avgPlies": 232
+  },
+  "18x18|hard-grandmasterPlus": {
+   "n": 2,
+   "w0": 1,
+   "w1": 1,
+   "d": 0,
+   "u": 0,
+   "ms": 1040559,
+   "plies": 866,
+   "avgMs": 520280,
+   "avgPlies": 433
+  },
+  "18x18|self-easy": {
+   "n": 2,
+   "w0": 2,
+   "w1": 0,
+   "d": 0,
+   "u": 0,
+   "ms": 436,
+   "plies": 1315,
+   "avgMs": 218,
+   "avgPlies": 657.5
+  },
+  "18x18|self-grandmasterPlus": {
+   "n": 2,
+   "w0": 0,
+   "w1": 2,
+   "d": 0,
+   "u": 0,
+   "ms": 1428639,
+   "plies": 633,
+   "avgMs": 714320,
+   "avgPlies": 316.5
+  },
+  "8x8|grandmasterPlus-hell": {
+   "n": 2,
+   "w0": 2,
+   "w1": 0,
+   "d": 0,
+   "u": 0,
+   "ms": 1627915,
+   "plies": 223,
+   "avgMs": 813958,
+   "avgPlies": 111.5
+  },
+  "8x8|hard-grandmasterPlus": {
+   "n": 2,
+   "w0": 1,
+   "w1": 1,
+   "d": 0,
+   "u": 0,
+   "ms": 148253,
+   "plies": 226,
+   "avgMs": 74127,
+   "avgPlies": 113
+  },
+  "8x8|self-easy": {
+   "n": 2,
+   "w0": 0,
+   "w1": 2,
+   "d": 0,
+   "u": 0,
+   "ms": 39,
+   "plies": 251,
+   "avgMs": 20,
+   "avgPlies": 125.5
+  },
+  "8x8|self-grandmasterPlus": {
+   "n": 2,
+   "w0": 2,
+   "w1": 0,
+   "d": 0,
+   "u": 0,
+   "ms": 308784,
+   "plies": 159,
+   "avgMs": 154392,
+   "avgPlies": 79.5
+  }
+ },
+ "rows": [
+  {
+   "gameId": "v2-12x12-grandmasterPlus-hell-std-12x12-p0",
+   "sizeKey": "12x12",
+   "unitId": "grandmasterPlus-hell",
+   "levels": [
+    "grandmasterPlus",
+    "hell"
+   ],
+   "result": "W0",
+   "plies": 263,
+   "ms": 2249859,
+   "cuts": [
+    240
+   ]
+  },
+  {
+   "gameId": "v2-12x12-grandmasterPlus-hell-std-12x12-p1",
+   "sizeKey": "12x12",
+   "unitId": "grandmasterPlus-hell",
+   "levels": [
+    "grandmasterPlus",
+    "hell"
+   ],
+   "result": "W1",
+   "plies": 145,
+   "ms": 1443057,
+   "cuts": []
+  },
+  {
+   "gameId": "v2-12x12-hard-grandmasterPlus-std-12x12-p0",
+   "sizeKey": "12x12",
+   "unitId": "hard-grandmasterPlus",
+   "levels": [
+    "hard",
+    "grandmasterPlus"
+   ],
+   "result": "W0",
+   "plies": 163,
+   "ms": 170700,
+   "cuts": []
+  },
+  {
+   "gameId": "v2-12x12-hard-grandmasterPlus-std-12x12-p1",
+   "sizeKey": "12x12",
+   "unitId": "hard-grandmasterPlus",
+   "levels": [
+    "hard",
+    "grandmasterPlus"
+   ],
+   "result": "W1",
+   "plies": 193,
+   "ms": 181787,
+   "cuts": []
+  },
+  {
+   "gameId": "v2-12x12-self-easy-std-12x12-p0",
+   "sizeKey": "12x12",
+   "unitId": "self-easy",
+   "levels": [
+    "easy",
+    "easy"
+   ],
+   "result": "W0",
+   "plies": 305,
+   "ms": 50,
+   "cuts": [
+    240
+   ]
+  },
+  {
+   "gameId": "v2-12x12-self-easy-std-12x12-p1",
+   "sizeKey": "12x12",
+   "unitId": "self-easy",
+   "levels": [
+    "easy",
+    "easy"
+   ],
+   "result": "W0",
+   "plies": 340,
+   "ms": 55,
+   "cuts": [
+    240
+   ]
+  },
+  {
+   "gameId": "v2-12x12-self-grandmasterPlus-std-12x12-p0",
+   "sizeKey": "12x12",
+   "unitId": "self-grandmasterPlus",
+   "levels": [
+    "grandmasterPlus",
+    "grandmasterPlus"
+   ],
+   "result": "W0",
+   "plies": 133,
+   "ms": 302446,
+   "cuts": []
+  },
+  {
+   "gameId": "v2-12x12-self-grandmasterPlus-std-12x12-p1",
+   "sizeKey": "12x12",
+   "unitId": "self-grandmasterPlus",
+   "levels": [
+    "grandmasterPlus",
+    "grandmasterPlus"
+   ],
+   "result": "W1",
+   "plies": 251,
+   "ms": 496161,
+   "cuts": [
+    240
+   ]
+  },
+  {
+   "gameId": "v2-18x18-grandmasterPlus-hell-std-18x18-p0",
+   "sizeKey": "18x18",
+   "unitId": "grandmasterPlus-hell",
+   "levels": [
+    "grandmasterPlus",
+    "hell"
+   ],
+   "result": "W1",
+   "plies": 232,
+   "ms": 2417880,
+   "cuts": []
+  },
+  {
+   "gameId": "v2-18x18-hard-grandmasterPlus-std-18x18-p0",
+   "sizeKey": "18x18",
+   "unitId": "hard-grandmasterPlus",
+   "levels": [
+    "hard",
+    "grandmasterPlus"
+   ],
+   "result": "W0",
+   "plies": 355,
+   "ms": 401120,
+   "cuts": [
+    240
+   ]
+  },
+  {
+   "gameId": "v2-18x18-hard-grandmasterPlus-std-18x18-p1",
+   "sizeKey": "18x18",
+   "unitId": "hard-grandmasterPlus",
+   "levels": [
+    "hard",
+    "grandmasterPlus"
+   ],
+   "result": "W1",
+   "plies": 511,
+   "ms": 639439,
+   "cuts": [
+    240,
+    360
+   ]
+  },
+  {
+   "gameId": "v2-18x18-self-easy-std-18x18-p0",
+   "sizeKey": "18x18",
+   "unitId": "self-easy",
+   "levels": [
+    "easy",
+    "easy"
+   ],
+   "result": "W0",
+   "plies": 581,
+   "ms": 207,
+   "cuts": [
+    240,
+    360
+   ]
+  },
+  {
+   "gameId": "v2-18x18-self-easy-std-18x18-p1",
+   "sizeKey": "18x18",
+   "unitId": "self-easy",
+   "levels": [
+    "easy",
+    "easy"
+   ],
+   "result": "W0",
+   "plies": 734,
+   "ms": 229,
+   "cuts": [
+    240,
+    360,
+    600
+   ]
+  },
+  {
+   "gameId": "v2-18x18-self-grandmasterPlus-std-18x18-p0",
+   "sizeKey": "18x18",
+   "unitId": "self-grandmasterPlus",
+   "levels": [
+    "grandmasterPlus",
+    "grandmasterPlus"
+   ],
+   "result": "W1",
+   "plies": 254,
+   "ms": 643452,
+   "cuts": [
+    240
+   ]
+  },
+  {
+   "gameId": "v2-18x18-self-grandmasterPlus-std-18x18-p1",
+   "sizeKey": "18x18",
+   "unitId": "self-grandmasterPlus",
+   "levels": [
+    "grandmasterPlus",
+    "grandmasterPlus"
+   ],
+   "result": "W1",
+   "plies": 379,
+   "ms": 785187,
+   "cuts": [
+    240,
+    360
+   ]
+  },
+  {
+   "gameId": "v2-8x8-grandmasterPlus-hell-std-8x8-p0",
+   "sizeKey": "8x8",
+   "unitId": "grandmasterPlus-hell",
+   "levels": [
+    "grandmasterPlus",
+    "hell"
+   ],
+   "result": "W0",
+   "plies": 109,
+   "ms": 843080,
+   "cuts": []
+  },
+  {
+   "gameId": "v2-8x8-grandmasterPlus-hell-std-8x8-p1",
+   "sizeKey": "8x8",
+   "unitId": "grandmasterPlus-hell",
+   "levels": [
+    "grandmasterPlus",
+    "hell"
+   ],
+   "result": "W0",
+   "plies": 114,
+   "ms": 784835,
+   "cuts": []
+  },
+  {
+   "gameId": "v2-8x8-hard-grandmasterPlus-std-8x8-p0",
+   "sizeKey": "8x8",
+   "unitId": "hard-grandmasterPlus",
+   "levels": [
+    "hard",
+    "grandmasterPlus"
+   ],
+   "result": "W1",
+   "plies": 156,
+   "ms": 68398,
+   "cuts": []
+  },
+  {
+   "gameId": "v2-8x8-hard-grandmasterPlus-std-8x8-p1",
+   "sizeKey": "8x8",
+   "unitId": "hard-grandmasterPlus",
+   "levels": [
+    "hard",
+    "grandmasterPlus"
+   ],
+   "result": "W0",
+   "plies": 70,
+   "ms": 79855,
+   "cuts": []
+  },
+  {
+   "gameId": "v2-8x8-self-easy-std-8x8-p0",
+   "sizeKey": "8x8",
+   "unitId": "self-easy",
+   "levels": [
+    "easy",
+    "easy"
+   ],
+   "result": "W1",
+   "plies": 126,
+   "ms": 20,
+   "cuts": []
+  },
+  {
+   "gameId": "v2-8x8-self-easy-std-8x8-p1",
+   "sizeKey": "8x8",
+   "unitId": "self-easy",
+   "levels": [
+    "easy",
+    "easy"
+   ],
+   "result": "W1",
+   "plies": 125,
+   "ms": 19,
+   "cuts": []
+  },
+  {
+   "gameId": "v2-8x8-self-grandmasterPlus-std-8x8-p0",
+   "sizeKey": "8x8",
+   "unitId": "self-grandmasterPlus",
+   "levels": [
+    "grandmasterPlus",
+    "grandmasterPlus"
+   ],
+   "result": "W0",
+   "plies": 93,
+   "ms": 174488,
+   "cuts": []
+  },
+  {
+   "gameId": "v2-8x8-self-grandmasterPlus-std-8x8-p1",
+   "sizeKey": "8x8",
+   "unitId": "self-grandmasterPlus",
+   "levels": [
+    "grandmasterPlus",
+    "grandmasterPlus"
+   ],
+   "result": "W0",
+   "plies": 66,
+   "ms": 134296,
+   "cuts": []
+  }
+ ]
+}

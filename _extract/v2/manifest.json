@@ -1,0 +1,33 @@
+{
+ "schema": "gl-ai-v2",
+ "commit": "e335aaecb518d7fccee7e9936d592136dbd507d5",
+ "levels": [
+  "easy",
+  "normal",
+  "hard",
+  "master",
+  "grandmaster",
+  "grandmasterPlus",
+  "hell"
+ ],
+ "sizes": [
+  [
+   8,
+   8
+  ],
+  [
+   12,
+   12
+  ],
+  [
+   18,
+   18
+  ]
+ ],
+ "units": 28,
+ "total": 840,
+ "pilot": 24,
+ "scheduleHash": "7798b1f2f6c040884e596544e50a97f986c8afeb0872c9b2f389093dadd1fbb8",
+ "pilotHash": "6acb86fcd91f84f57279c1d094bd1b186dcf02cb0e017e350e941df21bf1e712",
+ "createdAt": "2026-11-28T16:08:51.019Z"
+}

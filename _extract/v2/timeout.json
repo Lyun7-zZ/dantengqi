@@ -1,0 +1,11 @@
+{
+ "gameId": "v2-18x18-grandmasterPlus-hell-std-18x18-p1",
+ "sizeKey": "18x18",
+ "unitId": "grandmasterPlus-hell",
+ "firstPlayer": 1,
+ "levels": ["grandmasterPlus", "hell"],
+ "capPlies": 2400,
+ "elapsedHoursAtStop": 2.7,
+ "result": "TIMEOUT_NOT_TERMINAL",
+ "note": "人工停止；未伪造终局，未计入 U 或终局库。"
+}
