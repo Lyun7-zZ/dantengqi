@@ -12,7 +12,7 @@ import { M, now } from "./metrics.js";
 
 export const DIRS = ["up", "down", "left", "right"];
 
-export function createState(firstPlayer = 0, { tolerance = 1, wallLimit = Infinity, drawMode = "firstOnly", cols = COLS, rows = ROWS } = {}) {
+export function createState(firstPlayer = 0, { tolerance = 1, wallLimit = Infinity, drawMode = "firstOnly", endMode = "fb0", cols = COLS, rows = ROWS } = {}) {
   if (!validDims(cols, rows)) throw new Error(`bad board size ${cols}x${rows}`);
   return {
     cols, rows,
@@ -26,6 +26,7 @@ export function createState(firstPlayer = 0, { tolerance = 1, wallLimit = Infini
     turn: firstPlayer,
     firstPlayer,
     drawMode,
+    endMode,
     tolerance,
     wallLimit: Array.isArray(wallLimit) ? [wallLimit[0], wallLimit[1]] : [wallLimit, wallLimit],
     wallsUsed: [0, 0],
@@ -46,6 +47,7 @@ export function cloneState(s) {
     turn: s.turn,
     firstPlayer: s.firstPlayer,
     drawMode: s.drawMode,
+    endMode: s.endMode,
     tolerance: s.tolerance,
     wallLimit: s.wallLimit.slice(),
     wallsUsed: s.wallsUsed.slice(),
@@ -82,6 +84,7 @@ export function normalizeState(state) {
   else state.wallsUsed = [Number(state.wallsUsed[0]) || 0, Number(state.wallsUsed[1]) || 0];
   state.tolerance = Number.isFinite(state.tolerance) ? state.tolerance : 1;
   if (typeof state.drawMode !== "string" || !state.drawMode) state.drawMode = "firstOnly";
+  if (state.endMode !== "fb0" && state.endMode !== "fb1") state.endMode = "fb0";
   if (state.turn !== 0 && state.turn !== 1) state.turn = state.firstPlayer === 1 ? 1 : 0;
   if (state.firstPlayer !== 0 && state.firstPlayer !== 1) state.firstPlayer = state.turn;
   if (!Array.isArray(state.players) || state.players.length !== 2) {
@@ -199,9 +202,9 @@ function applyActionImpl(state, action) {
       const opp = next.players[1 - p];
       const oppDist = distanceToGoal(next, opp.c, opp.r);
       const withinTolerance = oppDist <= next.tolerance;
-      const draw = next.drawMode === "firstOnly"
+      const draw = next.endMode === "fb1" ? false : (next.drawMode === "firstOnly"
         ? (p === next.firstPlayer && withinTolerance)
-        : withinTolerance;
+        : withinTolerance);
       next.winner = draw ? "draw" : p;
       event = { type: "exit", player: p, draw, oppDist };
     } else {

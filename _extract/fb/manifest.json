@@ -1,0 +1,16 @@
+{
+ "schema": "fb-v1",
+ "commit": "be87532fdaf4a8d1ea129fd140027341ef525ff2",
+ "rules": [
+  "fb0",
+  "fb1"
+ ],
+ "algos": [
+  "hard",
+  "grandmaster",
+  "grandmasterPlus"
+ ],
+ "total": 240,
+ "hash": "a1030a39260b3af73e2b8eae78240ced48dcfd603d16527f968a774466345ae6",
+ "createdAt": "2026-11-28T02:45:52.611Z"
+}

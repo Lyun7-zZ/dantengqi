@@ -1,0 +1,7 @@
+rule,algo,n,firstWin,secondWin,draw,u,cut240,score,upper
+fb0,grandmaster,40,10,16,5,9,20,0.3125,0.5375
+fb0,grandmasterPlus,40,19,21,0,0,17,0.475,0.475
+fb0,hard,40,23,16,1,0,17,0.5875,0.5875
+fb1,grandmaster,40,17,13,0,10,19,0.425,0.675
+fb1,grandmasterPlus,40,21,19,0,0,23,0.525,0.525
+fb1,hard,40,19,21,0,0,17,0.475,0.475

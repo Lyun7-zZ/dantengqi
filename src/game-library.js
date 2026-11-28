@@ -33,6 +33,7 @@ export function stateToJson(state) {
     turn: state.turn,
     firstPlayer: state.firstPlayer,
     drawMode: state.drawMode,
+    endMode: state.endMode,
     tolerance: state.tolerance,
     wallLimit: state.wallLimit.map((x) => (Number.isFinite(x) ? x : "unlimited")),
     wallsUsed: state.wallsUsed.slice(),
